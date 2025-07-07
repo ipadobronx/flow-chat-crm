@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function TopBar() {
   return (
@@ -21,6 +22,9 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center space-x-4">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Search */}
         <Button variant="ghost" size="icon" className="relative">
           <Search className="w-4 h-4" />
