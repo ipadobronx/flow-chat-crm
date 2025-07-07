@@ -1,0 +1,110 @@
+import { Calendar, MessageSquare, Users, Send, Target, BarChart, Settings } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader,
+  useSidebar,
+} from "@/components/ui/sidebar";
+
+const navItems = [
+  {
+    title: "Pipeline",
+    url: "/dashboard/pipeline",
+    icon: Target,
+    description: "Kanban board"
+  },
+  {
+    title: "Live Chat",
+    url: "/dashboard/chat",
+    icon: MessageSquare,
+    description: "WhatsApp integration"
+  },
+  {
+    title: "Scheduling",
+    url: "/dashboard/schedule",
+    icon: Calendar,
+    description: "Central de agendamentos"
+  },
+  {
+    title: "Bulk Messaging",
+    url: "/dashboard/bulk",
+    icon: Send,
+    description: "Envios em massa"
+  },
+  {
+    title: "Follow-Up",
+    url: "/dashboard/follow-up",
+    icon: Users,
+    description: "Lead management"
+  },
+  {
+    title: "Reports",
+    url: "/dashboard/reports",
+    icon: BarChart,
+    description: "Analytics & insights"
+  },
+  {
+    title: "Settings",
+    url: "/dashboard/settings",
+    icon: Settings,
+    description: "Configurações"
+  }
+];
+
+export function AppSidebar() {
+  const { state } = useSidebar();
+  const location = useLocation();
+  const isCollapsed = state === "collapsed";
+
+  const isActive = (path: string) => location.pathname === path;
+
+  return (
+    <Sidebar className="border-r bg-card">
+      <SidebarHeader className="p-4">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <Target className="w-4 h-4 text-white" />
+          </div>
+          {!isCollapsed && (
+            <div>
+              <h1 className="text-lg font-semibold">CRM Nichado</h1>
+              <p className="text-xs text-muted-foreground">Sales Dashboard</p>
+            </div>
+          )}
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="px-2">
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <NavLink to={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors">
+                      <item.icon className="w-4 h-4" />
+                      {!isCollapsed && (
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.title}</div>
+                          <div className="text-xs text-muted-foreground">{item.description}</div>
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  );
+}
