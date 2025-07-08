@@ -10,8 +10,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { DndContext, closestCenter, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { 
+  DndContext, 
+  closestCenter, 
+  DragEndEvent, 
+  DragOverlay, 
+  DragStartEvent,
+  useDroppable,
+  PointerSensor,
+  useSensor,
+  useSensors
+} from "@dnd-kit/core";
+import { 
+  SortableContext, 
+  verticalListSortingStrategy, 
+  useSortable,
+  arrayMove 
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 const stages = [
@@ -175,20 +190,6 @@ const leads = {
   ]
 };
 
-// Componente para área droppable
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className={`transition-colors ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed' : ''}`}
-    >
-      {children}
-    </div>
-  );
-}
-
 // Componente para card arrastável
 function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }) {
   const {
@@ -198,20 +199,11 @@ function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: lead.id });
+  } = useSortable({ id: lead.id.toString() });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  };
-
-  // Separar handlers de drag e click
-  const handleClick = (e: React.MouseEvent) => {
-    // Só executa click se não estiver arrastando
-    if (!isDragging) {
-      e.stopPropagation();
-      onClick();
-    }
   };
 
   return (
@@ -219,24 +211,42 @@ function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all select-none ${
-        isDragging ? 'opacity-50 scale-105 ring-2 ring-primary shadow-lg z-50' : 'cursor-pointer'
+      {...listeners}
+      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all select-none cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-50 scale-105 ring-2 ring-primary shadow-lg z-50' : ''
       }`}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isDragging) {
+          onClick();
+        }
+      }}
     >
-      {/* Handle para arrastar */}
-      <div {...listeners} className="cursor-grab active:cursor-grabbing">
-        <div className="flex items-start space-x-3" onClick={handleClick}>
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
-            <AvatarFallback>{lead.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm">{lead.name}</p>
-            <p className="text-xs text-muted-foreground">{lead.company}</p>
-            <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
-          </div>
+      <div className="flex items-start space-x-3">
+        <Avatar className="w-8 h-8">
+          <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
+          <AvatarFallback>{lead.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm">{lead.name}</p>
+          <p className="text-xs text-muted-foreground">{lead.company}</p>
+          <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Componente para área droppable
+function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`transition-all duration-200 ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed rounded-lg' : ''}`}
+    >
+      {children}
     </div>
   );
 }
@@ -252,6 +262,14 @@ export default function Pipeline() {
     "Closed Won": leads["Closed Won"]
   });
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -259,10 +277,13 @@ export default function Pipeline() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
     
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
     
     // Encontrar qual lead está sendo movido e de qual coluna
     let sourceLead: any = null;
@@ -276,10 +297,14 @@ export default function Pipeline() {
       }
     });
     
-    if (!sourceLead) return;
+    if (!sourceLead) {
+      setActiveId(null);
+      return;
+    }
     
-    // Se overId é um nome de coluna (droppable), mover para essa coluna
-    const targetColumn = Object.keys(columns).find(col => col === overId) || sourceColumn;
+    // Verificar se overId é uma coluna
+    const stageNames = Object.keys(columns);
+    const targetColumn = stageNames.includes(overId) ? overId : sourceColumn;
     
     if (sourceColumn !== targetColumn) {
       setColumns(prev => {
@@ -328,6 +353,7 @@ export default function Pipeline() {
         </div>
 
         <DndContext
+          sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
