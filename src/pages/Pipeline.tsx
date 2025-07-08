@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { DndContext, closestCenter, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -175,6 +175,20 @@ const leads = {
   ]
 };
 
+// Componente para área droppable
+function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`transition-colors ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed' : ''}`}
+    >
+      {children}
+    </div>
+  );
+}
+
 // Componente para card arrastável
 function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }) {
   const {
@@ -191,26 +205,36 @@ function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }
     transition,
   };
 
+  // Separar handlers de drag e click
+  const handleClick = (e: React.MouseEvent) => {
+    // Só executa click se não estiver arrastando
+    if (!isDragging) {
+      e.stopPropagation();
+      onClick();
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-70 scale-105 ring-2 ring-primary shadow-lg' : ''
+      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all select-none ${
+        isDragging ? 'opacity-50 scale-105 ring-2 ring-primary shadow-lg z-50' : 'cursor-pointer'
       }`}
-      onClick={onClick}
     >
-      <div className="flex items-start space-x-3">
-        <Avatar className="w-8 h-8">
-          <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
-          <AvatarFallback>{lead.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm">{lead.name}</p>
-          <p className="text-xs text-muted-foreground">{lead.company}</p>
-          <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
+      {/* Handle para arrastar */}
+      <div {...listeners} className="cursor-grab active:cursor-grabbing">
+        <div className="flex items-start space-x-3" onClick={handleClick}>
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
+            <AvatarFallback>{lead.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm">{lead.name}</p>
+            <p className="text-xs text-muted-foreground">{lead.company}</p>
+            <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -310,33 +334,32 @@ export default function Pipeline() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {stages.map((stage) => (
-              <Card 
-                key={stage.name} 
-                className="h-fit"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
-                    <Badge variant="secondary">{columns[stage.name as keyof typeof columns]?.length || 0}</Badge>
-                  </div>
-                  <div className={`w-full h-1 rounded-full ${stage.color}`} />
-                </CardHeader>
-                <SortableContext 
-                  items={columns[stage.name as keyof typeof columns]?.map(lead => lead.id) || []}
-                  strategy={verticalListSortingStrategy}
-                  id={stage.name}
-                >
-                  <CardContent className="space-y-3 min-h-[200px]" data-droppable-id={stage.name}>
-                    {columns[stage.name as keyof typeof columns]?.map((lead) => (
-                      <DraggableLeadCard
-                        key={lead.id}
-                        lead={lead}
-                        onClick={() => setSelectedLead(lead)}
-                      />
-                    ))}
-                  </CardContent>
-                </SortableContext>
-              </Card>
+              <DroppableColumn key={stage.name} id={stage.name}>
+                <Card className="h-fit">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
+                      <Badge variant="secondary">{columns[stage.name as keyof typeof columns]?.length || 0}</Badge>
+                    </div>
+                    <div className={`w-full h-1 rounded-full ${stage.color}`} />
+                  </CardHeader>
+                  <SortableContext 
+                    items={columns[stage.name as keyof typeof columns]?.map(lead => lead.id) || []}
+                    strategy={verticalListSortingStrategy}
+                    id={stage.name}
+                  >
+                    <CardContent className="space-y-3 min-h-[200px]">
+                      {columns[stage.name as keyof typeof columns]?.map((lead) => (
+                        <DraggableLeadCard
+                          key={lead.id}
+                          lead={lead}
+                          onClick={() => setSelectedLead(lead)}
+                        />
+                      ))}
+                    </CardContent>
+                  </SortableContext>
+                </Card>
+              </DroppableColumn>
             ))}
           </div>
           
