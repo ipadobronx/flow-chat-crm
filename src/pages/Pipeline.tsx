@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { DndContext, closestCenter, DragEndEvent, DragOverlay, DragStartEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const stages = [
   { name: "New Leads", count: 12, color: "bg-blue-500" },
@@ -172,30 +175,110 @@ const leads = {
   ]
 };
 
+// Componente para card arrastável
+function DraggableLeadCard({ lead, onClick }: { lead: any; onClick: () => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lead.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-70 scale-105 ring-2 ring-primary shadow-lg' : ''
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-start space-x-3">
+        <Avatar className="w-8 h-8">
+          <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
+          <AvatarFallback>{lead.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm">{lead.name}</p>
+          <p className="text-xs text-muted-foreground">{lead.company}</p>
+          <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Pipeline() {
   const [selectedLead, setSelectedLead] = useState<any>(null);
-  const [draggedLead, setDraggedLead] = useState<any>(null);
-  const [draggedFrom, setDraggedFrom] = useState<string>("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [columns, setColumns] = useState({
+    "New Leads": leads["New Leads"],
+    "Contacted": leads["Contacted"], 
+    "Qualified": leads["Qualified"],
+    "Proposal": leads["Proposal"],
+    "Closed Won": leads["Closed Won"]
+  });
 
-  const handleDragStart = (e: React.DragEvent, lead: any, stage: string) => {
-    setDraggedLead(lead);
-    setDraggedFrom(stage);
-    e.dataTransfer.effectAllowed = "move";
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const handleDrop = (e: React.DragEvent, targetStage: string) => {
-    e.preventDefault();
-    if (draggedLead && draggedFrom !== targetStage) {
-      // Aqui você pode implementar a lógica para mover o lead entre estágios
-      console.log(`Moving ${draggedLead.name} from ${draggedFrom} to ${targetStage}`);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+    
+    const activeId = active.id as string;
+    const overId = over.id as string;
+    
+    // Encontrar qual lead está sendo movido e de qual coluna
+    let sourceLead: any = null;
+    let sourceColumn: string = "";
+    
+    Object.entries(columns).forEach(([columnName, columnLeads]) => {
+      const foundLead = columnLeads.find((lead: any) => lead.id.toString() === activeId);
+      if (foundLead) {
+        sourceLead = foundLead;
+        sourceColumn = columnName;
+      }
+    });
+    
+    if (!sourceLead) return;
+    
+    // Se overId é um nome de coluna (droppable), mover para essa coluna
+    const targetColumn = Object.keys(columns).find(col => col === overId) || sourceColumn;
+    
+    if (sourceColumn !== targetColumn) {
+      setColumns(prev => {
+        const newColumns = { ...prev };
+        
+        // Remover da coluna origem
+        newColumns[sourceColumn as keyof typeof prev] = prev[sourceColumn as keyof typeof prev].filter(
+          (lead: any) => lead.id.toString() !== activeId
+        );
+        
+        // Adicionar na coluna destino
+        newColumns[targetColumn as keyof typeof prev] = [
+          ...prev[targetColumn as keyof typeof prev],
+          sourceLead
+        ];
+        
+        return newColumns;
+      });
+      
+      console.log(`Moving ${sourceLead.name} from ${sourceColumn} to ${targetColumn}`);
     }
-    setDraggedLead(null);
-    setDraggedFrom("");
+    
+    setActiveId(null);
   };
 
   const YesNoField = ({ label, value }: { label: string; value: boolean }) => (
@@ -220,47 +303,60 @@ export default function Pipeline() {
           <p className="text-muted-foreground">Kanban board for lead management</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {stages.map((stage) => (
-            <Card 
-              key={stage.name} 
-              className="h-fit"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, stage.name)}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
-                  <Badge variant="secondary">{stage.count}</Badge>
-                </div>
-                <div className={`w-full h-1 rounded-full ${stage.color}`} />
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {leads[stage.name as keyof typeof leads]?.map((lead) => (
-                  <div 
-                    key={lead.id} 
-                    className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-grab active:cursor-grabbing"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, lead, stage.name)}
-                    onClick={() => setSelectedLead(lead)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${lead.name}`} />
-                        <AvatarFallback>{lead.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{lead.name}</p>
-                        <p className="text-xs text-muted-foreground">{lead.company}</p>
-                        <p className="text-sm font-semibold text-success mt-1">{lead.value}</p>
-                      </div>
-                    </div>
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {stages.map((stage) => (
+              <Card 
+                key={stage.name} 
+                className="h-fit"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium">{stage.name}</CardTitle>
+                    <Badge variant="secondary">{columns[stage.name as keyof typeof columns]?.length || 0}</Badge>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  <div className={`w-full h-1 rounded-full ${stage.color}`} />
+                </CardHeader>
+                <SortableContext 
+                  items={columns[stage.name as keyof typeof columns]?.map(lead => lead.id) || []}
+                  strategy={verticalListSortingStrategy}
+                  id={stage.name}
+                >
+                  <CardContent className="space-y-3 min-h-[200px]" data-droppable-id={stage.name}>
+                    {columns[stage.name as keyof typeof columns]?.map((lead) => (
+                      <DraggableLeadCard
+                        key={lead.id}
+                        lead={lead}
+                        onClick={() => setSelectedLead(lead)}
+                      />
+                    ))}
+                  </CardContent>
+                </SortableContext>
+              </Card>
+            ))}
+          </div>
+          
+          <DragOverlay>
+            {activeId ? (
+              <div className="p-3 rounded-lg bg-muted/50 shadow-lg ring-2 ring-primary">
+                <div className="flex items-start space-x-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${activeId}`} />
+                    <AvatarFallback>LD</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">Moving...</p>
+                    <p className="text-xs text-muted-foreground">Dragging lead</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
         {/* Dialog com informações detalhadas do lead */}
         <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
