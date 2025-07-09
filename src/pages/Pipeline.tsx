@@ -22,7 +22,8 @@ import {
   useDroppable,
   PointerSensor,
   useSensor,
-  useSensors
+  useSensors,
+  DragOverEvent
 } from "@dnd-kit/core";
 import { 
   useSortable
@@ -76,7 +77,7 @@ function DraggableLeadCard({ lead, onClick }: { lead: Lead; onClick: () => void 
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: lead.id.toString() });
+  } = useSortable({ id: lead.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -93,10 +94,16 @@ function DraggableLeadCard({ lead, onClick }: { lead: Lead; onClick: () => void 
         isDragging ? 'opacity-50 scale-105 ring-2 ring-primary shadow-lg z-50' : ''
       }`}
       onClick={(e) => {
-        e.stopPropagation();
+        // Só chama onClick se não estiver sendo arrastado
         if (!isDragging) {
+          e.preventDefault();
+          e.stopPropagation();
           onClick();
         }
+      }}
+      onPointerDown={(e) => {
+        // Previne conflito entre drag e click
+        e.stopPropagation();
       }}
     >
       <div className="flex items-start space-x-3">
@@ -121,7 +128,7 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
   return (
     <div 
       ref={setNodeRef}
-      className={`transition-all duration-200 h-full ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed rounded-lg' : ''}`}
+      className={`transition-all duration-200 h-full ${isOver ? 'bg-primary/10 ring-2 ring-primary/50 ring-dashed rounded-lg' : ''}`}
     >
       {children}
     </div>
@@ -174,13 +181,16 @@ export default function Pipeline() {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    console.log('Drag started:', event.active.id);
     setActiveId(event.active.id as string);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('Drag ended:', { activeId: active.id, overId: over?.id });
     
     if (!over) {
+      console.log('No drop target found');
       setActiveId(null);
       return;
     }
@@ -291,6 +301,9 @@ export default function Pipeline() {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragOver={(event: DragOverEvent) => {
+            console.log('Drag over:', event.over?.id);
+          }}
         >
           {loading ? (
             <div className="text-center py-8">Carregando leads...</div>
