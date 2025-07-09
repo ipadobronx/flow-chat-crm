@@ -1,4 +1,4 @@
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,15 +9,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 export function TopBar() {
+  const { user, signOut } = useAuth();
+  
   return (
     <div className="flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center space-x-4">
         <SidebarTrigger />
         <div>
           <h2 className="text-lg font-semibold">Sales Dashboard</h2>
-          <p className="text-sm text-muted-foreground">Welcome back, John</p>
+          <p className="text-sm text-muted-foreground">
+            Welcome back, {user?.email?.split('@')[0] || 'User'}
+          </p>
         </div>
       </div>
 
@@ -52,7 +57,10 @@ export function TopBar() {
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
