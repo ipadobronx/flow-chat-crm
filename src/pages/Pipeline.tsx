@@ -12,6 +12,7 @@ import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import type { Database } from "@/integrations/supabase/types";
 import { 
   DndContext, 
   closestCenter, 
@@ -56,7 +57,7 @@ type Lead = {
   telefone: string | null;
   profissao: string | null;
   recomendante: string | null;
-  etapa: string;
+  etapa: Database["public"]["Enums"]["etapa_funil"];
   status: string | null;
   data_callback: string | null;
   high_ticket: boolean;
@@ -136,6 +137,8 @@ export default function Pipeline() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -206,7 +209,7 @@ export default function Pipeline() {
     try {
       const { error } = await supabase
         .from('leads')
-        .update({ etapa: overId as any })
+        .update({ etapa: overId as Database["public"]["Enums"]["etapa_funil"] })
         .eq('id', activeId);
 
       if (error) throw error;
@@ -214,7 +217,7 @@ export default function Pipeline() {
       // Atualizar estado local
       setLeads(prev => prev.map(lead => 
         lead.id === activeId 
-          ? { ...lead, etapa: overId as any }
+          ? { ...lead, etapa: overId as Database["public"]["Enums"]["etapa_funil"] }
           : lead
       ));
       
@@ -224,6 +227,44 @@ export default function Pipeline() {
     }
     
     setActiveId(null);
+  };
+
+  const handleSaveLead = async () => {
+    if (!editingLead) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          etapa: editingLead.etapa as Database["public"]["Enums"]["etapa_funil"],
+          status: editingLead.status,
+          data_callback: editingLead.data_callback,
+          observacoes: editingLead.observacoes,
+          pa_estimado: editingLead.pa_estimado,
+          data_sitplan: editingLead.data_sitplan,
+          high_ticket: editingLead.high_ticket,
+          casado: editingLead.casado,
+          tem_filhos: editingLead.tem_filhos,
+          avisado: editingLead.avisado,
+          incluir_sitplan: editingLead.incluir_sitplan,
+        })
+        .eq('id', editingLead.id);
+
+      if (error) throw error;
+
+      // Atualizar estado local
+      setLeads(prev => prev.map(lead => 
+        lead.id === editingLead.id ? editingLead : lead
+      ));
+
+      setSelectedLead(editingLead);
+      console.log('Lead saved successfully');
+    } catch (error) {
+      console.error('Erro ao salvar lead:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const YesNoField = ({ label, value }: { label: string; value: boolean }) => (
@@ -311,7 +352,10 @@ export default function Pipeline() {
         </DndContext>
 
         {/* Dialog com informações detalhadas do lead */}
-        <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
+        <Dialog open={!!selectedLead} onOpenChange={() => {
+          setSelectedLead(null);
+          setEditingLead(null);
+        }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-3">
@@ -364,7 +408,13 @@ export default function Pipeline() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-muted-foreground">Etapa Funil *</Label>
-                    <Select defaultValue={selectedLead.etapa}>
+                    <Select 
+                      value={editingLead?.etapa || selectedLead.etapa}
+                      onValueChange={(value) => {
+                        const updatedLead = { ...selectedLead, etapa: value as Database["public"]["Enums"]["etapa_funil"] };
+                        setEditingLead(updatedLead);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -379,7 +429,13 @@ export default function Pipeline() {
                   </div>
                   <div>
                     <Label className="text-sm text-muted-foreground">Status</Label>
-                    <Select defaultValue={selectedLead.status || ""}>
+                    <Select 
+                      value={editingLead?.status || selectedLead.status || ""}
+                      onValueChange={(value) => {
+                        const updatedLead = { ...selectedLead, status: value };
+                        setEditingLead(updatedLead);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -397,7 +453,14 @@ export default function Pipeline() {
                 {/* Data para ligar depois */}
                 <div>
                   <Label className="text-sm text-muted-foreground">Ligar Depois</Label>
-                  <Input type="date" defaultValue={selectedLead.data_callback || ""} />
+                  <Input 
+                    type="date" 
+                    value={editingLead?.data_callback || selectedLead.data_callback || ""}
+                    onChange={(e) => {
+                      const updatedLead = { ...selectedLead, data_callback: e.target.value };
+                      setEditingLead(updatedLead);
+                    }}
+                  />
                 </div>
 
                 {/* Celular e Profissão */}
@@ -422,18 +485,142 @@ export default function Pipeline() {
 
                 {/* Campos Yes/No */}
                 <div className="space-y-2">
-                  <YesNoField label="HighTicket" value={selectedLead.high_ticket} />
-                  <YesNoField label="Casado(a)" value={selectedLead.casado} />
-                  <YesNoField label="Filhos" value={selectedLead.tem_filhos} />
-                  <YesNoField label="Avisado" value={selectedLead.avisado} />
-                  <YesNoField label="Incluir no SitPlan?" value={selectedLead.incluir_sitplan} />
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">HighTicket</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={editingLead?.high_ticket === false || (!editingLead && !selectedLead.high_ticket) ? "destructive" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, high_ticket: false };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ❌ Não
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={editingLead?.high_ticket === true || (!editingLead && selectedLead.high_ticket) ? "default" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, high_ticket: true };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ✅ Sim
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Casado(a)</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={editingLead?.casado === false || (!editingLead && !selectedLead.casado) ? "destructive" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, casado: false };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ❌ Não
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={editingLead?.casado === true || (!editingLead && selectedLead.casado) ? "default" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, casado: true };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ✅ Sim
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Filhos</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={editingLead?.tem_filhos === false || (!editingLead && !selectedLead.tem_filhos) ? "destructive" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, tem_filhos: false };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ❌ Não
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={editingLead?.tem_filhos === true || (!editingLead && selectedLead.tem_filhos) ? "default" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, tem_filhos: true };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ✅ Sim
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Avisado</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={editingLead?.avisado === false || (!editingLead && !selectedLead.avisado) ? "destructive" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, avisado: false };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ❌ Não
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={editingLead?.avisado === true || (!editingLead && selectedLead.avisado) ? "default" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, avisado: true };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ✅ Sim
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Incluir no SitPlan?</span>
+                    <div className="flex space-x-2">
+                      <Button
+                        size="sm"
+                        variant={editingLead?.incluir_sitplan === false || (!editingLead && !selectedLead.incluir_sitplan) ? "destructive" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, incluir_sitplan: false };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ❌ Não
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={editingLead?.incluir_sitplan === true || (!editingLead && selectedLead.incluir_sitplan) ? "default" : "outline"}
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, incluir_sitplan: true };
+                          setEditingLead(updatedLead);
+                        }}
+                      >
+                        ✅ Sim
+                      </Button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Observações */}
                 <div>
                   <Label className="text-sm text-muted-foreground">Observações</Label>
                   <Textarea 
-                    defaultValue={selectedLead.observacoes || ""} 
+                    value={editingLead?.observacoes || selectedLead.observacoes || ""} 
+                    onChange={(e) => {
+                      const updatedLead = { ...selectedLead, observacoes: e.target.value };
+                      setEditingLead(updatedLead);
+                    }}
                     placeholder="Adicione observações sobre o lead..."
                     className="mt-1"
                   />
@@ -442,16 +629,48 @@ export default function Pipeline() {
                 {/* PA Estimado */}
                 <div>
                   <Label className="text-sm text-muted-foreground">PA Estimado</Label>
-                  <Input defaultValue={selectedLead.pa_estimado || ""} />
+                  <Input 
+                    value={editingLead?.pa_estimado || selectedLead.pa_estimado || ""} 
+                    onChange={(e) => {
+                      const updatedLead = { ...selectedLead, pa_estimado: e.target.value };
+                      setEditingLead(updatedLead);
+                    }}
+                  />
                 </div>
 
                 {/* SitPlan */}
                 <div>
                   <Label className="text-sm text-muted-foreground">SitPlan</Label>
                   <div className="flex items-center space-x-2">
-                    <Input type="date" defaultValue={selectedLead.data_sitplan || ""} />
+                    <Input 
+                      type="date" 
+                      value={editingLead?.data_sitplan || selectedLead.data_sitplan || ""} 
+                      onChange={(e) => {
+                        const updatedLead = { ...selectedLead, data_sitplan: e.target.value };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
                     <Button size="sm" variant="outline">+</Button>
                   </div>
+                </div>
+
+                {/* Botão Salvar */}
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedLead(null);
+                      setEditingLead(null);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={handleSaveLead}
+                    disabled={saving || !editingLead}
+                  >
+                    {saving ? "Salvando..." : "Salvar"}
+                  </Button>
                 </div>
               </div>
             )}
