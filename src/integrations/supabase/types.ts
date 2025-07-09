@@ -14,7 +14,240 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          avisado: boolean | null
+          casado: boolean | null
+          created_at: string | null
+          data_callback: string | null
+          data_sitplan: string | null
+          empresa: string | null
+          etapa: Database["public"]["Enums"]["etapa_funil"]
+          high_ticket: boolean | null
+          id: string
+          incluir_sitplan: boolean | null
+          nome: string
+          observacoes: string | null
+          pa_estimado: string | null
+          profissao: string | null
+          recomendante: string | null
+          status: string | null
+          telefone: string | null
+          tem_filhos: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          valor: string | null
+        }
+        Insert: {
+          avisado?: boolean | null
+          casado?: boolean | null
+          created_at?: string | null
+          data_callback?: string | null
+          data_sitplan?: string | null
+          empresa?: string | null
+          etapa?: Database["public"]["Enums"]["etapa_funil"]
+          high_ticket?: boolean | null
+          id?: string
+          incluir_sitplan?: boolean | null
+          nome: string
+          observacoes?: string | null
+          pa_estimado?: string | null
+          profissao?: string | null
+          recomendante?: string | null
+          status?: string | null
+          telefone?: string | null
+          tem_filhos?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          valor?: string | null
+        }
+        Update: {
+          avisado?: boolean | null
+          casado?: boolean | null
+          created_at?: string | null
+          data_callback?: string | null
+          data_sitplan?: string | null
+          empresa?: string | null
+          etapa?: Database["public"]["Enums"]["etapa_funil"]
+          high_ticket?: boolean | null
+          id?: string
+          incluir_sitplan?: boolean | null
+          nome?: string
+          observacoes?: string | null
+          pa_estimado?: string | null
+          profissao?: string | null
+          recomendante?: string | null
+          status?: string | null
+          telefone?: string | null
+          tem_filhos?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          valor?: string | null
+        }
+        Relationships: []
+      }
+      test: {
+        Row: {
+          _RowNumber: number
+          AGENDAMENTOS: string | null
+          Avisado: string | null
+          "Casado(a)": string | null
+          Celular: string | null
+          "Celular Principal": string | null
+          "Celular Secundário ou Número Estrangeiro": string | null
+          CelularFormatoWhatsApp: string | null
+          "Chance (ANCE)": string | null
+          Cidade: string | null
+          CONTATOS: string | null
+          "Criado Por": string | null
+          CriadoEm: string | null
+          "Dados Básicos": string | null
+          Data_Extraida: string | null
+          DDMMYYYY: string | null
+          Dias: number | null
+          Email: string | null
+          "Endereço da Reunião": string | null
+          "Etapa Funil": string | null
+          Filhos: string | null
+          HighTicket: string | null
+          Idade: string | null
+          Joint: string | null
+          "Joint Nome do Usuário": string | null
+          "Ligar Depois": string | null
+          "Link da Reunião": string | null
+          Nome: string | null
+          "Nome do SitPlan": string | null
+          Observações: string | null
+          "PA Estimado": string | null
+          Pontuação: string | null
+          "Probabilidade (ANCE)": string | null
+          Profissão: string | null
+          "Proprietário:": string | null
+          "Próxima Reunião": string | null
+          "Ramo de Atividade": string | null
+          "Ranking Semanal": number | null
+          Recomendante: string | null
+          "Related Agendamentos": string | null
+          Renda: string | null
+          "Retornar Em (Data)": string | null
+          Semana: number | null
+          SitPlan: string | null
+          SitPlanAction: string | null
+          Status: string | null
+          "Tipo de Reunião": string | null
+          Total_Recomendacoes_Semana: string | null
+          Total_Recomendacoes_Semana_Usuario: string | null
+          "Última Atualização do Funil": string | null
+          "Último Contato": string | null
+        }
+        Insert: {
+          _RowNumber: number
+          AGENDAMENTOS?: string | null
+          Avisado?: string | null
+          "Casado(a)"?: string | null
+          Celular?: string | null
+          "Celular Principal"?: string | null
+          "Celular Secundário ou Número Estrangeiro"?: string | null
+          CelularFormatoWhatsApp?: string | null
+          "Chance (ANCE)"?: string | null
+          Cidade?: string | null
+          CONTATOS?: string | null
+          "Criado Por"?: string | null
+          CriadoEm?: string | null
+          "Dados Básicos"?: string | null
+          Data_Extraida?: string | null
+          DDMMYYYY?: string | null
+          Dias?: number | null
+          Email?: string | null
+          "Endereço da Reunião"?: string | null
+          "Etapa Funil"?: string | null
+          Filhos?: string | null
+          HighTicket?: string | null
+          Idade?: string | null
+          Joint?: string | null
+          "Joint Nome do Usuário"?: string | null
+          "Ligar Depois"?: string | null
+          "Link da Reunião"?: string | null
+          Nome?: string | null
+          "Nome do SitPlan"?: string | null
+          Observações?: string | null
+          "PA Estimado"?: string | null
+          Pontuação?: string | null
+          "Probabilidade (ANCE)"?: string | null
+          Profissão?: string | null
+          "Proprietário:"?: string | null
+          "Próxima Reunião"?: string | null
+          "Ramo de Atividade"?: string | null
+          "Ranking Semanal"?: number | null
+          Recomendante?: string | null
+          "Related Agendamentos"?: string | null
+          Renda?: string | null
+          "Retornar Em (Data)"?: string | null
+          Semana?: number | null
+          SitPlan?: string | null
+          SitPlanAction?: string | null
+          Status?: string | null
+          "Tipo de Reunião"?: string | null
+          Total_Recomendacoes_Semana?: string | null
+          Total_Recomendacoes_Semana_Usuario?: string | null
+          "Última Atualização do Funil"?: string | null
+          "Último Contato"?: string | null
+        }
+        Update: {
+          _RowNumber?: number
+          AGENDAMENTOS?: string | null
+          Avisado?: string | null
+          "Casado(a)"?: string | null
+          Celular?: string | null
+          "Celular Principal"?: string | null
+          "Celular Secundário ou Número Estrangeiro"?: string | null
+          CelularFormatoWhatsApp?: string | null
+          "Chance (ANCE)"?: string | null
+          Cidade?: string | null
+          CONTATOS?: string | null
+          "Criado Por"?: string | null
+          CriadoEm?: string | null
+          "Dados Básicos"?: string | null
+          Data_Extraida?: string | null
+          DDMMYYYY?: string | null
+          Dias?: number | null
+          Email?: string | null
+          "Endereço da Reunião"?: string | null
+          "Etapa Funil"?: string | null
+          Filhos?: string | null
+          HighTicket?: string | null
+          Idade?: string | null
+          Joint?: string | null
+          "Joint Nome do Usuário"?: string | null
+          "Ligar Depois"?: string | null
+          "Link da Reunião"?: string | null
+          Nome?: string | null
+          "Nome do SitPlan"?: string | null
+          Observações?: string | null
+          "PA Estimado"?: string | null
+          Pontuação?: string | null
+          "Probabilidade (ANCE)"?: string | null
+          Profissão?: string | null
+          "Proprietário:"?: string | null
+          "Próxima Reunião"?: string | null
+          "Ramo de Atividade"?: string | null
+          "Ranking Semanal"?: number | null
+          Recomendante?: string | null
+          "Related Agendamentos"?: string | null
+          Renda?: string | null
+          "Retornar Em (Data)"?: string | null
+          Semana?: number | null
+          SitPlan?: string | null
+          SitPlanAction?: string | null
+          Status?: string | null
+          "Tipo de Reunião"?: string | null
+          Total_Recomendacoes_Semana?: string | null
+          Total_Recomendacoes_Semana_Usuario?: string | null
+          "Última Atualização do Funil"?: string | null
+          "Último Contato"?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +256,21 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      etapa_funil:
+        | "Novo"
+        | "OI"
+        | "Delay OI"
+        | "PC"
+        | "Delay PC"
+        | "N"
+        | "Apólice Emitida"
+        | "Apólice Entregue"
+        | "C2"
+        | "Delay C2"
+        | "Ligar Depois"
+        | "Não"
+        | "Proposta Cancelada"
+        | "Apólice Cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +397,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      etapa_funil: [
+        "Novo",
+        "OI",
+        "Delay OI",
+        "PC",
+        "Delay PC",
+        "N",
+        "Apólice Emitida",
+        "Apólice Entregue",
+        "C2",
+        "Delay C2",
+        "Ligar Depois",
+        "Não",
+        "Proposta Cancelada",
+        "Apólice Cancelada",
+      ],
+    },
   },
 } as const
