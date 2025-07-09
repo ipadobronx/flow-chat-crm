@@ -205,29 +205,43 @@ export default function Pipeline() {
       setActiveId(null);
       return;
     }
+
+    // Atualizar estado local imediatamente para UI responsiva
+    setLeads(prev => prev.map(lead => 
+      lead.id === activeId 
+        ? { ...lead, etapa: overId as Database["public"]["Enums"]["etapa_funil"] }
+        : lead
+    ));
     
-    // Atualizar no Supabase
+    setActiveId(null);
+    
+    // Atualizar no Supabase em background
     try {
       const { error } = await supabase
         .from('leads')
         .update({ etapa: overId as Database["public"]["Enums"]["etapa_funil"] })
         .eq('id', activeId);
 
-      if (error) throw error;
-
-      // Atualizar estado local
+      if (error) {
+        // Reverter mudança local se houver erro
+        setLeads(prev => prev.map(lead => 
+          lead.id === activeId 
+            ? { ...lead, etapa: draggedLead.etapa }
+            : lead
+        ));
+        console.error('Erro ao atualizar lead:', error);
+      } else {
+        console.log(`Moving ${draggedLead.nome} from ${draggedLead.etapa} to ${overId}`);
+      }
+    } catch (error) {
+      // Reverter mudança local em caso de falha
       setLeads(prev => prev.map(lead => 
         lead.id === activeId 
-          ? { ...lead, etapa: overId as Database["public"]["Enums"]["etapa_funil"] }
+          ? { ...lead, etapa: draggedLead.etapa }
           : lead
       ));
-      
-      console.log(`Moving ${draggedLead.nome} from ${draggedLead.etapa} to ${overId}`);
-    } catch (error) {
       console.error('Erro ao atualizar lead:', error);
     }
-    
-    setActiveId(null);
   }, [leads]);
 
   const handleSaveLead = useCallback(async () => {
