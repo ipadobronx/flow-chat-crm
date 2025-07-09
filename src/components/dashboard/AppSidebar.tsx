@@ -80,7 +80,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r bg-card" collapsible="icon">
       <SidebarHeader className="p-4">
-        <div className="flex items-center space-x-2">
+        <NavLink to="/dashboard" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
             <Target className="w-4 h-4 text-white" />
           </div>
@@ -90,7 +90,7 @@ export function AppSidebar() {
               <p className="text-xs text-muted-foreground">Sales Dashboard</p>
             </div>
           )}
-        </div>
+        </NavLink>
       </SidebarHeader>
 
       <SidebarContent className="px-2">
