@@ -1,4 +1,4 @@
-import { Calendar, MessageSquare, Users, Send, Target, BarChart, Settings } from "lucide-react";
+import { Calendar, MessageSquare, Users, Send, Target, BarChart, Settings, Clock, FileText } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -49,6 +49,18 @@ const navItems = [
     url: "/dashboard/reports",
     icon: BarChart,
     description: "Analytics & insights"
+  },
+  {
+    title: "Atrasos",
+    url: "/dashboard/atrasos",
+    icon: Clock,
+    description: "Gestão de atrasos"
+  },
+  {
+    title: "Sit Plan",
+    url: "/dashboard/sitplan",
+    icon: FileText,
+    description: "Planos de situação"
   },
   {
     title: "Settings",
