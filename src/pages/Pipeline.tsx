@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
@@ -20,15 +20,11 @@ import {
   DragOverlay, 
   DragStartEvent,
   useDroppable,
+  useDraggable,
   PointerSensor,
   useSensor,
-  useSensors,
-  DragOverEvent
+  useSensors
 } from "@dnd-kit/core";
-import { 
-  useSortable
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const stages = [
   { name: "Novo", color: "bg-blue-500" },
@@ -45,7 +41,7 @@ const stages = [
   { name: "Não", color: "bg-gray-500" },
   { name: "Proposta Cancelada", color: "bg-red-600" },
   { name: "Apólice Cancelada", color: "bg-red-700" }
-];
+] as const;
 
 type Lead = {
   id: string;
@@ -68,72 +64,63 @@ type Lead = {
   data_sitplan: string | null;
 };
 
-// Componente para card arrastável
-function DraggableLeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: lead.id });
+// Componente para card arrastável otimizado
+const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: lead.id,
+  });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
       {...listeners}
-      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all select-none cursor-grab active:cursor-grabbing ${
-        isDragging ? 'opacity-50 scale-105 ring-2 ring-primary shadow-lg z-50' : ''
+      {...attributes}
+      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={(e) => {
-        // Só chama onClick se não estiver sendo arrastado
         if (!isDragging) {
           e.preventDefault();
-          e.stopPropagation();
           onClick();
         }
-      }}
-      onPointerDown={(e) => {
-        // Previne conflito entre drag e click
-        e.stopPropagation();
       }}
     >
       <div className="flex items-start space-x-3">
         <Avatar className="w-8 h-8">
-          <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${lead.id}`} />
           <AvatarFallback>{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm">{lead.nome}</p>
-          <p className="text-xs text-muted-foreground">{lead.empresa}</p>
-          <p className="text-sm font-semibold text-success mt-1">{lead.valor}</p>
+          <p className="font-medium text-sm truncate">{lead.nome}</p>
+          <p className="text-xs text-muted-foreground truncate">{lead.empresa || lead.profissao}</p>
+          <p className="text-sm font-semibold text-success mt-1">{lead.valor || 'Valor não informado'}</p>
         </div>
       </div>
     </div>
   );
-}
+};
 
-// Componente para área droppable
-function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+// Componente para área droppable otimizado
+const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNode }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
     <div 
       ref={setNodeRef}
-      className={`transition-all duration-200 h-full ${isOver ? 'bg-primary/10 ring-2 ring-primary/50 ring-dashed rounded-lg' : ''}`}
+      className={`h-full transition-colors duration-200 ${
+        isOver ? 'bg-primary/10 rounded-lg' : ''
+      }`}
     >
       {children}
     </div>
   );
-}
+};
 
 export default function Pipeline() {
   const { user } = useAuth();
@@ -147,50 +134,57 @@ export default function Pipeline() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 10,
       },
     })
   );
 
-  // Buscar leads do Supabase
+  // Buscar leads do Supabase com otimização
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchLeads() {
       if (!user) return;
       
       try {
         const { data, error } = await supabase
           .from('leads')
-          .select('*')
+          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, high_ticket, casado, tem_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
           .eq('user_id', user.id);
 
         if (error) throw error;
-        setLeads(data || []);
+        if (isMounted) {
+          setLeads(data || []);
+        }
       } catch (error) {
         console.error('Erro ao buscar leads:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchLeads();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
-  // Organizar leads por etapa
-  const getLeadsByStage = (stageName: string) => {
+  // Organizar leads por etapa com memoização
+  const getLeadsByStage = useCallback((stageName: string) => {
     return leads.filter(lead => lead.etapa === stageName);
-  };
+  }, [leads]);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', event.active.id);
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+  }, []);
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('Drag ended:', { activeId: active.id, overId: over?.id });
     
     if (!over) {
-      console.log('No drop target found');
       setActiveId(null);
       return;
     }
@@ -234,9 +228,9 @@ export default function Pipeline() {
     }
     
     setActiveId(null);
-  };
+  }, [leads]);
 
-  const handleSaveLead = async () => {
+  const handleSaveLead = useCallback(async () => {
     if (!editingLead) return;
 
     setSaving(true);
@@ -266,13 +260,12 @@ export default function Pipeline() {
       ));
 
       setSelectedLead(editingLead);
-      console.log('Lead saved successfully');
     } catch (error) {
       console.error('Erro ao salvar lead:', error);
     } finally {
       setSaving(false);
     }
-  };
+  }, [editingLead]);
 
   const YesNoField = ({ label, value }: { label: string; value: boolean }) => (
     <div className="flex items-center justify-between py-2 border-b">
@@ -301,9 +294,6 @@ export default function Pipeline() {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragOver={(event: DragOverEvent) => {
-            console.log('Drag over:', event.over?.id);
-          }}
         >
           {loading ? (
             <div className="text-center py-8">Carregando leads...</div>
@@ -339,15 +329,18 @@ export default function Pipeline() {
           
           <DragOverlay>
             {activeId ? (
-              <div className="p-3 rounded-lg bg-muted/50 shadow-lg ring-2 ring-primary">
+              <div className="p-3 rounded-lg bg-muted/50 shadow-lg ring-2 ring-primary opacity-90">
                 <div className="flex items-start space-x-3">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={`https://source.unsplash.com/40x40/?portrait&sig=${activeId}`} />
-                    <AvatarFallback>LD</AvatarFallback>
+                    <AvatarFallback>
+                      {leads.find(l => l.id === activeId)?.nome.split(' ').map((n: string) => n[0]).join('') || 'LD'}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">Moving...</p>
-                    <p className="text-xs text-muted-foreground">Dragging lead</p>
+                    <p className="font-medium text-sm">Movendo...</p>
+                    <p className="text-xs text-muted-foreground">
+                      {leads.find(l => l.id === activeId)?.nome || 'Lead'}
+                    </p>
                   </div>
                 </div>
               </div>
