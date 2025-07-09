@@ -283,51 +283,59 @@ export default function Pipeline() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
-        <div>
+      <div className="p-6 space-y-6 h-full flex flex-col">
+        <div className="flex-shrink-0">
           <h1 className="text-3xl font-bold">Sales Pipeline</h1>
           <p className="text-muted-foreground">Kanban board for lead management</p>
         </div>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          {loading ? (
-            <div className="text-center py-8">Carregando leads...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {stages.slice(0, 14).map((stage) => {
-                const stageLeads = getLeadsByStage(stage.name);
-                return (
-                  <DroppableColumn key={stage.name} id={stage.name}>
-                    <Card className="h-fit">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-xs font-medium">{stage.name}</CardTitle>
-                          <Badge variant="secondary">{stageLeads.length}</Badge>
-                        </div>
-                        <div className={`w-full h-1 rounded-full ${stage.color}`} />
-                      </CardHeader>
-                      <CardContent className="space-y-3 min-h-[200px]">
-                        {stageLeads.map((lead) => (
-                          <DraggableLeadCard
-                            key={lead.id}
-                            lead={lead}
-                            onClick={() => setSelectedLead(lead)}
-                          />
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </DroppableColumn>
-                );
-              })}
+        <div className="flex-1 overflow-hidden">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            {loading ? (
+              <div className="text-center py-8">Carregando leads...</div>
+            ) : (
+            <div className="overflow-x-auto pb-4">
+              <div className="flex gap-4 min-w-max">
+                {stages.slice(0, 14).map((stage) => {
+                  const stageLeads = getLeadsByStage(stage.name);
+                  return (
+                    <DroppableColumn key={stage.name} id={stage.name}>
+                      <Card className="w-80 flex-shrink-0">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-xs font-medium">{stage.name}</CardTitle>
+                            <Badge variant="secondary">{stageLeads.length}</Badge>
+                          </div>
+                          <div className={`w-full h-1 rounded-full ${stage.color}`} />
+                        </CardHeader>
+                        <CardContent className="space-y-3 h-[600px] overflow-y-auto">
+                          {stageLeads.map((lead) => (
+                            <DraggableLeadCard
+                              key={lead.id}
+                              lead={lead}
+                              onClick={() => setSelectedLead(lead)}
+                            />
+                          ))}
+                          {stageLeads.length === 0 && (
+                            <div className="text-center text-muted-foreground text-sm py-8">
+                              Nenhum lead nesta etapa
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </DroppableColumn>
+                  );
+                })}
+              </div>
             </div>
-          )}
-          
-          <DragOverlay>
+            )}
+            
+            <DragOverlay>
             {activeId ? (
               <div className="p-3 rounded-lg bg-muted/50 shadow-lg ring-2 ring-primary opacity-90">
                 <div className="flex items-start space-x-3">
@@ -345,8 +353,9 @@ export default function Pipeline() {
                 </div>
               </div>
             ) : null}
-          </DragOverlay>
-        </DndContext>
+            </DragOverlay>
+          </DndContext>
+        </div>
 
         {/* Dialog com informações detalhadas do lead */}
         <Dialog open={!!selectedLead} onOpenChange={() => {
