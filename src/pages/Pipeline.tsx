@@ -25,10 +25,7 @@ import {
   useSensors
 } from "@dnd-kit/core";
 import { 
-  SortableContext, 
-  verticalListSortingStrategy, 
-  useSortable,
-  arrayMove 
+  useSortable
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -124,7 +121,7 @@ function DroppableColumn({ id, children }: { id: string; children: React.ReactNo
   return (
     <div 
       ref={setNodeRef}
-      className={`transition-all duration-200 ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed rounded-lg' : ''}`}
+      className={`transition-all duration-200 h-full ${isOver ? 'bg-primary/5 ring-2 ring-primary ring-dashed rounded-lg' : ''}`}
     >
       {children}
     </div>
@@ -311,21 +308,15 @@ export default function Pipeline() {
                         </div>
                         <div className={`w-full h-1 rounded-full ${stage.color}`} />
                       </CardHeader>
-                      <SortableContext 
-                        items={stageLeads.map(lead => lead.id)}
-                        strategy={verticalListSortingStrategy}
-                        id={stage.name}
-                      >
-                        <CardContent className="space-y-3 min-h-[200px]">
-                          {stageLeads.map((lead) => (
-                            <DraggableLeadCard
-                              key={lead.id}
-                              lead={lead}
-                              onClick={() => setSelectedLead(lead)}
-                            />
-                          ))}
-                        </CardContent>
-                      </SortableContext>
+                      <CardContent className="space-y-3 min-h-[200px]">
+                        {stageLeads.map((lead) => (
+                          <DraggableLeadCard
+                            key={lead.id}
+                            lead={lead}
+                            onClick={() => setSelectedLead(lead)}
+                          />
+                        ))}
+                      </CardContent>
                     </Card>
                   </DroppableColumn>
                 );
