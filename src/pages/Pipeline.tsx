@@ -362,7 +362,7 @@ export default function Pipeline() {
           setSelectedLead(null);
           setEditingLead(null);
         }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[95vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-3">
                 <Avatar className="w-10 h-10">
@@ -379,14 +379,10 @@ export default function Pipeline() {
             {selectedLead && (
               <div className="space-y-6">
                 {/* Botões de ação */}
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" className="bg-green-600 hover:bg-green-700">
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    WhatsApp Abordagem Lead
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    WhatsApp Abordagem Lead
+                    WhatsApp
                   </Button>
                   <Button size="sm" variant="outline">
                     <ArrowRight className="w-4 h-4 mr-2" />
@@ -394,12 +390,12 @@ export default function Pipeline() {
                   </Button>
                   <Button size="sm" variant="outline">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Ligar Depois DOLA AI
+                    Agendamento
                   </Button>
                 </div>
 
                 {/* Informações básicas */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-muted-foreground">Nome</Label>
                     <p className="font-medium">{selectedLead.nome}</p>
@@ -411,7 +407,7 @@ export default function Pipeline() {
                 </div>
 
                 {/* Selects de etapa e status */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-muted-foreground">Etapa Funil *</Label>
                     <Select 
@@ -470,11 +466,11 @@ export default function Pipeline() {
                 </div>
 
                 {/* Celular e Profissão */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm text-muted-foreground">Celular</Label>
                     <div className="flex items-center space-x-2">
-                      <Input value={selectedLead.telefone || ""} readOnly />
+                      <Input value={selectedLead.telefone || ""} readOnly className="flex-1" />
                       <Button size="sm" variant="outline">
                         <MessageSquare className="w-4 h-4" />
                       </Button>
@@ -661,19 +657,21 @@ export default function Pipeline() {
                 </div>
 
                 {/* Botão Salvar */}
-                <div className="flex justify-end space-x-2 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
                   <Button 
                     variant="outline" 
                     onClick={() => {
                       setSelectedLead(null);
                       setEditingLead(null);
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     onClick={handleSaveLead}
                     disabled={saving || !editingLead}
+                    className="w-full sm:w-auto"
                   >
                     {saving ? "Salvando..." : "Salvar"}
                   </Button>
