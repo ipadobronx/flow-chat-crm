@@ -66,7 +66,7 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar className="border-r bg-card">
+    <Sidebar className="border-r bg-card" collapsible="icon">
       <SidebarHeader className="p-4">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
@@ -88,7 +88,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive(item.url)} 
+                    tooltip={isCollapsed ? item.title : undefined}
+                  >
                     <NavLink to={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors">
                       <item.icon className="w-4 h-4" />
                       {!isCollapsed && (
