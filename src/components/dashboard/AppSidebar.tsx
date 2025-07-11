@@ -18,22 +18,22 @@ const navItems = [
     title: "Pipeline",
     url: "/dashboard/pipeline",
     icon: Target,
-    description: "Kanban board"
+    description: "Quadro Kanban"
   },
   {
-    title: "Live Chat",
+    title: "Chat ao Vivo",
     url: "/dashboard/chat",
     icon: MessageSquare,
-    description: "WhatsApp integration"
+    description: "Integração WhatsApp"
   },
   {
-    title: "Scheduling",
+    title: "Agendamentos",
     url: "/dashboard/schedule",
     icon: Calendar,
     description: "Central de agendamentos"
   },
   {
-    title: "Bulk Messaging",
+    title: "Envio em Massa",
     url: "/dashboard/bulk",
     icon: Send,
     description: "Envios em massa"
@@ -42,10 +42,10 @@ const navItems = [
     title: "Follow-Up",
     url: "/dashboard/follow-up",
     icon: Users,
-    description: "Lead management"
+    description: "Gestão de leads"
   },
   {
-    title: "Reports",
+    title: "Relatórios",
     url: "/dashboard/reports",
     icon: BarChart,
     description: "Analytics & insights"
@@ -63,7 +63,7 @@ const navItems = [
     description: "Planos de situação"
   },
   {
-    title: "Settings",
+    title: "Configurações",
     url: "/dashboard/settings",
     icon: Settings,
     description: "Configurações"
@@ -87,7 +87,7 @@ export function AppSidebar() {
           {!isCollapsed && (
             <div>
               <h1 className="text-lg font-semibold">CRM Nichado</h1>
-              <p className="text-xs text-muted-foreground">Sales Dashboard</p>
+              <p className="text-xs text-muted-foreground">Dashboard de Vendas</p>
             </div>
           )}
         </NavLink>
@@ -95,7 +95,7 @@ export function AppSidebar() {
 
       <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (

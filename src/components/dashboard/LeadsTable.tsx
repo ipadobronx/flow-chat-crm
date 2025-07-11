@@ -25,10 +25,10 @@ const leads = [
     name: "Sarah Johnson",
     company: "TechStart Inc.",
     email: "sarah@techstart.com",
-    phone: "+1 (555) 123-4567",
-    stage: "Proposal",
-    value: "$25,000",
-    lastContact: "2 hours ago",
+    phone: "+55 (11) 91234-5678",
+    stage: "Proposta",
+    value: "R$ 25.000",
+    lastContact: "2 horas atrás",
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
   },
   {
@@ -36,10 +36,10 @@ const leads = [
     name: "Michael Chen",
     company: "Digital Solutions",
     email: "m.chen@digsol.com",
-    phone: "+1 (555) 987-6543",
-    stage: "Negotiation",
-    value: "$45,000",
-    lastContact: "1 day ago",
+    phone: "+55 (11) 98765-4321",
+    stage: "Negociação",
+    value: "R$ 45.000",
+    lastContact: "1 dia atrás",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
   },
   {
@@ -47,10 +47,10 @@ const leads = [
     name: "Emily Rodriguez",
     company: "Growth Co.",
     email: "emily@growthco.com",
-    phone: "+1 (555) 456-7890",
-    stage: "Qualified",
-    value: "$18,500",
-    lastContact: "3 hours ago",
+    phone: "+55 (11) 94567-8901",
+    stage: "Qualificado",
+    value: "R$ 18.500",
+    lastContact: "3 horas atrás",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
   },
   {
@@ -58,20 +58,20 @@ const leads = [
     name: "David Park",
     company: "Innovation Labs",
     email: "david@innovlabs.com",
-    phone: "+1 (555) 321-0987",
-    stage: "Contacted",
-    value: "$32,000",
-    lastContact: "5 hours ago",
+    phone: "+55 (11) 93210-9876",
+    stage: "Contatado",
+    value: "R$ 32.000",
+    lastContact: "5 horas atrás",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
   }
 ];
 
 const getStageColor = (stage: string) => {
   switch (stage) {
-    case "Contacted": return "secondary";
-    case "Qualified": return "default";
-    case "Proposal": return "outline";
-    case "Negotiation": return "destructive";
+    case "Contatado": return "secondary";
+    case "Qualificado": return "default";
+    case "Proposta": return "outline";
+    case "Negociação": return "destructive";
     default: return "secondary";
   }
 };
@@ -82,20 +82,20 @@ export function LeadsTable() {
   return (
     <Card className="animate-fade-in">
       <CardHeader>
-        <CardTitle>Active Leads</CardTitle>
+        <CardTitle>Leads Ativos</CardTitle>
         <CardDescription>
-          Manage your sales pipeline and track lead progress
+          Gerencie seu pipeline de vendas e acompanhe o progresso dos leads
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Contact</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Stage</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Last Contact</TableHead>
+              <TableHead>Contato</TableHead>
+              <TableHead>Empresa</TableHead>
+              <TableHead>Etapa</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead>Último Contato</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -134,7 +134,7 @@ export function LeadsTable() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>
                         <Phone className="mr-2 h-4 w-4" />
-                        Call
+                        Ligar
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Mail className="mr-2 h-4 w-4" />

@@ -19,9 +19,9 @@ export function TopBar() {
       <div className="flex items-center space-x-4">
         <SidebarTrigger />
         <div>
-          <h2 className="text-lg font-semibold">Sales Dashboard</h2>
+          <h2 className="text-lg font-semibold">Dashboard de Vendas</h2>
           <p className="text-sm text-muted-foreground">
-            Welcome back, {user?.email?.split('@')[0] || 'User'}
+            Bem-vindo de volta, {user?.email?.split('@')[0] || 'Usuário'}
           </p>
         </div>
       </div>
@@ -54,12 +54,12 @@ export function TopBar() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem>
               <User className="mr-2 h-4 w-4" />
-              Profile
+              Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Configurações</DropdownMenuItem>
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              Sair
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

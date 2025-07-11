@@ -6,36 +6,36 @@ const activities = [
   {
     id: 1,
     type: "message",
-    title: "New WhatsApp message",
-    description: "Sarah Johnson replied to your proposal",
-    time: "2 minutes ago",
+    title: "Nova mensagem no WhatsApp",
+    description: "Sarah Johnson respondeu à sua proposta",
+    time: "2 minutos atrás",
     icon: MessageSquare,
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
   },
   {
     id: 2,
     type: "meeting",
-    title: "Meeting scheduled",
-    description: "Demo call with Acme Corp at 3:00 PM",
-    time: "15 minutes ago",
+    title: "Reunião agendada",
+    description: "Ligação demo com Acme Corp às 15:00",
+    time: "15 minutos atrás",
     icon: Calendar,
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
   },
   {
     id: 3,
     type: "deal",
-    title: "Deal closed",
-    description: "$12,500 deal with TechStart Inc.",
-    time: "1 hour ago",
+    title: "Negócio fechado",
+    description: "R$ 12.500 com TechStart Inc.",
+    time: "1 hora atrás",
     icon: DollarSign,
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
   },
   {
     id: 4,
     type: "lead",
-    title: "New lead assigned",
-    description: "Enterprise lead from LinkedIn campaign",
-    time: "2 hours ago",
+    title: "Novo lead atribuído",
+    description: "Lead empresarial da campanha LinkedIn",
+    time: "2 horas atrás",
     icon: User,
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
   }
@@ -47,10 +47,10 @@ export function ActivityFeed() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          Recent Activity
+          Atividade Recente
         </CardTitle>
         <CardDescription>
-          Latest updates from your sales pipeline
+          Últimas atualizações do seu pipeline de vendas
         </CardDescription>
       </CardHeader>
       <CardContent>
