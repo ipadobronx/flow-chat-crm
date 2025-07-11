@@ -1,62 +1,103 @@
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
-const funnelData = [
-  { stage: "Leads", value: 1200, conversion: 100 },
-  { stage: "Contacted", value: 860, conversion: 72 },
-  { stage: "Qualified", value: 520, conversion: 43 },
-  { stage: "Proposal", value: 320, conversion: 27 },
-  { stage: "Negotiation", value: 180, conversion: 15 },
-  { stage: "Closed Won", value: 95, conversion: 8 }
-];
+interface ConversionChartProps {
+  startDate?: Date;
+  endDate?: Date;
+}
 
 const chartConfig = {
-  value: {
-    label: "Count",
-    color: "hsl(var(--chart-2))",
-  },
-  conversion: {
-    label: "Conversion %",
+  count: {
+    label: "Quantidade",
     color: "hsl(var(--chart-1))",
   },
 };
 
-export function ConversionChart() {
+export function ConversionChart({ startDate, endDate }: ConversionChartProps) {
+  const [chartData, setChartData] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchConversionData();
+  }, [startDate, endDate]);
+
+  const fetchConversionData = async () => {
+    try {
+      let query = supabase
+        .from('leads')
+        .select('*');
+      
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data: leads, error } = await query;
+      
+      if (error) throw error;
+      if (!leads) return;
+
+      // Calcular dados do funil
+      const ligacoesEfetuadas = leads.length;
+      const foramAtendidas = leads.filter(lead => 
+        lead.etapa !== 'Novo' && lead.etapa !== 'Ligar Depois'
+      ).length;
+      const oiMarcados = leads.filter(lead => 
+        lead.etapa === 'OI' || lead.etapa === 'Delay OI'
+      ).length;
+      const virouPC = leads.filter(lead => 
+        lead.etapa === 'PC' || lead.etapa === 'Delay PC'
+      ).length;
+      const virouN = leads.filter(lead => 
+        lead.etapa === 'N' || lead.etapa === 'Não'
+      ).length;
+
+      const data = [
+        { stage: "Ligações", count: ligacoesEfetuadas },
+        { stage: "Atendidas", count: foramAtendidas },
+        { stage: "OI", count: oiMarcados },
+        { stage: "PC", count: virouPC },
+        { stage: "N", count: virouN }
+      ];
+
+      setChartData(data);
+    } catch (error) {
+      console.error('Erro ao buscar dados de conversão:', error);
+    }
+  };
+
   return (
     <Card className="animate-fade-in">
       <CardHeader>
-        <CardTitle className="text-lg">Sales Funnel</CardTitle>
+        <CardTitle className="text-lg">Funil de Conversão</CardTitle>
         <CardDescription>
-          Conversion rates through the sales pipeline
+          Distribuição das etapas do processo de vendas
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={funnelData}>
-              <defs>
-                <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-value)" stopOpacity={0.8} />
-                  <stop offset="100%" stopColor="var(--color-value)" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <XAxis 
+            <BarChart data={chartData} layout="horizontal">
+              <XAxis type="number" hide />
+              <YAxis 
+                type="category" 
                 dataKey="stage" 
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
+                width={60}
               />
-              <YAxis hide />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="var(--color-value)"
-                strokeWidth={2}
-                fill="url(#fillGradient)"
+              <Bar
+                dataKey="count"
+                fill="var(--color-count)"
+                radius={[0, 4, 4, 0]}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
