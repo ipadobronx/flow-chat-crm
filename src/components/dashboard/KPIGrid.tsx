@@ -1,43 +1,149 @@
-import { TrendingUp, MessageSquare, Calendar, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Phone, PhoneCall, Calendar, Target, TrendingUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
-const metrics = [
-  {
-    title: "Revenue",
-    value: "$45,231",
-    change: "+20.1%",
-    trend: "up",
-    icon: DollarSign,
-    color: "success"
-  },
-  {
-    title: "Conversations",
-    value: "1,235",
-    change: "+18%",
-    trend: "up", 
-    icon: MessageSquare,
-    color: "primary"
-  },
-  {
-    title: "Bookings",
-    value: "452",
-    change: "+12%",
-    trend: "up",
-    icon: Calendar,
-    color: "warning"
-  },
-  {
-    title: "MQLs",
-    value: "231",
-    change: "+9%",
-    trend: "up",
-    icon: TrendingUp,
-    color: "chart-1"
-  }
-];
+interface KPIGridProps {
+  startDate?: Date;
+  endDate?: Date;
+}
 
-export function KPIGrid() {
+export function KPIGrid({ startDate, endDate }: KPIGridProps) {
+  const [metrics, setMetrics] = useState([
+    {
+      title: "Ligações Efetuadas",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: Phone,
+      color: "primary" as const
+    },
+    {
+      title: "Foram Atendidas",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: PhoneCall,
+      color: "success" as const
+    },
+    {
+      title: "OI Marcados",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: Calendar,
+      color: "warning" as const
+    },
+    {
+      title: "Virou PC",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: Target,
+      color: "chart-1" as const
+    },
+    {
+      title: "Virou N",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: TrendingUp,
+      color: "chart-2" as const
+    }
+  ]);
+
+  useEffect(() => {
+    fetchMetrics();
+  }, [startDate, endDate]);
+
+  const fetchMetrics = async () => {
+    try {
+      let query = supabase
+        .from('leads')
+        .select('*');
+      
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      if (endDate) {
+        query = query.lte('created_at', endDate.toISOString());
+      }
+
+      const { data: leads, error } = await query;
+      
+      if (error) throw error;
+      if (!leads) return;
+
+      // Calcular métricas baseadas nos dados
+      const ligacoesEfetuadas = leads.length;
+      const foramAtendidas = leads.filter(lead => 
+        lead.etapa !== 'Novo' && lead.etapa !== 'Ligar Depois'
+      ).length;
+      const oiMarcados = leads.filter(lead => 
+        lead.etapa === 'OI' || lead.etapa === 'Delay OI'
+      ).length;
+      const virouPC = leads.filter(lead => 
+        lead.etapa === 'PC' || lead.etapa === 'Delay PC'
+      ).length;
+      const virouN = leads.filter(lead => 
+        lead.etapa === 'N' || lead.etapa === 'Não'
+      ).length;
+
+      // Calcular percentuais (mudança fictícia para demonstração)
+      const calcularMudanca = (atual: number, total: number) => {
+        if (total === 0) return "0%";
+        const percentual = ((atual / total) * 100).toFixed(1);
+        return `${percentual}%`;
+      };
+
+      setMetrics([
+        {
+          title: "Ligações Efetuadas",
+          value: ligacoesEfetuadas.toString(),
+          change: "+100%",
+          trend: "up" as const,
+          icon: Phone,
+          color: "primary" as const
+        },
+        {
+          title: "Foram Atendidas",
+          value: foramAtendidas.toString(),
+          change: calcularMudanca(foramAtendidas, ligacoesEfetuadas),
+          trend: "up" as const,
+          icon: PhoneCall,
+          color: "success" as const
+        },
+        {
+          title: "OI Marcados",
+          value: oiMarcados.toString(),
+          change: calcularMudanca(oiMarcados, foramAtendidas),
+          trend: "up" as const,
+          icon: Calendar,
+          color: "warning" as const
+        },
+        {
+          title: "Virou PC",
+          value: virouPC.toString(),
+          change: calcularMudanca(virouPC, foramAtendidas),
+          trend: "up" as const,
+          icon: Target,
+          color: "chart-1" as const
+        },
+        {
+          title: "Virou N",
+          value: virouN.toString(),
+          change: calcularMudanca(virouN, foramAtendidas),
+          trend: "up" as const,
+          icon: TrendingUp,
+          color: "chart-2" as const
+        }
+      ]);
+    } catch (error) {
+      console.error('Erro ao buscar métricas:', error);
+    }
+  };
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
       {metrics.map((metric) => (
         <div
           key={metric.title}
@@ -49,10 +155,31 @@ export function KPIGrid() {
           {/* Content */}
           <div className="relative">
             <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-lg bg-${metric.color}/10`}>
-                <metric.icon className={`w-4 h-4 text-${metric.color}`} />
+              <div className={cn(
+                "p-2 rounded-lg",
+                metric.color === "primary" && "bg-primary/10",
+                metric.color === "success" && "bg-success/10", 
+                metric.color === "warning" && "bg-warning/10",
+                metric.color === "chart-1" && "bg-chart-1/10",
+                metric.color === "chart-2" && "bg-chart-2/10"
+              )}>
+                <metric.icon className={cn(
+                  "w-4 h-4",
+                  metric.color === "primary" && "text-primary",
+                  metric.color === "success" && "text-success",
+                  metric.color === "warning" && "text-warning", 
+                  metric.color === "chart-1" && "text-chart-1",
+                  metric.color === "chart-2" && "text-chart-2"
+                )} />
               </div>
-              <span className={`text-xs font-medium px-2 py-1 rounded-full bg-${metric.color}/10 text-${metric.color}`}>
+              <span className={cn(
+                "text-xs font-medium px-2 py-1 rounded-full",
+                metric.color === "primary" && "bg-primary/10 text-primary",
+                metric.color === "success" && "bg-success/10 text-success",
+                metric.color === "warning" && "bg-warning/10 text-warning",
+                metric.color === "chart-1" && "bg-chart-1/10 text-chart-1", 
+                metric.color === "chart-2" && "bg-chart-2/10 text-chart-2"
+              )}>
                 {metric.change}
               </span>
             </div>
