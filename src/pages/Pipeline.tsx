@@ -28,6 +28,7 @@ import {
 
 const stages = [
   { name: "Novo", color: "bg-blue-500" },
+  { name: "Tentativa", color: "bg-sky-500" },
   { name: "OI", color: "bg-indigo-500" },
   { name: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", color: "bg-orange-500" },

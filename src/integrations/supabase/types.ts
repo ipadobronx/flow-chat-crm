@@ -23,6 +23,7 @@ export type Database = {
           data_sitplan: string | null
           empresa: string | null
           etapa: Database["public"]["Enums"]["etapa_funil"]
+          etapa_changed_at: string | null
           high_ticket: boolean | null
           id: string
           incluir_sitplan: boolean | null
@@ -46,6 +47,7 @@ export type Database = {
           data_sitplan?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
+          etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string
           incluir_sitplan?: boolean | null
@@ -69,6 +71,7 @@ export type Database = {
           data_sitplan?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
+          etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string
           incluir_sitplan?: boolean | null
@@ -253,11 +256,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      move_old_tentativa_leads: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       etapa_funil:
         | "Novo"
+        | "Tentativa"
         | "OI"
         | "Delay OI"
         | "PC"
@@ -400,6 +407,7 @@ export const Constants = {
     Enums: {
       etapa_funil: [
         "Novo",
+        "Tentativa",
         "OI",
         "Delay OI",
         "PC",

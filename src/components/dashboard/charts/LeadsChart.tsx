@@ -58,7 +58,7 @@ export function LeadsChart({ startDate, endDate }: LeadsChartProps) {
 
         const ligacoes = dayLeads.length;
         const atendidas = dayLeads.filter(lead => 
-          lead.etapa !== 'Novo' && lead.etapa !== 'Ligar Depois'
+          lead.etapa !== 'Novo' && lead.etapa !== 'Ligar Depois' && lead.etapa !== 'Tentativa'
         ).length;
         const oi = dayLeads.filter(lead => 
           lead.etapa === 'OI' || lead.etapa === 'Delay OI'

@@ -1,1 +1,4 @@
 project_id = "ltqhujliyocybuwcmadf"
+
+[functions.move-old-tentativa-leads]
+verify_jwt = false
