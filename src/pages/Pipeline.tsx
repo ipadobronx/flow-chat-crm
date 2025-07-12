@@ -3,12 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight, Clock } from "lucide-react";
+import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -133,6 +143,9 @@ export default function Pipeline() {
   const [saving, setSaving] = useState(false);
   const [ligacoesHistorico, setLigacoesHistorico] = useState<any[]>([]);
   const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [editingLigacao, setEditingLigacao] = useState<string | null>(null);
+  const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
+  const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -329,6 +342,51 @@ export default function Pipeline() {
       await fetchLigacoesHistorico(leadId);
     } catch (error) {
       console.error('Erro ao registrar ligação:', error);
+    }
+  };
+
+  const atualizarLigacao = async (ligacaoId: string, novoTipo: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('ligacoes_historico')
+        .update({ tipo: novoTipo })
+        .eq('id', ligacaoId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Atualizar o histórico imediatamente
+      if (selectedLead) {
+        await fetchLigacoesHistorico(selectedLead.id);
+      }
+      setEditingLigacao(null);
+      setNovoTipoLigacao({});
+    } catch (error) {
+      console.error('Erro ao atualizar ligação:', error);
+    }
+  };
+
+  const excluirLigacao = async (ligacaoId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('ligacoes_historico')
+        .delete()
+        .eq('id', ligacaoId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      // Atualizar o histórico imediatamente
+      if (selectedLead) {
+        await fetchLigacoesHistorico(selectedLead.id);
+      }
+      setLigacaoParaExcluir(null);
+    } catch (error) {
+      console.error('Erro ao excluir ligação:', error);
     }
   };
 
@@ -726,26 +784,96 @@ export default function Pipeline() {
                       <div className="p-4 text-center text-sm text-muted-foreground">
                         Carregando histórico...
                       </div>
-                    ) : ligacoesHistorico.length > 0 ? (
-                      <div className="space-y-2 p-3">
-                        {ligacoesHistorico.map((ligacao) => (
-                          <div key={ligacao.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              <span className="capitalize">{ligacao.tipo}</span>
-                            </div>
-                            <span className="text-muted-foreground text-xs">
-                              {new Date(ligacao.data_ligacao).toLocaleString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                     ) : ligacoesHistorico.length > 0 ? (
+                       <div className="space-y-2 p-3">
+                         {ligacoesHistorico.map((ligacao) => (
+                           <div key={ligacao.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm group hover:bg-muted/50 transition-colors">
+                             <div className="flex items-center gap-2 flex-1">
+                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                               {editingLigacao === ligacao.id ? (
+                                 <div className="flex items-center gap-2">
+                                   <Select
+                                     value={novoTipoLigacao[ligacao.id] || ligacao.tipo}
+                                     onValueChange={(value) => {
+                                       setNovoTipoLigacao({
+                                         ...novoTipoLigacao,
+                                         [ligacao.id]: value
+                                       });
+                                     }}
+                                   >
+                                     <SelectTrigger className="w-32 h-7">
+                                       <SelectValue />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                       <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                       <SelectItem value="telefone">Telefone</SelectItem>
+                                       <SelectItem value="email">Email</SelectItem>
+                                       <SelectItem value="pessoal">Pessoal</SelectItem>
+                                     </SelectContent>
+                                   </Select>
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     className="h-7 w-7 p-0"
+                                     onClick={() => atualizarLigacao(ligacao.id, novoTipoLigacao[ligacao.id] || ligacao.tipo)}
+                                   >
+                                     <Check className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     className="h-7 w-7 p-0"
+                                     onClick={() => {
+                                       setEditingLigacao(null);
+                                       setNovoTipoLigacao({});
+                                     }}
+                                   >
+                                     <X className="w-3 h-3" />
+                                   </Button>
+                                 </div>
+                               ) : (
+                                 <span className="capitalize">{ligacao.tipo}</span>
+                               )}
+                             </div>
+                             
+                             <div className="flex items-center gap-2">
+                               <span className="text-muted-foreground text-xs">
+                                 {new Date(ligacao.data_ligacao).toLocaleString('pt-BR', {
+                                   day: '2-digit',
+                                   month: '2-digit',
+                                   year: 'numeric',
+                                   hour: '2-digit',
+                                   minute: '2-digit'
+                                 })}
+                               </span>
+                               
+                               {editingLigacao !== ligacao.id && (
+                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     className="h-6 w-6 p-0"
+                                     onClick={() => {
+                                       setEditingLigacao(ligacao.id);
+                                       setNovoTipoLigacao({ [ligacao.id]: ligacao.tipo });
+                                     }}
+                                   >
+                                     <Edit2 className="w-3 h-3" />
+                                   </Button>
+                                   <Button
+                                     size="sm"
+                                     variant="ghost"
+                                     className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                                     onClick={() => setLigacaoParaExcluir(ligacao)}
+                                   >
+                                     <Trash2 className="w-3 h-3" />
+                                   </Button>
+                                 </div>
+                               )}
+                             </div>
+                           </div>
+                         ))}
+                       </div>
                     ) : (
                       <div className="p-4 text-center text-sm text-muted-foreground">
                         Nenhuma ligação registrada ainda
@@ -820,6 +948,31 @@ export default function Pipeline() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de confirmação para exclusão */}
+        <AlertDialog open={!!ligacaoParaExcluir} onOpenChange={() => setLigacaoParaExcluir(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir esta ligação do histórico? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (ligacaoParaExcluir) {
+                    excluirLigacao(ligacaoParaExcluir.id);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
