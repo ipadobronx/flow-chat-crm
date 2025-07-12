@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Clock, MessageSquare, Calendar, DollarSign, User, Phone } from "lucide-react";
+import { Clock, MessageSquare, User, Phone, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
@@ -22,6 +24,7 @@ export function ActivityFeed() {
   const { user } = useAuth();
   const [atividades, setAtividades] = useState<Atividade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,9 +44,10 @@ export function ActivityFeed() {
     }
   }, [user]);
 
-  const buscarAtividades = async () => {
+  const buscarAtividades = async (showRefreshing = false) => {
     if (!user) return;
 
+    if (showRefreshing) setIsRefreshing(true);
     console.log('🔍 Buscando atividades para o usuário:', user.id);
 
     try {
@@ -53,7 +57,7 @@ export function ActivityFeed() {
         .select('*')
         .eq('user_id', user.id)
         .order('data_ligacao', { ascending: false })
-        .limit(10);
+        .limit(20);
 
       console.log('📞 Ligações encontradas (sem JOIN):', ligacoes);
 
@@ -146,12 +150,17 @@ export function ActivityFeed() {
 
       console.log('📊 Atividades formatadas:', atividadesFormatadas);
       
-      setAtividades(atividadesFormatadas.slice(0, 8));
+      setAtividades(atividadesFormatadas);
     } catch (error) {
       console.error('Erro ao buscar atividades:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    buscarAtividades(true);
   };
 
   return (
@@ -167,49 +176,55 @@ export function ActivityFeed() {
               Suas últimas interações e movimentações no pipeline
             </CardDescription>
           </div>
-          <button
-            onClick={buscarAtividades}
-            className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="gap-2"
           >
-            🔄 Atualizar
-          </button>
+            <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {loading ? (
-            <div className="text-center text-sm text-muted-foreground py-4">
-              Carregando atividades...
-            </div>
-          ) : atividades.length > 0 ? (
-            atividades.map((atividade) => (
-              <div key={atividade.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-primary/10">
-                    <atividade.icon className="w-4 h-4 text-primary" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium">{atividade.titulo}</p>
-                    <Badge variant="outline" className="text-xs">
-                      {atividade.tipo === 'ligacao' ? 'Ligação' : 'Movimento'}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{atividade.descricao}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {atividade.tempo}
-                  </p>
-                </div>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[400px] px-6 pb-6">
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center text-sm text-muted-foreground py-8">
+                Carregando atividades...
               </div>
-            ))
-          ) : (
-            <div className="text-center text-sm text-muted-foreground py-4">
-              Nenhuma atividade recente encontrada
-            </div>
-          )}
-        </div>
+            ) : atividades.length > 0 ? (
+              atividades.map((atividade) => (
+                <div key={atividade.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-primary/10">
+                      <atividade.icon className="w-4 h-4 text-primary" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{atividade.titulo}</p>
+                      <Badge variant="outline" className="text-xs">
+                        {atividade.tipo === 'ligacao' ? 'Ligação' : 'Movimento'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{atividade.descricao}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {atividade.tempo}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-8">
+                Nenhuma atividade recente encontrada
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
