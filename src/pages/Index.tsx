@@ -8,8 +8,10 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { LeadsTable } from "@/components/dashboard/LeadsTable";
 
 const Index = () => {
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
+  // Definir o dia atual como padrão
+  const today = new Date();
+  const [startDate, setStartDate] = useState<Date | undefined>(today);
+  const [endDate, setEndDate] = useState<Date | undefined>(today);
 
   return (
     <DashboardLayout>

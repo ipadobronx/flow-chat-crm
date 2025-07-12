@@ -97,19 +97,18 @@ export function DateFilter({
           </PopoverContent>
         </Popover>
 
-        {/* Botão Limpar */}
-        {(startDate || endDate) && (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              onStartDateChange(undefined);
-              onEndDateChange(undefined);
-            }}
-            className="px-3"
-          >
-            Limpar
-          </Button>
-        )}
+        {/* Botão Voltar ao Hoje */}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            const today = new Date();
+            onStartDateChange(today);
+            onEndDateChange(today);
+          }}
+          className="px-3"
+        >
+          Hoje
+        </Button>
       </div>
     </div>
   );
