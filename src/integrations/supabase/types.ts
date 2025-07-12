@@ -263,8 +263,8 @@ export type Database = {
     }
     Enums: {
       etapa_funil:
+        | "Todos"
         | "Novo"
-        | "Tentativa"
         | "OI"
         | "Delay OI"
         | "PC"
@@ -406,8 +406,8 @@ export const Constants = {
   public: {
     Enums: {
       etapa_funil: [
+        "Todos",
         "Novo",
-        "Tentativa",
         "OI",
         "Delay OI",
         "PC",

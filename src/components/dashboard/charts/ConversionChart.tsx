@@ -44,7 +44,7 @@ export function ConversionChart({ startDate, endDate }: ConversionChartProps) {
       // Calcular dados do funil
       const ligacoesEfetuadas = leads.length;
       const foramAtendidas = leads.filter(lead => 
-        lead.etapa !== 'Novo' && lead.etapa !== 'Ligar Depois' && lead.etapa !== 'Tentativa'
+        lead.etapa !== 'Todos' && lead.etapa !== 'Ligar Depois' && lead.etapa !== 'Novo'
       ).length;
       const oiMarcados = leads.filter(lead => 
         lead.etapa === 'OI' || lead.etapa === 'Delay OI'
