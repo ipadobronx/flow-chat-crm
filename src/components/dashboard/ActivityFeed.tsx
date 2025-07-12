@@ -38,8 +38,22 @@ export function ActivityFeed() {
     }
   }, [user]);
 
+  // Refrescar atividades a cada 30 segundos para garantir atualização
+  useEffect(() => {
+    if (user) {
+      const interval = setInterval(() => {
+        console.log('🔄 Auto-atualizando atividades...');
+        buscarAtividades();
+      }, 30000); // 30 segundos
+
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
   const buscarAtividades = async () => {
     if (!user) return;
+
+    console.log('🔍 Buscando atividades para o usuário:', user.id);
 
     try {
       // Buscar ligações recentes com nome do lead
@@ -56,7 +70,12 @@ export function ActivityFeed() {
         .order('data_ligacao', { ascending: false })
         .limit(10);
 
-      if (ligacoesError) throw ligacoesError;
+      console.log('📞 Ligações encontradas:', ligacoes);
+
+      if (ligacoesError) {
+        console.error('❌ Erro ao buscar ligações:', ligacoesError);
+        throw ligacoesError;
+      }
 
       // Buscar mudanças de etapa recentes
       const { data: mudancas, error: mudancasError } = await supabase
@@ -116,6 +135,8 @@ export function ActivityFeed() {
         return new Date(timeB || 0).getTime() - new Date(timeA || 0).getTime();
       });
 
+      console.log('📊 Atividades formatadas:', atividadesFormatadas);
+      
       setAtividades(atividadesFormatadas.slice(0, 8));
     } catch (error) {
       console.error('Erro ao buscar atividades:', error);

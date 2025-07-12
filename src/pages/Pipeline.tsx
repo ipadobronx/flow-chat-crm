@@ -328,22 +328,32 @@ export default function Pipeline() {
   const registrarLigacao = async (leadId: string, tipo: string = 'whatsapp') => {
     if (!user) return;
 
+    console.log('🔄 Registrando ligação:', { leadId, tipo, userId: user.id });
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('ligacoes_historico')
         .insert({
           lead_id: leadId,
           user_id: user.id,
           tipo: tipo,
           data_ligacao: new Date().toISOString(),
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao registrar ligação:', error);
+        throw error;
+      }
+      
+      console.log('✅ Ligação registrada com sucesso:', data);
       
       // Atualizar o histórico imediatamente
       await fetchLigacoesHistorico(leadId);
+      
+      console.log('🔄 Histórico de ligações atualizado');
     } catch (error) {
-      console.error('Erro ao registrar ligação:', error);
+      console.error('💥 Erro ao registrar ligação:', error);
     }
   };
 
