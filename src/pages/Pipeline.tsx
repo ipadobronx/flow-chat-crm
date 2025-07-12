@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight } from "lucide-react";
+import { Phone, MessageSquare, Calendar, ArrowRight, Clock } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -131,6 +131,8 @@ export default function Pipeline() {
   const [loading, setLoading] = useState(true);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [saving, setSaving] = useState(false);
+  const [ligacoesHistorico, setLigacoesHistorico] = useState<any[]>([]);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -282,6 +284,54 @@ export default function Pipeline() {
     }
   }, [editingLead]);
 
+  // Buscar histórico de ligações quando um lead é selecionado
+  useEffect(() => {
+    if (selectedLead && user) {
+      fetchLigacoesHistorico(selectedLead.id);
+    }
+  }, [selectedLead, user]);
+
+  const fetchLigacoesHistorico = async (leadId: string) => {
+    setLoadingHistorico(true);
+    try {
+      const { data, error } = await supabase
+        .from('ligacoes_historico')
+        .select('*')
+        .eq('lead_id', leadId)
+        .eq('user_id', user?.id)
+        .order('data_ligacao', { ascending: false });
+
+      if (error) throw error;
+      setLigacoesHistorico(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar histórico de ligações:', error);
+    } finally {
+      setLoadingHistorico(false);
+    }
+  };
+
+  const registrarLigacao = async (leadId: string, tipo: string = 'whatsapp') => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('ligacoes_historico')
+        .insert({
+          lead_id: leadId,
+          user_id: user.id,
+          tipo: tipo,
+          data_ligacao: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+      
+      // Atualizar o histórico imediatamente
+      await fetchLigacoesHistorico(leadId);
+    } catch (error) {
+      console.error('Erro ao registrar ligação:', error);
+    }
+  };
+
   const YesNoField = ({ label, value }: { label: string; value: boolean }) => (
     <div className="flex items-center justify-between py-2 border-b">
       <span className="text-sm text-muted-foreground">{label}</span>
@@ -395,7 +445,18 @@ export default function Pipeline() {
               <div className="space-y-6">
                 {/* Botões de ação */}
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Button 
+                    size="sm" 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      registrarLigacao(selectedLead.id, 'whatsapp');
+                      // Aqui você pode adicionar a lógica para abrir o WhatsApp
+                      if (selectedLead.telefone) {
+                        const phoneNumber = selectedLead.telefone.replace(/\D/g, '');
+                        window.open(`https://wa.me/55${phoneNumber}`, '_blank');
+                      }
+                    }}
+                  >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     WhatsApp
                   </Button>
@@ -486,10 +547,29 @@ export default function Pipeline() {
                     <Label className="text-sm text-muted-foreground">Celular</Label>
                     <div className="flex items-center space-x-2">
                       <Input value={selectedLead.telefone || ""} readOnly className="flex-1" />
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          registrarLigacao(selectedLead.id, 'whatsapp');
+                          if (selectedLead.telefone) {
+                            const phoneNumber = selectedLead.telefone.replace(/\D/g, '');
+                            window.open(`https://wa.me/55${phoneNumber}`, '_blank');
+                          }
+                        }}
+                      >
                         <MessageSquare className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          registrarLigacao(selectedLead.id, 'telefone');
+                          if (selectedLead.telefone) {
+                            window.open(`tel:${selectedLead.telefone}`, '_self');
+                          }
+                        }}
+                      >
                         <Phone className="w-4 h-4" />
                       </Button>
                     </div>
@@ -626,6 +706,51 @@ export default function Pipeline() {
                         ✅ Sim
                       </Button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Histórico de Ligações */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Histórico de Ligações
+                    </Label>
+                    <Badge variant="outline">
+                      {ligacoesHistorico.length} {ligacoesHistorico.length === 1 ? 'ligação' : 'ligações'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="max-h-40 overflow-y-auto border rounded-lg">
+                    {loadingHistorico ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Carregando histórico...
+                      </div>
+                    ) : ligacoesHistorico.length > 0 ? (
+                      <div className="space-y-2 p-3">
+                        {ligacoesHistorico.map((ligacao) => (
+                          <div key={ligacao.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="capitalize">{ligacao.tipo}</span>
+                            </div>
+                            <span className="text-muted-foreground text-xs">
+                              {new Date(ligacao.data_ligacao).toLocaleString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Nenhuma ligação registrada ainda
+                      </div>
+                    )}
                   </div>
                 </div>
 

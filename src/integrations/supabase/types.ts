@@ -89,6 +89,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ligacoes_historico: {
+        Row: {
+          created_at: string
+          data_ligacao: string
+          id: string
+          lead_id: string
+          observacoes: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_ligacao?: string
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          tipo?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_ligacao?: string
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       test: {
         Row: {
           _RowNumber: number
