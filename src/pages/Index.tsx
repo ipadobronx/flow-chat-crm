@@ -6,6 +6,7 @@ import { LeadsChart } from "@/components/dashboard/charts/LeadsChart";
 import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { LeadsTable } from "@/components/dashboard/LeadsTable";
+import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
 
 const Index = () => {
   // Definir o dia atual como padrão
@@ -36,6 +37,9 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2"><LeadsTable /></div>
           <div className="lg:col-span-1"><ActivityFeed /></div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2"><BirthdayCard /></div>
         </div>
       </div>
     </DashboardLayout>
