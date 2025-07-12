@@ -20,6 +20,7 @@ export type Database = {
           casado: boolean | null
           created_at: string | null
           data_callback: string | null
+          data_nascimento: string | null
           data_sitplan: string | null
           empresa: string | null
           etapa: Database["public"]["Enums"]["etapa_funil"]
@@ -44,6 +45,7 @@ export type Database = {
           casado?: boolean | null
           created_at?: string | null
           data_callback?: string | null
+          data_nascimento?: string | null
           data_sitplan?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
@@ -68,6 +70,7 @@ export type Database = {
           casado?: boolean | null
           created_at?: string | null
           data_callback?: string | null
+          data_nascimento?: string | null
           data_sitplan?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]

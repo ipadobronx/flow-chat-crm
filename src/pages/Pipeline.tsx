@@ -65,6 +65,7 @@ type Lead = {
   etapa: Database["public"]["Enums"]["etapa_funil"];
   status: string | null;
   data_callback: string | null;
+  data_nascimento: string | null;
   high_ticket: boolean;
   casado: boolean;
   tem_filhos: boolean;
@@ -165,7 +166,7 @@ export default function Pipeline() {
       try {
         const { data, error } = await supabase
           .from('leads')
-          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, high_ticket, casado, tem_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
+          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -271,6 +272,7 @@ export default function Pipeline() {
           etapa: editingLead.etapa as Database["public"]["Enums"]["etapa_funil"],
           status: editingLead.status,
           data_callback: editingLead.data_callback,
+          data_nascimento: editingLead.data_nascimento,
           observacoes: editingLead.observacoes,
           pa_estimado: editingLead.pa_estimado,
           data_sitplan: editingLead.data_sitplan,
@@ -599,8 +601,19 @@ export default function Pipeline() {
                   />
                 </div>
 
-                {/* Celular e Profissão */}
+                {/* Data de nascimento e Celular */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm text-muted-foreground">Data de Nascimento</Label>
+                    <Input 
+                      type="date" 
+                      value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
+                      onChange={(e) => {
+                        const updatedLead = { ...selectedLead, data_nascimento: e.target.value };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
+                  </div>
                   <div>
                     <Label className="text-sm text-muted-foreground">Celular</Label>
                     <div className="flex items-center space-x-2">
@@ -632,10 +645,12 @@ export default function Pipeline() {
                       </Button>
                     </div>
                   </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Profissão</Label>
-                    <Input value={selectedLead.profissao || ""} readOnly />
-                  </div>
+                </div>
+
+                {/* Profissão */}
+                <div>
+                  <Label className="text-sm text-muted-foreground">Profissão</Label>
+                  <Input value={selectedLead.profissao || ""} readOnly />
                 </div>
 
                 {/* Campos Yes/No */}

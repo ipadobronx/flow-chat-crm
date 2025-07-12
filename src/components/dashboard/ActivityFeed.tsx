@@ -1,80 +1,265 @@
-import { Clock, MessageSquare, Calendar, DollarSign, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, MessageSquare, Calendar, DollarSign, User, Phone, Cake } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-const activities = [
-  {
-    id: 1,
-    type: "message",
-    title: "Nova mensagem no WhatsApp",
-    description: "Sarah Johnson respondeu à sua proposta",
-    time: "2 minutos atrás",
-    icon: MessageSquare,
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-  },
-  {
-    id: 2,
-    type: "meeting",
-    title: "Reunião agendada",
-    description: "Ligação demo com Acme Corp às 15:00",
-    time: "15 minutos atrás",
-    icon: Calendar,
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-  },
-  {
-    id: 3,
-    type: "deal",
-    title: "Negócio fechado",
-    description: "R$ 12.500 com TechStart Inc.",
-    time: "1 hora atrás",
-    icon: DollarSign,
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
-  },
-  {
-    id: 4,
-    type: "lead",
-    title: "Novo lead atribuído",
-    description: "Lead empresarial da campanha LinkedIn",
-    time: "2 horas atrás",
-    icon: User,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-  }
-];
+interface Atividade {
+  id: string;
+  tipo: string;
+  titulo: string;
+  descricao: string;
+  tempo: string;
+  nome_lead: string;
+  icon: any;
+}
+
+interface Aniversariante {
+  id: string;
+  nome: string;
+  data_nascimento: string;
+  telefone?: string;
+}
 
 export function ActivityFeed() {
+  const { user } = useAuth();
+  const [atividades, setAtividades] = useState<Atividade[]>([]);
+  const [aniversariantes, setAniversariantes] = useState<Aniversariante[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      buscarAtividades();
+      buscarAniversariantes();
+    }
+  }, [user]);
+
+  const buscarAtividades = async () => {
+    if (!user) return;
+
+    try {
+      // Buscar ligações recentes com nome do lead
+      const { data: ligacoes, error: ligacoesError } = await supabase
+        .from('ligacoes_historico')
+        .select(`
+          id,
+          tipo,
+          data_ligacao,
+          lead_id,
+          leads!inner(nome)
+        `)
+        .eq('user_id', user.id)
+        .order('data_ligacao', { ascending: false })
+        .limit(10);
+
+      if (ligacoesError) throw ligacoesError;
+
+      // Buscar mudanças de etapa recentes
+      const { data: mudancas, error: mudancasError } = await supabase
+        .from('leads')
+        .select('id, nome, etapa, etapa_changed_at')
+        .eq('user_id', user.id)
+        .not('etapa_changed_at', 'is', null)
+        .order('etapa_changed_at', { ascending: false })
+        .limit(5);
+
+      if (mudancasError) throw mudancasError;
+
+      // Combinar e formatar atividades
+      const atividadesFormatadas: Atividade[] = [];
+
+      // Adicionar ligações
+      ligacoes?.forEach((ligacao: any) => {
+        atividadesFormatadas.push({
+          id: `ligacao-${ligacao.id}`,
+          tipo: 'ligacao',
+          titulo: `Ligação via ${ligacao.tipo}`,
+          descricao: `Contato realizado com ${ligacao.leads.nome}`,
+          tempo: formatDistanceToNow(new Date(ligacao.data_ligacao), { 
+            addSuffix: true, 
+            locale: ptBR 
+          }),
+          nome_lead: ligacao.leads.nome,
+          icon: ligacao.tipo === 'whatsapp' ? MessageSquare : Phone
+        });
+      });
+
+      // Adicionar mudanças de etapa
+      mudancas?.forEach((mudanca) => {
+        atividadesFormatadas.push({
+          id: `mudanca-${mudanca.id}`,
+          tipo: 'mudanca_etapa',
+          titulo: `Lead movido para ${mudanca.etapa}`,
+          descricao: `${mudanca.nome} foi movido para a etapa ${mudanca.etapa}`,
+          tempo: formatDistanceToNow(new Date(mudanca.etapa_changed_at), { 
+            addSuffix: true, 
+            locale: ptBR 
+          }),
+          nome_lead: mudanca.nome,
+          icon: User
+        });
+      });
+
+      // Ordenar por tempo (mais recente primeiro)
+      atividadesFormatadas.sort((a, b) => {
+        const timeA = a.id.startsWith('ligacao-') 
+          ? ligacoes?.find(l => l.id === a.id.replace('ligacao-', ''))?.data_ligacao
+          : mudancas?.find(m => m.id === a.id.replace('mudanca-', ''))?.etapa_changed_at;
+        const timeB = b.id.startsWith('ligacao-')
+          ? ligacoes?.find(l => l.id === b.id.replace('ligacao-', ''))?.data_ligacao
+          : mudancas?.find(m => m.id === b.id.replace('mudanca-', ''))?.etapa_changed_at;
+        
+        return new Date(timeB || 0).getTime() - new Date(timeA || 0).getTime();
+      });
+
+      setAtividades(atividadesFormatadas.slice(0, 8));
+    } catch (error) {
+      console.error('Erro ao buscar atividades:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const buscarAniversariantes = async () => {
+    if (!user) return;
+
+    try {
+      const hoje = new Date();
+      const diaHoje = hoje.getDate();
+      const mesHoje = hoje.getMonth() + 1;
+
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, nome, data_nascimento, telefone')
+        .eq('user_id', user.id)
+        .not('data_nascimento', 'is', null);
+
+      if (error) throw error;
+
+      // Filtrar aniversariantes do dia
+      const aniversariantesHoje = data?.filter(lead => {
+        if (!lead.data_nascimento) return false;
+        const dataNasc = new Date(lead.data_nascimento);
+        return dataNasc.getDate() === diaHoje && dataNasc.getMonth() + 1 === mesHoje;
+      }) || [];
+
+      setAniversariantes(aniversariantesHoje);
+    } catch (error) {
+      console.error('Erro ao buscar aniversariantes:', error);
+    }
+  };
+
+  const getInitials = (nome: string) => {
+    return nome.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
-    <Card className="animate-fade-in">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="w-4 h-4" />
-          Atividade Recente
-        </CardTitle>
-        <CardDescription>
-          Últimas atualizações do seu pipeline de vendas
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {activities.map((activity) => (
-            <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={activity.avatar} />
-                <AvatarFallback>
-                  <activity.icon className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">{activity.title}</p>
-                <p className="text-xs text-muted-foreground">{activity.description}</p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {activity.time}
-                </p>
-              </div>
+    <div className="space-y-6">
+      {/* Aniversariantes do Dia */}
+      {aniversariantes.length > 0 && (
+        <Card className="animate-fade-in border-yellow-200 bg-yellow-50/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-800">
+              <Cake className="w-4 h-4" />
+              Aniversariantes do Dia
+            </CardTitle>
+            <CardDescription className="text-yellow-700">
+              Lembre-se de parabenizar seus contatos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {aniversariantes.map((aniversariante) => (
+                <div key={aniversariante.id} className="flex items-center justify-between p-3 rounded-lg bg-white/80 border border-yellow-200">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="w-8 h-8 border-2 border-yellow-300">
+                      <AvatarFallback className="bg-yellow-100 text-yellow-800">
+                        {getInitials(aniversariante.nome)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-yellow-900">{aniversariante.nome}</p>
+                      <p className="text-xs text-yellow-700">🎂 Aniversário hoje!</p>
+                    </div>
+                  </div>
+                  {aniversariante.telefone && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          const phoneNumber = aniversariante.telefone?.replace(/\D/g, '');
+                          window.open(`https://wa.me/55${phoneNumber}?text=🎉 Parabéns pelo seu aniversário! 🎂`, '_blank');
+                        }}
+                        className="p-1 rounded bg-green-600 text-white hover:bg-green-700 transition-colors"
+                      >
+                        <MessageSquare className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => window.open(`tel:${aniversariante.telefone}`, '_self')}
+                        className="p-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                      >
+                        <Phone className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Atividades Recentes */}
+      <Card className="animate-fade-in">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Atividades Recentes
+          </CardTitle>
+          <CardDescription>
+            Suas últimas interações e movimentações no pipeline
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center text-sm text-muted-foreground py-4">
+                Carregando atividades...
+              </div>
+            ) : atividades.length > 0 ? (
+              atividades.map((atividade) => (
+                <div key={atividade.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-primary/10">
+                      <atividade.icon className="w-4 h-4 text-primary" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{atividade.titulo}</p>
+                      <Badge variant="outline" className="text-xs">
+                        {atividade.tipo === 'ligacao' ? 'Ligação' : 'Movimento'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{atividade.descricao}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {atividade.tempo}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-sm text-muted-foreground py-4">
+                Nenhuma atividade recente encontrada
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
