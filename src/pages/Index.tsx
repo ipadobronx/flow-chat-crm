@@ -35,11 +35,11 @@ const Index = () => {
           <ConversionChart startDate={startDate} endDate={endDate} />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2"><LeadsTable /></div>
+          <div className="lg:col-span-2 space-y-6">
+            <LeadsTable />
+            <BirthdayCard />
+          </div>
           <div className="lg:col-span-1"><ActivityFeed /></div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2"><BirthdayCard /></div>
         </div>
       </div>
     </DashboardLayout>
