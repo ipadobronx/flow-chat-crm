@@ -56,26 +56,44 @@ export function ActivityFeed() {
     console.log('🔍 Buscando atividades para o usuário:', user.id);
 
     try {
-      // Buscar ligações recentes com nome do lead
+      // Buscar ligações recentes sem JOIN primeiro para debugar
       const { data: ligacoes, error: ligacoesError } = await supabase
         .from('ligacoes_historico')
-        .select(`
-          id,
-          tipo,
-          data_ligacao,
-          lead_id,
-          leads!inner(nome)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('data_ligacao', { ascending: false })
         .limit(10);
 
-      console.log('📞 Ligações encontradas:', ligacoes);
+      console.log('📞 Ligações encontradas (sem JOIN):', ligacoes);
 
       if (ligacoesError) {
         console.error('❌ Erro ao buscar ligações:', ligacoesError);
         throw ligacoesError;
       }
+
+      // Buscar nomes dos leads separadamente
+      let ligacoesComNomes: any[] = [];
+      if (ligacoes && ligacoes.length > 0) {
+        const leadIds = ligacoes.map(l => l.lead_id);
+        const { data: leadsData, error: leadsError } = await supabase
+          .from('leads')
+          .select('id, nome')
+          .in('id', leadIds)
+          .eq('user_id', user.id);
+
+        console.log('👥 Leads encontrados:', leadsData);
+
+        if (leadsError) {
+          console.error('❌ Erro ao buscar leads:', leadsError);
+        } else {
+          ligacoesComNomes = ligacoes.map(ligacao => ({
+            ...ligacao,
+            nome_lead: leadsData?.find(lead => lead.id === ligacao.lead_id)?.nome || 'Lead não encontrado'
+          }));
+        }
+      }
+
+      console.log('📞 Ligações com nomes:', ligacoesComNomes);
 
       // Buscar mudanças de etapa recentes
       const { data: mudancas, error: mudancasError } = await supabase
@@ -92,17 +110,17 @@ export function ActivityFeed() {
       const atividadesFormatadas: Atividade[] = [];
 
       // Adicionar ligações
-      ligacoes?.forEach((ligacao: any) => {
+      ligacoesComNomes?.forEach((ligacao: any) => {
         atividadesFormatadas.push({
           id: `ligacao-${ligacao.id}`,
           tipo: 'ligacao',
           titulo: `Ligação via ${ligacao.tipo}`,
-          descricao: `Contato realizado com ${ligacao.leads.nome}`,
+          descricao: `Contato realizado com ${ligacao.nome_lead}`,
           tempo: formatDistanceToNow(new Date(ligacao.data_ligacao), { 
             addSuffix: true, 
             locale: ptBR 
           }),
-          nome_lead: ligacao.leads.nome,
+          nome_lead: ligacao.nome_lead,
           icon: ligacao.tipo === 'whatsapp' ? MessageSquare : Phone
         });
       });
@@ -236,13 +254,23 @@ export function ActivityFeed() {
       {/* Atividades Recentes */}
       <Card className="animate-fade-in">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Atividades Recentes
-          </CardTitle>
-          <CardDescription>
-            Suas últimas interações e movimentações no pipeline
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Atividades Recentes
+              </CardTitle>
+              <CardDescription>
+                Suas últimas interações e movimentações no pipeline
+              </CardDescription>
+            </div>
+            <button
+              onClick={buscarAtividades}
+              className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+            >
+              🔄 Atualizar
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
