@@ -143,11 +143,11 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
     }
   };
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
       {metrics.map((metric) => (
         <div
           key={metric.title}
-          className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:bg-card/80"
+          className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-3 sm:p-4 lg:p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:bg-card/80"
         >
           {/* Background Gradient Effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

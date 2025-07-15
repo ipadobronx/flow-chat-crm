@@ -29,24 +29,26 @@ export function DateFilter({
   const [endOpen, setEndOpen] = useState(false);
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center">
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-muted-foreground">Filtrar por período:</span>
       </div>
       
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         {/* Data Início */}
         <Popover open={startOpen} onOpenChange={setStartOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                "w-[240px] justify-start text-left font-normal",
+                "w-full sm:w-[200px] md:w-[240px] justify-start text-left font-normal",
                 !startDate && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Data início"}
+              <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">
+                {startDate ? format(startDate, "PPP", { locale: ptBR }) : "Data início"}
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -72,12 +74,14 @@ export function DateFilter({
             <Button
               variant="outline"
               className={cn(
-                "w-[240px] justify-start text-left font-normal",
+                "w-full sm:w-[200px] md:w-[240px] justify-start text-left font-normal",
                 !endDate && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Data fim"}
+              <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">
+                {endDate ? format(endDate, "PPP", { locale: ptBR }) : "Data fim"}
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

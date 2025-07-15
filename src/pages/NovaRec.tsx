@@ -125,7 +125,7 @@ export default function NovaRec() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8">
+      <div className="space-y-4 sm:space-y-6">
         <div className="text-center sm:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Nova Recomendação</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">

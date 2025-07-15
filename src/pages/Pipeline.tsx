@@ -94,7 +94,7 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
       style={style}
       {...listeners}
       {...attributes}
-      className={`p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
+      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={(e) => {
@@ -104,14 +104,14 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
         }
       }}
     >
-      <div className="flex items-start space-x-3">
-        <Avatar className="w-8 h-8">
-          <AvatarFallback>{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+      <div className="flex items-start space-x-2 sm:space-x-3">
+        <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
+          <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">{lead.nome}</p>
+          <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
           <p className="text-xs text-muted-foreground truncate">{lead.empresa || lead.profissao}</p>
-          <p className="text-sm font-semibold text-success mt-1">{lead.valor || 'Valor não informado'}</p>
+          <p className="text-xs sm:text-sm font-semibold text-success mt-1">{lead.valor || 'Valor não informado'}</p>
         </div>
       </div>
     </div>
@@ -418,10 +418,10 @@ export default function Pipeline() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 h-full flex flex-col">
+      <div className="space-y-4 sm:space-y-6 h-full flex flex-col">
         <div className="flex-shrink-0">
-          <h1 className="text-3xl font-bold">Sales Pipeline</h1>
-          <p className="text-muted-foreground">Kanban board for lead management</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Sales Pipeline</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Kanban board for lead management</p>
         </div>
 
         <div className="flex-1 overflow-hidden">
@@ -435,20 +435,20 @@ export default function Pipeline() {
               <div className="text-center py-8">Carregando leads...</div>
             ) : (
             <div className="overflow-x-auto pb-4">
-              <div className="flex gap-4 min-w-max">
+              <div className="flex gap-2 sm:gap-4 min-w-max">
                 {stages.slice(0, 14).map((stage) => {
                   const stageLeads = getLeadsByStage(stage.name);
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
-                      <Card className="w-80 flex-shrink-0">
-                        <CardHeader className="pb-3">
+                      <Card className="w-64 sm:w-72 lg:w-80 flex-shrink-0">
+                        <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-xs font-medium">{stage.name}</CardTitle>
-                            <Badge variant="secondary">{stageLeads.length}</Badge>
+                            <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.name}</CardTitle>
+                            <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
                         </CardHeader>
-                        <CardContent className="space-y-3 h-[600px] overflow-y-auto">
+                        <CardContent className="space-y-2 sm:space-y-3 h-[400px] sm:h-[500px] lg:h-[600px] overflow-y-auto px-3 sm:px-6">
                           {stageLeads.map((lead) => (
                             <DraggableLeadCard
                               key={lead.id}
@@ -457,7 +457,7 @@ export default function Pipeline() {
                             />
                           ))}
                           {stageLeads.length === 0 && (
-                            <div className="text-center text-muted-foreground text-sm py-8">
+                            <div className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
                               Nenhum lead nesta etapa
                             </div>
                           )}
@@ -497,27 +497,27 @@ export default function Pipeline() {
           setSelectedLead(null);
           setEditingLead(null);
         }}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[95vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center space-x-3">
-                <Avatar className="w-10 h-10">
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+            <DialogHeader className="space-y-2 sm:space-y-3">
+              <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                <Avatar className="w-8 h-8 sm:w-10 sm:h-10 mx-auto sm:mx-0">
                   <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedLead?.nome}`} />
-                  <AvatarFallback>{selectedLead?.nome?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                  <AvatarFallback className="text-xs sm:text-sm">{selectedLead?.nome?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="text-lg font-semibold">👤 {selectedLead?.nome}</p>
-                  <p className="text-sm text-muted-foreground">Recomendação</p>
+                <div className="text-center sm:text-left">
+                  <p className="text-base sm:text-lg font-semibold">👤 {selectedLead?.nome}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Recomendação</p>
                 </div>
               </DialogTitle>
             </DialogHeader>
 
             {selectedLead && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Botões de ação */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                   <Button 
                     size="sm" 
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                     onClick={() => {
                       registrarLigacao(selectedLead.id, 'whatsapp');
                       // Aqui você pode adicionar a lógica para abrir o WhatsApp
@@ -530,11 +530,11 @@ export default function Pipeline() {
                     <MessageSquare className="w-4 h-4 mr-2" />
                     WhatsApp
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     <ArrowRight className="w-4 h-4 mr-2" />
                     Incluir no Próximo Sit Plan
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     <Calendar className="w-4 h-4 mr-2" />
                     Agendamento
                   </Button>

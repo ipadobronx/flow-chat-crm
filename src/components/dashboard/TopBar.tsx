@@ -15,23 +15,23 @@ export function TopBar() {
   const { user, signOut } = useAuth();
   
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center space-x-4">
-        <SidebarTrigger />
-        <div>
-          <h2 className="text-lg font-semibold">Dashboard de Vendas</h2>
-          <p className="text-sm text-muted-foreground">
-            Bem-vindo de volta, {user?.email?.split('@')[0] || 'Usuário'}
+    <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+        <SidebarTrigger className="flex-shrink-0" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-base sm:text-lg font-semibold truncate">Dashboard de Vendas</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            Bem-vindo, {user?.email?.split('@')[0] || 'Usuário'}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Search */}
-        <Button variant="ghost" size="icon" className="relative">
+        {/* Search - Hidden on mobile */}
+        <Button variant="ghost" size="icon" className="relative hidden sm:flex">
           <Search className="w-4 h-4" />
         </Button>
 

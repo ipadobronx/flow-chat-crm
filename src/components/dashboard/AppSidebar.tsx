@@ -85,23 +85,23 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r bg-card" collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-3 sm:p-4">
         <NavLink to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <Target className="w-4 h-4 text-white" />
+          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-primary rounded-lg flex items-center justify-center flex-shrink-0">
+            <Target className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
           </div>
           {!isCollapsed && (
-            <div>
-              <h1 className="text-lg font-semibold">CRM Nichado</h1>
-              <p className="text-xs text-muted-foreground">Dashboard de Vendas</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold truncate">CRM Nichado</h1>
+              <p className="text-xs text-muted-foreground truncate">Dashboard de Vendas</p>
             </div>
           )}
         </NavLink>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-1 sm:px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs sm:text-sm">Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
@@ -111,12 +111,12 @@ export function AppSidebar() {
                     isActive={isActive(item.url)} 
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <NavLink to={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors">
-                      <item.icon className="w-4 h-4" />
+                    <NavLink to={item.url} className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-colors">
+                      <item.icon className="w-4 h-4 flex-shrink-0" />
                       {!isCollapsed && (
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{item.title}</div>
-                          <div className="text-xs text-muted-foreground">{item.description}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs sm:text-sm font-medium truncate">{item.title}</div>
+                          <div className="text-xs text-muted-foreground truncate">{item.description}</div>
                         </div>
                       )}
                     </NavLink>
