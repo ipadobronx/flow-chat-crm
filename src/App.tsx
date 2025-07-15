@@ -10,6 +10,12 @@ import Index from "./pages/Index";
 import LiveChat from "./pages/LiveChat";
 import Pipeline from "./pages/Pipeline";
 import SitPlan from "./pages/SitPlan";
+import Schedule from "./pages/Schedule";
+import BulkSend from "./pages/BulkSend";
+import FollowUp from "./pages/FollowUp";
+import Reports from "./pages/Reports";
+import Atrasos from "./pages/Atrasos";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +33,12 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/dashboard/chat" element={<ProtectedRoute><LiveChat /></ProtectedRoute>} />
+              <Route path="/dashboard/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
+              <Route path="/dashboard/bulk" element={<ProtectedRoute><BulkSend /></ProtectedRoute>} />
+              <Route path="/dashboard/follow-up" element={<ProtectedRoute><FollowUp /></ProtectedRoute>} />
+              <Route path="/dashboard/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/dashboard/atrasos" element={<ProtectedRoute><Atrasos /></ProtectedRoute>} />
+              <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/dashboard/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
               <Route path="/dashboard/sitplan" element={<ProtectedRoute><SitPlan /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
