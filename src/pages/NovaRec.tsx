@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +37,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function NovaRec() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormData>({
@@ -100,8 +102,13 @@ export default function NovaRec() {
 
       toast({
         title: "Sucesso!",
-        description: "Lead cadastrado com sucesso",
+        description: "Lead cadastrado com sucesso. Redirecionando para o pipeline...",
       });
+
+      // Redirecionar para o pipeline após breve delay para mostrar o toast
+      setTimeout(() => {
+        navigate("/dashboard/pipeline");
+      }, 1500);
 
       form.reset();
     } catch (error) {
