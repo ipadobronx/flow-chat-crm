@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      atrasos: {
+        Row: {
+          Agência: string | null
+          Apólice: number
+          "Carregado em": string | null
+          Celular: number | null
+          "Celular Resp.  Pagto.": string | null
+          Comentário: string | null
+          "Criado Por": string | null
+          "Data do Carregamento (Evolução da Lista de Atraso)": string | null
+          "Dias  Atraso": number | null
+          "E-mail da Assistente": string | null
+          "E-mail Resp. Pagto.": string | null
+          Emissão: string | null
+          "Forma  Pagto.": string | null
+          "Histórico de Contatos e Tratativas": string | null
+          Joint: string | null
+          LP: string | null
+          "Melhor Dia": number | null
+          "Mês/Ano  Cartão": string | null
+          MFB: string | null
+          "Pago até": string | null
+          "Periodicidade  Pagto.": string | null
+          Peristência: string | null
+          Prêmio: string | null
+          "PRIMEIRO NOME": string | null
+          "Resp.  Pagto.": string | null
+          Segurado: string | null
+          Status: string | null
+          "Telefone (Comercial)  Resp. Pagto.": string | null
+          "Telefone Resp.  Pagto.": string | null
+          "Tratado em": string | null
+          "Tratado Por": string | null
+          "Última Mensagem Retorno Cobrança Rejeitada": string | null
+          "Vencido Em": string | null
+        }
+        Insert: {
+          Agência?: string | null
+          Apólice: number
+          "Carregado em"?: string | null
+          Celular?: number | null
+          "Celular Resp.  Pagto."?: string | null
+          Comentário?: string | null
+          "Criado Por"?: string | null
+          "Data do Carregamento (Evolução da Lista de Atraso)"?: string | null
+          "Dias  Atraso"?: number | null
+          "E-mail da Assistente"?: string | null
+          "E-mail Resp. Pagto."?: string | null
+          Emissão?: string | null
+          "Forma  Pagto."?: string | null
+          "Histórico de Contatos e Tratativas"?: string | null
+          Joint?: string | null
+          LP?: string | null
+          "Melhor Dia"?: number | null
+          "Mês/Ano  Cartão"?: string | null
+          MFB?: string | null
+          "Pago até"?: string | null
+          "Periodicidade  Pagto."?: string | null
+          Peristência?: string | null
+          Prêmio?: string | null
+          "PRIMEIRO NOME"?: string | null
+          "Resp.  Pagto."?: string | null
+          Segurado?: string | null
+          Status?: string | null
+          "Telefone (Comercial)  Resp. Pagto."?: string | null
+          "Telefone Resp.  Pagto."?: string | null
+          "Tratado em"?: string | null
+          "Tratado Por"?: string | null
+          "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          "Vencido Em"?: string | null
+        }
+        Update: {
+          Agência?: string | null
+          Apólice?: number
+          "Carregado em"?: string | null
+          Celular?: number | null
+          "Celular Resp.  Pagto."?: string | null
+          Comentário?: string | null
+          "Criado Por"?: string | null
+          "Data do Carregamento (Evolução da Lista de Atraso)"?: string | null
+          "Dias  Atraso"?: number | null
+          "E-mail da Assistente"?: string | null
+          "E-mail Resp. Pagto."?: string | null
+          Emissão?: string | null
+          "Forma  Pagto."?: string | null
+          "Histórico de Contatos e Tratativas"?: string | null
+          Joint?: string | null
+          LP?: string | null
+          "Melhor Dia"?: number | null
+          "Mês/Ano  Cartão"?: string | null
+          MFB?: string | null
+          "Pago até"?: string | null
+          "Periodicidade  Pagto."?: string | null
+          Peristência?: string | null
+          Prêmio?: string | null
+          "PRIMEIRO NOME"?: string | null
+          "Resp.  Pagto."?: string | null
+          Segurado?: string | null
+          Status?: string | null
+          "Telefone (Comercial)  Resp. Pagto."?: string | null
+          "Telefone Resp.  Pagto."?: string | null
+          "Tratado em"?: string | null
+          "Tratado Por"?: string | null
+          "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          "Vencido Em"?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           avisado: boolean | null
