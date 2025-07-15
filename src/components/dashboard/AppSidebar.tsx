@@ -15,6 +15,12 @@ import {
 
 const navItems = [
   {
+    title: "Nova Rec",
+    url: "/dashboard/nova-rec",
+    icon: Users,
+    description: "Cadastro de leads"
+  },
+  {
     title: "Pipeline",
     url: "/dashboard/pipeline",
     icon: Target,

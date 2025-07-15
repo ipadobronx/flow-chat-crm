@@ -18,21 +18,26 @@ export type Database = {
         Row: {
           avisado: boolean | null
           casado: boolean | null
+          celular_secundario: string | null
+          cidade: string | null
           created_at: string | null
           data_callback: string | null
           data_nascimento: string | null
           data_sitplan: string | null
+          email: string | null
           empresa: string | null
           etapa: Database["public"]["Enums"]["etapa_funil"]
           etapa_changed_at: string | null
           high_ticket: boolean | null
           id: string
+          idade: number | null
           incluir_sitplan: boolean | null
           nome: string
           observacoes: string | null
           pa_estimado: string | null
           profissao: string | null
           recomendante: string | null
+          renda_estimada: string | null
           status: string | null
           telefone: string | null
           tem_filhos: boolean | null
@@ -43,21 +48,26 @@ export type Database = {
         Insert: {
           avisado?: boolean | null
           casado?: boolean | null
+          celular_secundario?: string | null
+          cidade?: string | null
           created_at?: string | null
           data_callback?: string | null
           data_nascimento?: string | null
           data_sitplan?: string | null
+          email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
           etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string
+          idade?: number | null
           incluir_sitplan?: boolean | null
           nome: string
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
           recomendante?: string | null
+          renda_estimada?: string | null
           status?: string | null
           telefone?: string | null
           tem_filhos?: boolean | null
@@ -68,21 +78,26 @@ export type Database = {
         Update: {
           avisado?: boolean | null
           casado?: boolean | null
+          celular_secundario?: string | null
+          cidade?: string | null
           created_at?: string | null
           data_callback?: string | null
           data_nascimento?: string | null
           data_sitplan?: string | null
+          email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
           etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string
+          idade?: number | null
           incluir_sitplan?: boolean | null
           nome?: string
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
           recomendante?: string | null
+          renda_estimada?: string | null
           status?: string | null
           telefone?: string | null
           tem_filhos?: boolean | null
