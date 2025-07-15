@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,9 +27,9 @@ export default function Atrasos() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("atrasos")
+        .from("atrasos_calculados")
         .select("*")
-        .order("Dias  Atraso", { ascending: false });
+        .order("dias_atraso_calculado", { ascending: false });
 
       if (error) throw error;
       setAtrasos(data || []);
@@ -170,8 +170,8 @@ export default function Atrasos() {
                         {atraso.Peristência || "-"}
                       </TableCell>
                       <TableCell>
-                        <span className={`font-medium ${getDiasAtrasoColor(atraso["Dias  Atraso"])}`}>
-                          {atraso["Dias  Atraso"] || 0}
+                        <span className={`font-medium ${getDiasAtrasoColor((atraso as any).dias_atraso_calculado)}`}>
+                          {(atraso as any).dias_atraso_calculado || 0}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -192,6 +192,9 @@ export default function Atrasos() {
                               <DialogTitle className="text-red-600 text-lg font-bold">
                                 {atraso.Segurado || atraso["PRIMEIRO NOME"] || "Cliente"}
                               </DialogTitle>
+                              <DialogDescription>
+                                Detalhes completos da apólice e histórico de tratativas
+                              </DialogDescription>
                             </DialogHeader>
                             
                             <div className="space-y-6">
@@ -278,8 +281,8 @@ export default function Atrasos() {
                                   
                                   <div>
                                     <label className="text-sm font-medium text-muted-foreground">Dias Atraso</label>
-                                    <p className={`text-sm font-medium ${getDiasAtrasoColor(atraso["Dias  Atraso"])}`}>
-                                      {atraso["Dias  Atraso"] || 0} dias
+                                    <p className={`text-sm font-medium ${getDiasAtrasoColor((atraso as any).dias_atraso_calculado)}`}>
+                                      {(atraso as any).dias_atraso_calculado || 0} dias
                                     </p>
                                   </div>
                                   
