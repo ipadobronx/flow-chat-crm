@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import LiveChat from "./pages/LiveChat";
 import Pipeline from "./pages/Pipeline";
 import SitPlan from "./pages/SitPlan";
+import TA from "./pages/TA";
 import NovaRec from "./pages/NovaRec";
 import Schedule from "./pages/Schedule";
 import BulkSend from "./pages/BulkSend";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/dashboard/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/dashboard/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
               <Route path="/dashboard/sitplan" element={<ProtectedRoute><SitPlan /></ProtectedRoute>} />
+              <Route path="/dashboard/ta" element={<ProtectedRoute><TA /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
