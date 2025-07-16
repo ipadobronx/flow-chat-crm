@@ -118,12 +118,12 @@ export function SitPlanLeadsTable() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <CardTitle>Todos os Leads</CardTitle>
-            <Select value={selectedEtapa || ""} onValueChange={(value) => setSelectedEtapa(value || null)}>
+            <Select value={selectedEtapa || "all"} onValueChange={(value) => setSelectedEtapa(value === "all" ? null : value)}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filtrar por etapa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as etapas</SelectItem>
+                <SelectItem value="all">Todas as etapas</SelectItem>
                 {uniqueEtapas.map((etapa) => (
                   <SelectItem key={etapa} value={etapa}>
                     {etapa}
