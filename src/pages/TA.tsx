@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -10,6 +11,7 @@ type Lead = Tables<"leads">;
 type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' | 'finished';
 
 export default function TA() {
+  const navigate = useNavigate();
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
@@ -138,7 +140,7 @@ export default function TA() {
                 <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
                 <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
                 <Button
-                  onClick={() => window.history.back()}
+                  onClick={() => navigate('/sitplan')}
                   className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
