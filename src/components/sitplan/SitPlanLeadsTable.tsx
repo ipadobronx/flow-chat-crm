@@ -24,6 +24,7 @@ export function SitPlanLeadsTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+  const [selectedEtapa, setSelectedEtapa] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: leads = [], isLoading } = useQuery({
@@ -39,11 +40,15 @@ export function SitPlanLeadsTable() {
     },
   });
 
-  const filteredLeads = leads.filter(lead => 
-    lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (lead.recomendante?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-    (lead.profissao?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
-  );
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (lead.recomendante?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+                         (lead.profissao?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+    
+    const matchesEtapa = selectedEtapa ? lead.etapa === selectedEtapa : true;
+    
+    return matchesSearch && matchesEtapa;
+  });
 
   const handleLeadSelect = (leadId: string, checked: boolean) => {
     if (checked) {
@@ -75,16 +80,28 @@ export function SitPlanLeadsTable() {
     setIsEditMode(false);
   };
 
-  const getEtapaColor = (etapa: string) => {
-    switch (etapa) {
-      case "Novo": return "bg-blue-500";
-      case "OI": return "bg-green-500";
-      case "PC": return "bg-yellow-500";
-      case "N": return "bg-red-500";
-      case "Apólice Emitida": return "bg-purple-500";
-      case "Apólice Entregue": return "bg-green-600";
-      default: return "bg-gray-500";
+  const handleEtapaClick = (etapa: string) => {
+    if (selectedEtapa === etapa) {
+      setSelectedEtapa(null); // Remove filter if clicking the same etapa
+    } else {
+      setSelectedEtapa(etapa);
     }
+  };
+
+  const getEtapaColor = (etapa: string, isSelected?: boolean) => {
+    const baseColor = (() => {
+      switch (etapa) {
+        case "Novo": return "blue-500";
+        case "OI": return "green-500";
+        case "PC": return "yellow-500";
+        case "N": return "red-500";
+        case "Apólice Emitida": return "purple-500";
+        case "Apólice Entregue": return "green-600";
+        default: return "gray-500";
+      }
+    })();
+    
+    return isSelected ? `bg-${baseColor} ring-2 ring-${baseColor} ring-opacity-50` : `bg-${baseColor}`;
   };
 
   if (isLoading) {
@@ -97,6 +114,15 @@ export function SitPlanLeadsTable() {
         <div className="flex items-center justify-between">
           <CardTitle>Todos os Leads</CardTitle>
           <div className="flex gap-2">
+            {selectedEtapa && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSelectedEtapa(null)}
+              >
+                Limpar filtro: {selectedEtapa}
+              </Button>
+            )}
             {isEditMode && (
               <Button onClick={handleSendToTA} className="gap-2">
                 <Send className="w-4 h-4" />
@@ -159,7 +185,10 @@ export function SitPlanLeadsTable() {
                   )}
                   <TableCell className="font-medium">{lead.nome}</TableCell>
                   <TableCell>
-                    <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
+                    <Badge 
+                      className={`text-white cursor-pointer hover:opacity-80 transition-opacity ${getEtapaColor(lead.etapa, selectedEtapa === lead.etapa)}`}
+                      onClick={() => handleEtapaClick(lead.etapa)}
+                    >
                       {lead.etapa}
                     </Badge>
                   </TableCell>
