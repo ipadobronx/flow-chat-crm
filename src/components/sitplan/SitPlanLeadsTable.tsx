@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -104,6 +105,9 @@ export function SitPlanLeadsTable() {
     return isSelected ? `bg-${baseColor} ring-2 ring-${baseColor} ring-opacity-50` : `bg-${baseColor}`;
   };
 
+  // Get unique etapas from leads
+  const uniqueEtapas = Array.from(new Set(leads.map(lead => lead.etapa))).sort();
+
   if (isLoading) {
     return <Card><CardContent className="p-6">Carregando...</CardContent></Card>;
   }
@@ -112,7 +116,22 @@ export function SitPlanLeadsTable() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Todos os Leads</CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle>Todos os Leads</CardTitle>
+            <Select value={selectedEtapa || ""} onValueChange={(value) => setSelectedEtapa(value || null)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filtrar por etapa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas as etapas</SelectItem>
+                {uniqueEtapas.map((etapa) => (
+                  <SelectItem key={etapa} value={etapa}>
+                    {etapa}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             {selectedEtapa && (
               <Button 
