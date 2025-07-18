@@ -11,6 +11,7 @@ import { MessageSquare, Phone, Calendar, Save, User, Building2, Briefcase, UserC
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { LeadHistory } from "./LeadHistory";
 
 type Lead = Tables<"leads">;
 
@@ -245,6 +246,11 @@ export function SitPlanLeadDetails({ selectedLead, onLeadUpdated }: SitPlanLeadD
           <Save className="w-4 h-4 mr-2" />
           {isUpdating ? "Salvando..." : "Salvar e Marcar como Concluído"}
         </Button>
+
+        <Separator />
+
+        {/* Lead History */}
+        <LeadHistory leadId={selectedLead.id} />
       </CardContent>
     </Card>
   );
