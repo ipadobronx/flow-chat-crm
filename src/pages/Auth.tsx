@@ -123,44 +123,44 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen w-full flex">
+    <div className="min-h-screen w-full grid lg:grid-cols-2">
       {/* Left Panel - Marketing Content */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-12 flex-col justify-center">
-        <div className="max-w-lg mx-auto">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 lg:p-12 flex flex-col justify-center text-white">
+        <div className="max-w-md mx-auto w-full">
           {/* Logo */}
           <div className="mb-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-6 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6 flex items-center justify-center">
               <span className="text-2xl font-bold text-white">F</span>
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Flow Chat CRM</h1>
-            <p className="text-gray-600 dark:text-gray-300">Sua ferramenta completa de gestão</p>
+            <h1 className="text-4xl font-bold mb-2">Flow Chat CRM</h1>
+            <p className="text-slate-300">Sua ferramenta completa de gestão</p>
           </div>
           
           {/* Value Propositions */}
           <div className="space-y-6">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold mb-2">
                 Transforme conversas em contratos
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-300 text-sm">
                 Converta leads em vendas de forma eficiente
               </p>
             </div>
             
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold mb-2">
                 Agilidade na rotina. Resultado na ponta.
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-300 text-sm">
                 Automatize processos e foque no que importa
               </p>
             </div>
             
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <h3 className="text-xl font-semibold mb-2">
                 Você focado em pessoas, a gente no resto
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-300 text-sm">
                 Tecnologia que potencializa relacionamentos
               </p>
             </div>
@@ -169,11 +169,11 @@ export default function Auth() {
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 lg:flex-none lg:w-96 xl:w-[480px] flex items-center justify-center p-6 bg-white dark:bg-gray-950">
+      <div className="flex items-center justify-center p-6 bg-white">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Entrar</h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Entrar</h2>
+            <p className="text-gray-600">
               Entre na sua conta ou cadastre-se para continuar
             </p>
           </div>
