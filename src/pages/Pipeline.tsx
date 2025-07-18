@@ -39,6 +39,10 @@ import {
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
   { name: "Novo", color: "bg-sky-500" },
+  { name: "TA", color: "bg-purple-600" },
+  { name: "Não atendido", color: "bg-red-600" },
+  { name: "Ligar Depois", color: "bg-yellow-600" },
+  { name: "Marcar", color: "bg-green-600" },
   { name: "OI", color: "bg-indigo-500" },
   { name: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", color: "bg-orange-500" },
@@ -61,7 +65,7 @@ type Lead = {
   valor: string | null;
   telefone: string | null;
   profissao: string | null;
-  recomendante: string | null;
+  recomendante: string[] | null;
   etapa: Database["public"]["Enums"]["etapa_funil"];
   status: string | null;
   data_callback: string | null;
@@ -547,8 +551,13 @@ export default function Pipeline() {
                     <p className="font-medium">{selectedLead.nome}</p>
                   </div>
                   <div>
-                    <Label className="text-sm text-muted-foreground">Recomendante</Label>
-                    <p className="font-medium">{selectedLead.recomendante}</p>
+                    <Label className="text-sm text-muted-foreground">Recomendante(s)</Label>
+                    <p className="font-medium">
+                      {selectedLead.recomendante && selectedLead.recomendante.length > 0 
+                        ? selectedLead.recomendante.join(', ')
+                        : 'Nenhum recomendante'
+                      }
+                    </p>
                   </div>
                 </div>
 

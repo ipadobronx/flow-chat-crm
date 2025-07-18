@@ -122,6 +122,47 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_etapas_funil: {
+        Row: {
+          created_at: string
+          data_mudanca: string
+          etapa_anterior: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
+          id: string
+          lead_id: string
+          observacoes: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_mudanca?: string
+          etapa_anterior?: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_mudanca?: string
+          etapa_anterior?: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova?: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_etapas_funil_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           avisado: boolean | null
@@ -144,7 +185,7 @@ export type Database = {
           observacoes: string | null
           pa_estimado: string | null
           profissao: string | null
-          recomendante: string | null
+          recomendante: string[] | null
           renda_estimada: string | null
           status: string | null
           telefone: string | null
@@ -174,7 +215,7 @@ export type Database = {
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
-          recomendante?: string | null
+          recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
           telefone?: string | null
@@ -204,7 +245,7 @@ export type Database = {
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
-          recomendante?: string | null
+          recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
           telefone?: string | null
@@ -535,6 +576,8 @@ export type Database = {
       etapa_funil:
         | "Todos"
         | "Novo"
+        | "TA"
+        | "Não atendido"
         | "OI"
         | "Delay OI"
         | "PC"
@@ -545,6 +588,7 @@ export type Database = {
         | "C2"
         | "Delay C2"
         | "Ligar Depois"
+        | "Marcar"
         | "Não"
         | "Proposta Cancelada"
         | "Apólice Cancelada"
@@ -678,6 +722,8 @@ export const Constants = {
       etapa_funil: [
         "Todos",
         "Novo",
+        "TA",
+        "Não atendido",
         "OI",
         "Delay OI",
         "PC",
@@ -688,6 +734,7 @@ export const Constants = {
         "C2",
         "Delay C2",
         "Ligar Depois",
+        "Marcar",
         "Não",
         "Proposta Cancelada",
         "Apólice Cancelada",

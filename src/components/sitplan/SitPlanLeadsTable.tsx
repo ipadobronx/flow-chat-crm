@@ -43,7 +43,9 @@ export function SitPlanLeadsTable() {
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (lead.recomendante?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+                         (lead.recomendante && Array.isArray(lead.recomendante) 
+                           ? lead.recomendante.some(r => r.toLowerCase().includes(searchTerm.toLowerCase()))
+                           : false) ||
                          (lead.profissao?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     
     const matchesEtapa = selectedEtapa ? lead.etapa === selectedEtapa : true;
@@ -211,7 +213,12 @@ export function SitPlanLeadsTable() {
                       {lead.etapa}
                     </Badge>
                   </TableCell>
-                  <TableCell>{lead.recomendante || "-"}</TableCell>
+                  <TableCell>
+                    {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
+                      ? lead.recomendante.join(', ')
+                      : "-"
+                    }
+                  </TableCell>
                   <TableCell>{lead.profissao || "-"}</TableCell>
                   <TableCell>{lead.telefone || "-"}</TableCell>
                   <TableCell>{lead.casado ? "SIM" : "NÃO"}</TableCell>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
@@ -14,11 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Plus, X } from "lucide-react";
 
 const formSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  recomendante: z.string().optional(),
+  recomendantes: z.array(z.object({
+    nome: z.string().min(1, "Nome do recomendante é obrigatório")
+  })).optional(),
   telefone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
   celular_secundario: z.string().optional(),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
@@ -44,7 +46,7 @@ export default function NovaRec() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nome: "",
-      recomendante: "",
+      recomendantes: [],
       telefone: "",
       celular_secundario: "",
       email: "",
@@ -58,6 +60,11 @@ export default function NovaRec() {
       avisado: "false",
       incluir_sitplan: "false",
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "recomendantes"
   });
 
   const onSubmit = async (data: FormData) => {
@@ -75,7 +82,9 @@ export default function NovaRec() {
     try {
       const leadData = {
         nome: data.nome,
-        recomendante: data.recomendante || null,
+        recomendante: data.recomendantes && data.recomendantes.length > 0 
+          ? data.recomendantes.map(r => r.nome) 
+          : null,
         telefone: data.telefone,
         celular_secundario: data.celular_secundario || null,
         email: data.email || null,
@@ -162,24 +171,51 @@ export default function NovaRec() {
                     />
                   </div>
 
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="recomendante"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Recomendante</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Quem recomendou" 
-                              className="h-10 sm:h-11"
-                              {...field} 
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <div>
+                      <FormLabel className="text-sm font-medium mb-3 block">Recomendantes</FormLabel>
+                      <div className="space-y-2">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="flex gap-2">
+                            <FormField
+                              control={form.control}
+                              name={`recomendantes.${index}.nome`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1">
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Nome do recomendante" 
+                                      className="h-10 sm:h-11"
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-10 sm:h-11 px-3"
+                              onClick={() => remove(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => append({ nome: "" })}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Recomendante
+                        </Button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="sm:col-span-1 lg:col-span-1">
