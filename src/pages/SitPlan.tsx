@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SitPlanLeadsTable } from "@/components/sitplan/SitPlanLeadsTable";
+import { TALeadsCard } from "@/components/sitplan/TALeadsCard";
 
 export default function SitPlan() {
   return (
@@ -9,7 +10,13 @@ export default function SitPlan() {
           <h1 className="text-3xl font-bold tracking-tight">SIT PLAN</h1>
         </div>
         
-        <SitPlanLeadsTable />
+        {/* Card principal com scroll limitado */}
+        <div className="max-h-[60vh] overflow-auto">
+          <SitPlanLeadsTable />
+        </div>
+        
+        {/* Card de leads selecionados para TA */}
+        <TALeadsCard />
       </div>
     </DashboardLayout>
   );
