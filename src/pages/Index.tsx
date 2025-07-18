@@ -5,7 +5,7 @@ import { DateFilter } from "@/components/dashboard/DateFilter";
 import { LeadsChart } from "@/components/dashboard/charts/LeadsChart";
 import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { LeadsTable } from "@/components/dashboard/LeadsTable";
+
 import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
 import { LigacoesHoje } from "@/components/dashboard/LigacoesHoje";
 
@@ -41,7 +41,6 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             <ActivityFeed />
-            <LeadsTable />
           </div>
           <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             <BirthdayCard />
