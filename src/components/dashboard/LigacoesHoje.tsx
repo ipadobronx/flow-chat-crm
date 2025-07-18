@@ -36,48 +36,34 @@ export function LigacoesHoje() {
     try {
       setIsLoading(true);
       
-      // Buscar agendamentos da data selecionada
-      const inicioData = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate());
-      const fimData = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate(), 23, 59, 59);
-
+      // Usar função otimizada do banco
       const { data, error } = await supabase
-        .from('agendamentos_ligacoes')
-        .select(`
-          id,
-          data_agendamento,
-          observacoes,
-          status,
-          lead_id
-        `)
-        .eq('user_id', user.id)
-        .gte('data_agendamento', inicioData.toISOString())
-        .lte('data_agendamento', fimData.toISOString())
-        .order('data_agendamento', { ascending: true });
+        .rpc('get_scheduled_calls', {
+          p_user_id: user.id,
+          p_data: dataSelecionada.toISOString().split('T')[0] // formato YYYY-MM-DD
+        });
 
       if (error) throw error;
 
-      // Buscar os dados dos leads separadamente
-      const agendamentosComLeads = await Promise.all(
-        (data || []).map(async (agendamento) => {
-          const { data: leadData } = await supabase
-            .from('leads')
-            .select('id, nome, telefone')
-            .eq('id', agendamento.lead_id)
-            .single();
+      // Transformar dados para o formato esperado
+      const ligacoesFormatadas = (data || []).map(item => ({
+        id: item.id,
+        data_agendamento: item.data_agendamento,
+        observacoes: item.observacoes,
+        status: item.status,
+        leads: {
+          id: item.lead_id,
+          nome: item.lead_nome,
+          telefone: item.lead_telefone
+        }
+      }));
 
-          return {
-            ...agendamento,
-            leads: leadData || { id: '', nome: 'Lead não encontrado', telefone: null }
-          };
-        })
-      );
-
-      setLigacoes(agendamentosComLeads || []);
+      setLigacoes(ligacoesFormatadas);
     } catch (error) {
-      console.error('Erro ao buscar ligações de hoje:', error);
+      console.error('Erro ao buscar ligações:', error);
       toast({
         title: "Erro",
-        description: "Erro ao carregar ligações de hoje",
+        description: "Erro ao carregar ligações",
         variant: "destructive",
       });
     } finally {

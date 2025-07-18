@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Phone, PhoneCall, Calendar, Target, TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 interface KPIGridProps {
@@ -9,6 +10,7 @@ interface KPIGridProps {
 }
 
 export function KPIGrid({ startDate, endDate }: KPIGridProps) {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState([
     {
       title: "Ligações Efetuadas",
@@ -66,44 +68,24 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
 
   const fetchMetrics = async () => {
     try {
-      let query = supabase
-        .from('leads')
-        .select('*');
-      
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
-      }
+      // Usar função otimizada do banco para buscar métricas
+      const { data: metrics, error } = await supabase
+        .rpc('get_leads_with_metrics', {
+          p_user_id: user?.id,
+          p_start_date: startDate?.toISOString(),
+          p_end_date: endDate?.toISOString()
+        });
 
-      const { data: leads, error } = await query;
-      
       if (error) throw error;
-      if (!leads) return;
-
-      // Calcular métricas baseadas nos dados
-      const ligacoesEfetuadas = leads.length;
-      const foramAtendidas = leads.filter(lead => 
-        lead.etapa !== 'Todos' && lead.etapa !== 'Ligar Depois' && lead.etapa !== 'Novo'
-      ).length;
-      const oiMarcados = leads.filter(lead => 
-        lead.etapa === 'OI' || lead.etapa === 'Delay OI'
-      ).length;
-      const virouPC = leads.filter(lead => 
-        lead.etapa === 'PC' || lead.etapa === 'Delay PC'
-      ).length;
-      const virouN = leads.filter(lead => 
-        lead.etapa === 'N' || lead.etapa === 'Não'
-      ).length;
-
-      // Contar recomendações feitas (leads que têm campo recomendante preenchido)
-      const recomendacoesFeit = leads.filter(lead => 
-        lead.recomendante && 
-        Array.isArray(lead.recomendante) && 
-        lead.recomendante.length > 0 &&
-        lead.recomendante.some(rec => rec && rec.trim() !== '')
-      ).length;
+      
+      const metricsData = metrics?.[0] || {
+        total_leads: 0,
+        leads_atendidos: 0,
+        oi_marcados: 0,
+        virou_pc: 0,
+        virou_n: 0,
+        recomendacoes: 0
+      };
 
       // Calcular percentuais (mudança fictícia para demonstração)
       const calcularMudanca = (atual: number, total: number) => {
@@ -115,7 +97,7 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       setMetrics([
         {
           title: "Ligações Efetuadas",
-          value: ligacoesEfetuadas.toString(),
+          value: metricsData.total_leads.toString(),
           change: "+100%",
           trend: "up" as const,
           icon: Phone,
@@ -123,40 +105,40 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
         },
         {
           title: "Foram Atendidas",
-          value: foramAtendidas.toString(),
-          change: calcularMudanca(foramAtendidas, ligacoesEfetuadas),
+          value: metricsData.leads_atendidos.toString(),
+          change: calcularMudanca(Number(metricsData.leads_atendidos), Number(metricsData.total_leads)),
           trend: "up" as const,
           icon: PhoneCall,
           color: "success" as const
         },
         {
           title: "OI Marcados",
-          value: oiMarcados.toString(),
-          change: calcularMudanca(oiMarcados, foramAtendidas),
+          value: metricsData.oi_marcados.toString(),
+          change: calcularMudanca(Number(metricsData.oi_marcados), Number(metricsData.leads_atendidos)),
           trend: "up" as const,
           icon: Calendar,
           color: "warning" as const
         },
         {
           title: "Virou PC",
-          value: virouPC.toString(),
-          change: calcularMudanca(virouPC, foramAtendidas),
+          value: metricsData.virou_pc.toString(),
+          change: calcularMudanca(Number(metricsData.virou_pc), Number(metricsData.leads_atendidos)),
           trend: "up" as const,
           icon: Target,
           color: "chart-1" as const
         },
         {
           title: "Virou N",
-          value: virouN.toString(),
-          change: calcularMudanca(virouN, foramAtendidas),
+          value: metricsData.virou_n.toString(),
+          change: calcularMudanca(Number(metricsData.virou_n), Number(metricsData.leads_atendidos)),
           trend: "up" as const,
           icon: TrendingUp,
           color: "chart-2" as const
         },
         {
           title: "Recomendações Feitas",
-          value: recomendacoesFeit.toString(),
-          change: calcularMudanca(recomendacoesFeit, ligacoesEfetuadas),
+          value: metricsData.recomendacoes.toString(),
+          change: calcularMudanca(Number(metricsData.recomendacoes), Number(metricsData.total_leads)),
           trend: "up" as const,
           icon: Users,
           color: "chart-3" as const

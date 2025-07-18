@@ -10,6 +10,7 @@ interface Aniversariante {
   nome: string;
   data_nascimento: string;
   telefone?: string;
+  idade?: number;
 }
 
 export function BirthdayCard() {
@@ -18,34 +19,24 @@ export function BirthdayCard() {
 
   useEffect(() => {
     if (user) {
-      buscarAniversariantes();
+      fetchAniversariantes();
     }
   }, [user]);
 
-  const buscarAniversariantes = async () => {
+  const fetchAniversariantes = async () => {
     if (!user) return;
 
     try {
-      const hoje = new Date();
-      const diaHoje = hoje.getDate();
-      const mesHoje = hoje.getMonth() + 1;
-
+      // Usar função otimizada do banco
       const { data, error } = await supabase
-        .from('leads')
-        .select('id, nome, data_nascimento, telefone')
-        .eq('user_id', user.id)
-        .not('data_nascimento', 'is', null);
+        .rpc('get_birthday_leads', {
+          p_user_id: user.id,
+          p_data: new Date().toISOString().split('T')[0] // formato YYYY-MM-DD
+        });
 
       if (error) throw error;
 
-      // Filtrar aniversariantes do dia
-      const aniversariantesHoje = data?.filter(lead => {
-        if (!lead.data_nascimento) return false;
-        const dataNasc = new Date(lead.data_nascimento);
-        return dataNasc.getDate() === diaHoje && dataNasc.getMonth() + 1 === mesHoje;
-      }) || [];
-
-      setAniversariantes(aniversariantesHoje);
+      setAniversariantes(data || []);
     } catch (error) {
       console.error('Erro ao buscar aniversariantes:', error);
     }
@@ -82,7 +73,9 @@ export function BirthdayCard() {
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium text-yellow-900">{aniversariante.nome}</p>
-                  <p className="text-xs text-yellow-700">🎂 Aniversário hoje!</p>
+                  <p className="text-xs text-yellow-700">
+                    🎂 Aniversário hoje! {aniversariante.idade && `(${aniversariante.idade} anos)`}
+                  </p>
                 </div>
               </div>
               {aniversariante.telefone && (

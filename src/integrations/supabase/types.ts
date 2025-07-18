@@ -603,9 +603,74 @@ export type Database = {
         Args: { data_vencimento: string }
         Returns: number
       }
+      get_birthday_leads: {
+        Args: { p_user_id: string; p_data?: string }
+        Returns: {
+          id: string
+          nome: string
+          data_nascimento: string
+          telefone: string
+          idade: number
+        }[]
+      }
+      get_leads_with_metrics: {
+        Args: { p_user_id: string; p_start_date?: string; p_end_date?: string }
+        Returns: {
+          total_leads: number
+          leads_atendidos: number
+          oi_marcados: number
+          virou_pc: number
+          virou_n: number
+          recomendacoes: number
+        }[]
+      }
+      get_scheduled_calls: {
+        Args: { p_user_id: string; p_data?: string }
+        Returns: {
+          id: string
+          data_agendamento: string
+          observacoes: string
+          status: string
+          lead_id: string
+          lead_nome: string
+          lead_telefone: string
+        }[]
+      }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       move_old_tentativa_leads: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
     }
     Enums: {
