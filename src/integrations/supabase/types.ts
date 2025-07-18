@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      agendamentos_ligacoes: {
+        Row: {
+          created_at: string
+          data_agendamento: string
+          id: string
+          lead_id: string
+          observacoes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_agendamento: string
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_agendamento?: string
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       atrasos: {
         Row: {
           Agência: string | null
@@ -185,6 +218,7 @@ export type Database = {
           observacoes: string | null
           pa_estimado: string | null
           profissao: string | null
+          quantidade_filhos: number | null
           recomendante: string[] | null
           renda_estimada: string | null
           status: string | null
@@ -215,6 +249,7 @@ export type Database = {
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
+          quantidade_filhos?: number | null
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
@@ -245,6 +280,7 @@ export type Database = {
           observacoes?: string | null
           pa_estimado?: string | null
           profissao?: string | null
+          quantidade_filhos?: number | null
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null

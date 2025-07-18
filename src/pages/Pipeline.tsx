@@ -36,6 +36,7 @@ import {
   useSensors
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
+import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
@@ -73,6 +74,7 @@ type Lead = {
   high_ticket: boolean;
   casado: boolean;
   tem_filhos: boolean;
+  quantidade_filhos: number | null;
   avisado: boolean;
   incluir_sitplan: boolean;
   observacoes: string | null;
@@ -170,7 +172,7 @@ export default function Pipeline() {
       try {
         const { data, error } = await supabase
           .from('leads')
-          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
+          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -283,6 +285,7 @@ export default function Pipeline() {
           high_ticket: editingLead.high_ticket,
           casado: editingLead.casado,
           tem_filhos: editingLead.tem_filhos,
+          quantidade_filhos: editingLead.quantidade_filhos,
           avisado: editingLead.avisado,
           incluir_sitplan: editingLead.incluir_sitplan,
         })
@@ -956,6 +959,14 @@ export default function Pipeline() {
                     />
                     <Button size="sm" variant="outline">+</Button>
                   </div>
+                </div>
+
+                {/* Agendamento de Ligação */}
+                <div className="mt-6">
+                  <AgendarLigacao 
+                    leadId={selectedLead.id} 
+                    leadNome={selectedLead.nome}
+                  />
                 </div>
 
                 {/* Histórico de Etapas */}

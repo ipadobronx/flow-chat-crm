@@ -7,6 +7,7 @@ import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { LeadsTable } from "@/components/dashboard/LeadsTable";
 import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
+import { LigacoesHoje } from "@/components/dashboard/LigacoesHoje";
 
 const Index = () => {
   // Definir o dia atual como padrão
@@ -42,8 +43,9 @@ const Index = () => {
             <ActivityFeed />
             <LeadsTable />
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
             <BirthdayCard />
+            <LigacoesHoje />
           </div>
         </div>
       </div>

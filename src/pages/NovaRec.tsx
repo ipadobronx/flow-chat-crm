@@ -29,6 +29,7 @@ const formSchema = z.object({
   renda_estimada: z.string().optional(),
   casado: z.enum(["true", "false"]),
   tem_filhos: z.enum(["true", "false"]),
+  quantidade_filhos: z.string().optional(),
   cidade: z.string().optional(),
   observacoes: z.string().optional(),
   avisado: z.enum(["true", "false"]),
@@ -55,6 +56,7 @@ export default function NovaRec() {
       renda_estimada: "",
       casado: "false",
       tem_filhos: "false",
+      quantidade_filhos: "",
       cidade: "",
       observacoes: "",
       avisado: "false",
@@ -93,6 +95,7 @@ export default function NovaRec() {
         renda_estimada: data.renda_estimada || null,
         casado: data.casado === "true",
         tem_filhos: data.tem_filhos === "true",
+        quantidade_filhos: data.tem_filhos === "true" && data.quantidade_filhos ? parseInt(data.quantidade_filhos) : null,
         cidade: data.cidade || null,
         observacoes: data.observacoes || null,
         avisado: data.avisado === "true",
@@ -418,6 +421,29 @@ export default function NovaRec() {
                         </FormItem>
                       )}
                     />
+
+                    {form.watch("tem_filhos") === "true" && (
+                      <FormField
+                        control={form.control}
+                        name="quantidade_filhos"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">Quantos filhos?</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="20"
+                                placeholder="Ex: 2"
+                                {...field}
+                                className="max-w-[100px]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={form.control}

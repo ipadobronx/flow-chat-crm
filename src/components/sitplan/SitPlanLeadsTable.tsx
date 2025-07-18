@@ -222,7 +222,9 @@ export function SitPlanLeadsTable() {
                   <TableCell>{lead.profissao || "-"}</TableCell>
                   <TableCell>{lead.telefone || "-"}</TableCell>
                   <TableCell>{lead.casado ? "SIM" : "NÃO"}</TableCell>
-                  <TableCell>{lead.tem_filhos ? "SIM" : "NÃO"}</TableCell>
+                  <TableCell>
+                    {lead.tem_filhos ? `SIM${lead.quantidade_filhos ? ` (${lead.quantidade_filhos})` : ""}` : "NÃO"}
+                  </TableCell>
                   <TableCell className="max-w-xs truncate">
                     {lead.observacoes || "-"}
                   </TableCell>
