@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Phone, PhoneCall, Calendar, Target, TrendingUp } from "lucide-react";
+import { Phone, PhoneCall, Calendar, Target, TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +49,14 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       trend: "up" as const,
       icon: TrendingUp,
       color: "chart-2" as const
+    },
+    {
+      title: "Recomendações Feitas",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: Users,
+      color: "chart-3" as const
     }
   ]);
 
@@ -87,6 +95,14 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       ).length;
       const virouN = leads.filter(lead => 
         lead.etapa === 'N' || lead.etapa === 'Não'
+      ).length;
+
+      // Contar recomendações feitas (leads que têm campo recomendante preenchido)
+      const recomendacoesFeit = leads.filter(lead => 
+        lead.recomendante && 
+        Array.isArray(lead.recomendante) && 
+        lead.recomendante.length > 0 &&
+        lead.recomendante.some(rec => rec && rec.trim() !== '')
       ).length;
 
       // Calcular percentuais (mudança fictícia para demonstração)
@@ -136,6 +152,14 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
           trend: "up" as const,
           icon: TrendingUp,
           color: "chart-2" as const
+        },
+        {
+          title: "Recomendações Feitas",
+          value: recomendacoesFeit.toString(),
+          change: calcularMudanca(recomendacoesFeit, ligacoesEfetuadas),
+          trend: "up" as const,
+          icon: Users,
+          color: "chart-3" as const
         }
       ]);
     } catch (error) {
@@ -143,7 +167,7 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
     }
   };
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
       {metrics.map((metric) => (
         <div
           key={metric.title}
@@ -161,7 +185,8 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
                 metric.color === "success" && "bg-success/10", 
                 metric.color === "warning" && "bg-warning/10",
                 metric.color === "chart-1" && "bg-chart-1/10",
-                metric.color === "chart-2" && "bg-chart-2/10"
+                metric.color === "chart-2" && "bg-chart-2/10",
+                metric.color === "chart-3" && "bg-chart-3/10"
               )}>
                 <metric.icon className={cn(
                   "w-4 h-4",
@@ -169,7 +194,8 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
                   metric.color === "success" && "text-success",
                   metric.color === "warning" && "text-warning", 
                   metric.color === "chart-1" && "text-chart-1",
-                  metric.color === "chart-2" && "text-chart-2"
+                  metric.color === "chart-2" && "text-chart-2",
+                  metric.color === "chart-3" && "text-chart-3"
                 )} />
               </div>
               <span className={cn(
@@ -178,7 +204,8 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
                 metric.color === "success" && "bg-success/10 text-success",
                 metric.color === "warning" && "bg-warning/10 text-warning",
                 metric.color === "chart-1" && "bg-chart-1/10 text-chart-1", 
-                metric.color === "chart-2" && "bg-chart-2/10 text-chart-2"
+                metric.color === "chart-2" && "bg-chart-2/10 text-chart-2",
+                metric.color === "chart-3" && "bg-chart-3/10 text-chart-3"
               )}>
                 {metric.change}
               </span>
