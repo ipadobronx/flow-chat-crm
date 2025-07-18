@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { TypewriterEffect } from "@/components/TypewriterEffect";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -122,72 +122,65 @@ export default function Auth() {
     }
   };
 
+  const messages = [
+    "Transforme conversas em contratos",
+    "Agilidade na rotina. Resultado na ponta.",
+    "Você focado em pessoas, a gente no resto"
+  ];
+
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-2">
-      {/* Left Panel - Marketing Content */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 lg:p-12 flex flex-col justify-center text-white">
-        <div className="max-w-md mx-auto w-full">
+      {/* Left Panel - Gradient with Typewriter */}
+      <div className="bg-gradient-to-br from-pink-400 via-purple-500 to-blue-600 p-8 lg:p-12 flex flex-col justify-center text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative z-10 max-w-md mx-auto w-full">
           {/* Logo */}
-          <div className="mb-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6 flex items-center justify-center">
+          <div className="mb-16">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mb-6 flex items-center justify-center border border-white/30">
               <span className="text-2xl font-bold text-white">F</span>
             </div>
             <h1 className="text-4xl font-bold mb-2">Flow Chat CRM</h1>
-            <p className="text-slate-300">Sua ferramenta completa de gestão</p>
           </div>
           
-          {/* Value Propositions */}
-          <div className="space-y-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="text-xl font-semibold mb-2">
-                Transforme conversas em contratos
-              </h3>
-              <p className="text-slate-300 text-sm">
-                Converta leads em vendas de forma eficiente
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="text-xl font-semibold mb-2">
-                Agilidade na rotina. Resultado na ponta.
-              </h3>
-              <p className="text-slate-300 text-sm">
-                Automatize processos e foque no que importa
-              </p>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="text-xl font-semibold mb-2">
-                Você focado em pessoas, a gente no resto
-              </h3>
-              <p className="text-slate-300 text-sm">
-                Tecnologia que potencializa relacionamentos
-              </p>
-            </div>
+          {/* Typewriter Effect */}
+          <div className="mb-8">
+            <TypewriterEffect 
+              messages={messages}
+              speed={80}
+              deleteSpeed={40}
+              pauseTime={3000}
+            />
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Auth Form */}
-      <div className="flex items-center justify-center p-6 bg-white">
+      {/* Right Panel - Black Auth Form */}
+      <div className="flex items-center justify-center p-6 bg-black">
         <div className="w-full max-w-sm">
+          {/* Logo for mobile */}
+          <div className="lg:hidden text-center mb-8">
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-blue-600 rounded-xl mb-4 flex items-center justify-center mx-auto">
+              <span className="text-xl font-bold text-white">F</span>
+            </div>
+          </div>
+
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Entrar</h2>
-            <p className="text-gray-600">
+            <h2 className="text-3xl font-bold text-white mb-2">Login</h2>
+            <p className="text-gray-400">
               Entre na sua conta ou cadastre-se para continuar
             </p>
           </div>
           
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="signup">Cadastro</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-900 border-gray-700">
+              <TabsTrigger value="login" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white text-gray-400">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white text-gray-400">Cadastro</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login" className="space-y-0">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-gray-300">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -195,11 +188,11 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password" className="text-gray-300">Senha</Label>
                   <Input
                     id="password"
                     type="password"
@@ -207,12 +200,16 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
                   />
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-white text-black hover:bg-gray-100 font-medium" 
+                  disabled={loading}
+                >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Entrar
+                  Login
                 </Button>
               </form>
             </TabsContent>
@@ -220,7 +217,7 @@ export default function Auth() {
             <TabsContent value="signup" className="space-y-0">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -228,11 +225,11 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-11"
+                    className="h-11 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
+                  <Label htmlFor="signup-password" className="text-gray-300">Senha</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -241,10 +238,14 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="h-11"
+                    className="h-11 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-gray-600"
                   />
                 </div>
-                <Button type="submit" className="w-full h-11" disabled={loading}>
+                <Button 
+                  type="submit" 
+                  className="w-full h-11 bg-white text-black hover:bg-gray-100 font-medium" 
+                  disabled={loading}
+                >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Cadastrar
                 </Button>
