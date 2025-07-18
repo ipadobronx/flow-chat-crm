@@ -35,6 +35,7 @@ import {
   useSensor,
   useSensors
 } from "@dnd-kit/core";
+import { LeadHistory } from "@/components/sitplan/LeadHistory";
 
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
@@ -52,7 +53,6 @@ const stages = [
   { name: "Apólice Entregue", color: "bg-emerald-500" },
   { name: "C2", color: "bg-teal-500" },
   { name: "Delay C2", color: "bg-cyan-500" },
-  { name: "Ligar Depois", color: "bg-pink-500" },
   { name: "Não", color: "bg-gray-500" },
   { name: "Proposta Cancelada", color: "bg-red-600" },
   { name: "Apólice Cancelada", color: "bg-red-700" }
@@ -956,6 +956,11 @@ export default function Pipeline() {
                     />
                     <Button size="sm" variant="outline">+</Button>
                   </div>
+                </div>
+
+                {/* Histórico de Etapas */}
+                <div className="mt-6">
+                  <LeadHistory leadId={selectedLead.id} />
                 </div>
 
                 {/* Botão Salvar */}
