@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Phone, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { Clock, Phone, MessageSquare, CheckCircle, XCircle, CalendarIcon } from "lucide-react";
 import { format, isToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 interface AgendamentoLigacao {
   id: string;
@@ -25,17 +28,17 @@ export function LigacoesHoje() {
   const { user } = useAuth();
   const [ligacoes, setLigacoes] = useState<AgendamentoLigacao[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataSelecionada, setDataSelecionada] = useState<Date>(new Date());
 
-  const fetchLigacoesHoje = async () => {
+  const fetchLigacoes = async () => {
     if (!user) return;
 
     try {
       setIsLoading(true);
       
-      // Buscar agendamentos de hoje
-      const hoje = new Date();
-      const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-      const fimHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
+      // Buscar agendamentos da data selecionada
+      const inicioData = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate());
+      const fimData = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), dataSelecionada.getDate(), 23, 59, 59);
 
       const { data, error } = await supabase
         .from('agendamentos_ligacoes')
@@ -47,8 +50,8 @@ export function LigacoesHoje() {
           lead_id
         `)
         .eq('user_id', user.id)
-        .gte('data_agendamento', inicioHoje.toISOString())
-        .lte('data_agendamento', fimHoje.toISOString())
+        .gte('data_agendamento', inicioData.toISOString())
+        .lte('data_agendamento', fimData.toISOString())
         .order('data_agendamento', { ascending: true });
 
       if (error) throw error;
@@ -83,8 +86,8 @@ export function LigacoesHoje() {
   };
 
   useEffect(() => {
-    fetchLigacoesHoje();
-  }, [user]);
+    fetchLigacoes();
+  }, [user, dataSelecionada]);
 
   const marcarComoConcluida = async (agendamentoId: string) => {
     try {
@@ -100,7 +103,7 @@ export function LigacoesHoje() {
         description: "Ligação marcada como concluída",
       });
 
-      fetchLigacoesHoje();
+      fetchLigacoes();
     } catch (error) {
       console.error('Erro ao marcar ligação como concluída:', error);
       toast({
@@ -125,7 +128,7 @@ export function LigacoesHoje() {
         description: "Ligação cancelada",
       });
 
-      fetchLigacoesHoje();
+      fetchLigacoes();
     } catch (error) {
       console.error('Erro ao cancelar ligação:', error);
       toast({
@@ -196,17 +199,47 @@ export function LigacoesHoje() {
 
   const ligacoesPendentes = ligacoes.filter(l => l.status === 'pendente');
 
+  const isHoje = isToday(dataSelecionada);
+  const dataFormatada = format(dataSelecionada, "dd/MM/yyyy", { locale: ptBR });
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Ligações de Hoje ({ligacoesPendentes.length})
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            {isHoje ? `Ligações de Hoje (${ligacoesPendentes.length})` : `Ligações de ${dataFormatada} (${ligacoesPendentes.length})`}
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !dataSelecionada && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dataSelecionada ? dataFormatada : <span>Selecionar data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dataSelecionada}
+                onSelect={(date) => date && setDataSelecionada(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </CardTitle>
       </CardHeader>
       <CardContent>
         {ligacoes.length === 0 ? (
-          <p className="text-muted-foreground">Nenhuma ligação agendada para hoje</p>
+          <p className="text-muted-foreground">
+            {isHoje ? "Nenhuma ligação agendada para hoje" : `Nenhuma ligação agendada para ${dataFormatada}`}
+          </p>
         ) : (
           <div className="space-y-3">
             {ligacoes.map((ligacao) => (
