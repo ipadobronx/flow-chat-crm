@@ -81,6 +81,7 @@ export type Database = {
           "Tratado em": string | null
           "Tratado Por": string | null
           "Última Mensagem Retorno Cobrança Rejeitada": string | null
+          user_id: string
           "Vencido Em": string | null
         }
         Insert: {
@@ -116,6 +117,7 @@ export type Database = {
           "Tratado em"?: string | null
           "Tratado Por"?: string | null
           "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          user_id: string
           "Vencido Em"?: string | null
         }
         Update: {
@@ -151,6 +153,7 @@ export type Database = {
           "Tratado em"?: string | null
           "Tratado Por"?: string | null
           "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          user_id?: string
           "Vencido Em"?: string | null
         }
         Relationships: []
@@ -551,6 +554,7 @@ export type Database = {
           "Tratado em": string | null
           "Tratado Por": string | null
           "Última Mensagem Retorno Cobrança Rejeitada": string | null
+          user_id: string | null
           "Vencido Em": string | null
         }
         Insert: {
@@ -563,7 +567,7 @@ export type Database = {
           "Criado Por"?: string | null
           "Data do Carregamento (Evolução da Lista de Atraso)"?: string | null
           "Dias  Atraso"?: number | null
-          dias_atraso_calculado?: never
+          dias_atraso_calculado?: number | null
           "E-mail da Assistente"?: string | null
           "E-mail Resp. Pagto."?: string | null
           Emissão?: string | null
@@ -587,6 +591,7 @@ export type Database = {
           "Tratado em"?: string | null
           "Tratado Por"?: string | null
           "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          user_id?: string | null
           "Vencido Em"?: string | null
         }
         Update: {
@@ -599,7 +604,7 @@ export type Database = {
           "Criado Por"?: string | null
           "Data do Carregamento (Evolução da Lista de Atraso)"?: string | null
           "Dias  Atraso"?: number | null
-          dias_atraso_calculado?: never
+          dias_atraso_calculado?: number | null
           "E-mail da Assistente"?: string | null
           "E-mail Resp. Pagto."?: string | null
           Emissão?: string | null
@@ -623,6 +628,7 @@ export type Database = {
           "Tratado em"?: string | null
           "Tratado Por"?: string | null
           "Última Mensagem Retorno Cobrança Rejeitada"?: string | null
+          user_id?: string | null
           "Vencido Em"?: string | null
         }
         Relationships: []
