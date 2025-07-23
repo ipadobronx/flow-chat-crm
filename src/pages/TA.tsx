@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { Play, Save, ArrowLeft } from "lucide-react";
@@ -115,6 +116,9 @@ export default function TA() {
   if (stage === 'initial') {
     return (
       <div className="min-h-screen bg-[#0D0D0D] relative overflow-hidden">
+        {/* Particle background */}
+        <ParticleTextEffect words={['TEATRO', 'APRESENTAÇÃO', 'LEADS', 'VENDAS', 'CRM']} />
+        
         {/* Background with glassmorphism effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/10 to-[#FF00C8]/10" />
         
