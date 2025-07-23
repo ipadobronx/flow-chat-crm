@@ -151,18 +151,6 @@ export default function TA() {
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 flex items-center justify-center">
         <ParticleTextEffect words={['FOCO', 'ENERGIA', 'VENDAS']} />
-        <div className="text-center space-y-8 relative z-10">
-          <div className={`transition-all duration-1000 ${transitionStep >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-            <h1 className="text-7xl font-bold text-[#00FFF0] tracking-wider">
-              PREPARE-SE
-            </h1>
-          </div>
-          <div className={`transition-all duration-1000 delay-1000 ${transitionStep >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <h2 className="text-4xl font-bold text-[#FF00C8] tracking-wide">
-              O SEU TA COMEÇA AGORA!
-            </h2>
-          </div>
-        </div>
       </div>
     );
   }
