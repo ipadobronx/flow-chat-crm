@@ -303,9 +303,9 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }: Pa
       })
     }
 
-    // Auto-advance words (adjusted for better timing)
+    // Auto-advance words (2 seconds per word)
     frameCountRef.current++
-    if (frameCountRef.current % 180 === 0) { // 3 seconds per word (180 frames)
+    if (frameCountRef.current % 120 === 0) { // 2 seconds per word (120 frames at 60fps)
       wordIndexRef.current = (wordIndexRef.current + 1) % words.length
       nextWord(words[wordIndexRef.current], canvas)
     }
