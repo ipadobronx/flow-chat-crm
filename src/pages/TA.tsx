@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { GlareCard } from "@/components/ui/glare-card";
+import { ShineBorder } from "@/components/ui/shine-border";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -243,64 +243,74 @@ export default function TA() {
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
           <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card 1 - Informações do Lead */}
-            <GlareCard staticCard>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 h-full">
-                <h2 className="text-2xl font-bold text-white mb-4">{currentLead.nome}</h2>
+            <ShineBorder
+              borderWidth={2}
+              duration={8}
+              color={["#00FFF0", "#FF00C8", "#39FF14"]}
+              className="bg-white/5 backdrop-blur-md border-white/10"
+            >
+              <div className="p-6 h-full">
+                <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
                 
-                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-lg">
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Cidade:</span>
-                    <p className="text-white/90">{currentLead.cidade || 'N/A'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Cidade:</span>
+                    <p className="text-white/90 text-lg">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Etapa:</span>
-                    <p className="text-white/90">{currentLead.etapa}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Etapa:</span>
+                    <p className="text-white/90 text-lg">{currentLead.etapa}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Profissão:</span>
-                    <p className="text-white/90">{currentLead.profissao || 'N/A'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Profissão:</span>
+                    <p className="text-white/90 text-lg">{currentLead.profissao || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Telefone:</span>
-                    <p className="text-white/90">{currentLead.telefone || 'N/A'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Telefone:</span>
+                    <p className="text-white/90 text-lg">{currentLead.telefone || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Casado:</span>
-                    <p className="text-white/90">{currentLead.casado ? 'Sim' : 'Não'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Casado:</span>
+                    <p className="text-white/90 text-lg">{currentLead.casado ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Filhos:</span>
-                    <p className="text-white/90">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Filhos:</span>
+                    <p className="text-white/90 text-lg">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Recomendante:</span>
-                    <p className="text-white/90">{currentLead.recomendante || 'N/A'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Recomendante:</span>
+                    <p className="text-white/90 text-lg">{currentLead.recomendante || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-medium">Email:</span>
-                    <p className="text-white/90 truncate">{currentLead.email || 'N/A'}</p>
+                    <span className="text-[#00FFF0] font-semibold text-lg">Email:</span>
+                    <p className="text-white/90 text-lg truncate">{currentLead.email || 'N/A'}</p>
                   </div>
                 </div>
 
                 {currentLead.observacoes && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <span className="text-[#00FFF0] font-medium">Observações:</span>
-                    <p className="text-white/90 text-sm mt-1">{currentLead.observacoes}</p>
+                  <div className="mt-6 pt-4 border-t border-white/10">
+                    <span className="text-[#00FFF0] font-semibold text-lg">Observações:</span>
+                    <p className="text-white/90 text-base mt-2">{currentLead.observacoes}</p>
                   </div>
                 )}
               </div>
-            </GlareCard>
+            </ShineBorder>
 
             {/* Card 2 - Ações */}
-            <GlareCard staticCard>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 h-full flex flex-col">
+            <ShineBorder
+              borderWidth={2}
+              duration={10}
+              color={["#FF00C8", "#00FFF0", "#39FF14"]}
+              className="bg-white/5 backdrop-blur-md border-white/10 relative"
+            >
+              <div className="p-6 h-full flex flex-col relative z-10">
                 <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
                 <div className="space-y-4 flex-1">
@@ -374,7 +384,7 @@ export default function TA() {
                   SALVAR E PRÓXIMO
                 </Button>
               </div>
-            </GlareCard>
+            </ShineBorder>
           </div>
 
           {/* Progress indicator */}
