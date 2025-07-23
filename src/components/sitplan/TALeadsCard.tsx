@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CometCard } from "@/components/ui/comet-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -83,7 +84,8 @@ export function TALeadsCard() {
   };
 
   return (
-    <Card>
+    <CometCard>
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -195,6 +197,7 @@ export function TALeadsCard() {
           </div>
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </CometCard>
   );
 }
