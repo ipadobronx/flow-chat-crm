@@ -117,42 +117,30 @@ export default function TA() {
     return (
       <div className="min-h-screen bg-[#0D0D0D] relative overflow-hidden">
         {/* Particle background */}
-        <ParticleTextEffect words={['TEATRO', 'APRESENTAÇÃO', 'LEADS', 'VENDAS', 'CRM']} />
-        
-        {/* Background with glassmorphism effect */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/10 to-[#FF00C8]/10" />
+        <ParticleTextEffect words={['VENDAS', 'APRESENTAÇÃO', 'LEADS', 'SUCESSO', 'FOCO']} />
         
         <div className="min-h-screen flex flex-col items-center justify-center relative z-10">
-          <div className="text-center space-y-8">
-            <h1 className="text-6xl font-bold text-white mb-4 tracking-wider">
-              TEATRO DE APRESENTAÇÃO
-            </h1>
-            <p className="text-xl text-[#A9A9A9] mb-12">
-              {leads.length > 0 ? `${leads.length} leads selecionados` : 'Nenhum lead selecionado'}
-            </p>
-            
-            {leads.length > 0 ? (
+          {leads.length > 0 ? (
+            <Button
+              onClick={startPresentation}
+              className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#00FFF0] text-[#00FFF0] hover:bg-[#00FFF0]/20 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,255,240,0.3)]"
+            >
+              <Play className="mr-3 h-6 w-6" />
+              INICIAR
+            </Button>
+          ) : (
+            <div className="text-center space-y-4">
+              <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
+              <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
               <Button
-                onClick={startPresentation}
-                className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#00FFF0] text-[#00FFF0] hover:bg-[#00FFF0]/20 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,255,240,0.3)]"
+                onClick={() => navigate('/sitplan')}
+                className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
               >
-                <Play className="mr-3 h-6 w-6" />
-                INICIAR
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
               </Button>
-            ) : (
-              <div className="text-center space-y-4">
-                <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
-                <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
-                <Button
-                  onClick={() => navigate('/sitplan')}
-                  className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar
-                </Button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -162,7 +150,7 @@ export default function TA() {
   if (stage === 'transition') {
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 flex items-center justify-center">
-        <ParticleTextEffect words={['PREPARE-SE', 'TEATRO', 'APRESENTAÇÃO']} />
+        <ParticleTextEffect words={['FOCO', 'ENERGIA', 'VENDAS']} />
         <div className="text-center space-y-8 relative z-10">
           <div className={`transition-all duration-1000 ${transitionStep >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
             <h1 className="text-7xl font-bold text-[#00FFF0] tracking-wider">
