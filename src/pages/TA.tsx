@@ -47,14 +47,11 @@ export default function TA() {
   // Transition effect
   useEffect(() => {
     if (stage === 'transition') {
-      const timer1 = setTimeout(() => setTransitionStep(1), 500);
-      const timer2 = setTimeout(() => {
-        setStage('countdown');
-        setCountdown(5);
+      const timer = setTimeout(() => {
+        setStage('presenting');
       }, 3000);
       return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
+        clearTimeout(timer);
       };
     }
   }, [stage]);
