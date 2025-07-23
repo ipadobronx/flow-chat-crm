@@ -243,12 +243,7 @@ export default function TA() {
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
           <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card 1 - Informações do Lead */}
-            <ShineBorder
-              borderWidth={2}
-              duration={8}
-              color="#00FFF0"
-              className="bg-white/5 backdrop-blur-md border-white/10"
-            >
+            <div className="bg-white/5 backdrop-blur-md border-2 border-[#00FFF0] rounded-2xl">
               <div className="p-6 h-full">
                 <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
                 
@@ -301,16 +296,11 @@ export default function TA() {
                   </div>
                 )}
               </div>
-            </ShineBorder>
+            </div>
 
             {/* Card 2 - Ações */}
-            <ShineBorder
-              borderWidth={2}
-              duration={10}
-              color="#FF00C8"
-              className="bg-white/5 backdrop-blur-md border-white/10 relative"
-            >
-              <div className="p-6 h-full flex flex-col relative z-10">
+            <div className="bg-white/5 backdrop-blur-md border-2 border-[#FF00C8] rounded-2xl">
+              <div className="p-6 h-full flex flex-col">
                 <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
                 <div className="space-y-4 flex-1">
@@ -384,7 +374,7 @@ export default function TA() {
                   SALVAR E PRÓXIMO
                 </Button>
               </div>
-            </ShineBorder>
+            </div>
           </div>
 
           {/* Progress indicator */}
