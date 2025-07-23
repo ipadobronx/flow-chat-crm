@@ -114,7 +114,7 @@ export default function TA() {
     return (
       <div className="min-h-screen bg-[#0D0D0D] relative overflow-hidden">
         {/* Particle background */}
-        <ParticleTextEffect words={['VENDAS', 'APRESENTAÇÃO', 'LEADS', 'SUCESSO', 'FOCO']} />
+        <ParticleTextEffect words={['SEJA BEM-VINDO', 'AGILIDADE NA ROTINA', 'RESULTADO NA PONTA', 'O SEU TA', 'COMEÇA AGORA']} />
         
         <div className="min-h-screen flex flex-col items-center justify-center relative z-10">
           {leads.length > 0 ? (
@@ -147,7 +147,7 @@ export default function TA() {
   if (stage === 'transition') {
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 flex items-center justify-center">
-        <ParticleTextEffect words={['FOCO', 'ENERGIA', 'VENDAS']} />
+        <ParticleTextEffect words={['SEJA BEM-VINDO', 'AGILIDADE NA ROTINA', 'RESULTADO NA PONTA', 'O SEU TA', 'COMEÇA AGORA']} />
       </div>
     );
   }
