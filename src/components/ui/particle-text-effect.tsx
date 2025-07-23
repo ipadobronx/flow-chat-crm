@@ -313,7 +313,7 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }: Pa
       return distance < 20 // Consider particle "in position" if within 20px of target
     })
     
-    const formationComplete = activeParticles.length > 0 && particlesInPosition.length / activeParticles.length >= 1.0 // 100% of particles in position
+    const formationComplete = activeParticles.length > 0 && particlesInPosition.length / activeParticles.length >= 0.9 // 90% of particles in position
     const minTimeElapsed = frameCountRef.current > 120 // Minimum 2 seconds have passed
     
     if (formationComplete && minTimeElapsed) {
