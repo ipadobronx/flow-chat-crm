@@ -303,9 +303,9 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }: Pa
       })
     }
 
-    // Auto-advance words (2 seconds per word)
+    // Auto-advance words (2 seconds per word - slower)
     frameCountRef.current++
-    if (frameCountRef.current % 120 === 0) { // 2 seconds per word (120 frames at 60fps)
+    if (frameCountRef.current % 180 === 0) { // 3 seconds per word (180 frames at 60fps)
       wordIndexRef.current = (wordIndexRef.current + 1) % words.length
       nextWord(words[wordIndexRef.current], canvas)
     }
@@ -316,6 +316,10 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }: Pa
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+
+    // Reset word index to start from beginning
+    wordIndexRef.current = 0
+    frameCountRef.current = 0
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
