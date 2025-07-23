@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { CometCard } from "@/components/ui/comet-card";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -188,7 +189,8 @@ export default function TA() {
         <div className="relative z-10 min-h-screen flex items-center justify-center p-8">
           <div className="max-w-4xl w-full">
             {/* Lead Card */}
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(0,255,240,0.2)] animate-fade-in">
+            <CometCard>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(0,255,240,0.2)] animate-fade-in">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                 {/* Lead Image */}
                 <div className="md:col-span-1">
@@ -264,7 +266,8 @@ export default function TA() {
                   SALVAR
                 </Button>
               </div>
-            </div>
+              </div>
+            </CometCard>
 
             {/* Progress indicator */}
             <div className="flex justify-center mt-8">
