@@ -246,7 +246,7 @@ export default function TA() {
             <ShineBorder
               borderWidth={2}
               duration={8}
-              color={["#00FFF0", "#FF00C8", "#39FF14"]}
+              color="#00FFF0"
               className="bg-white/5 backdrop-blur-md border-white/10"
             >
               <div className="p-6 h-full">
@@ -307,7 +307,7 @@ export default function TA() {
             <ShineBorder
               borderWidth={2}
               duration={10}
-              color={["#FF00C8", "#00FFF0", "#39FF14"]}
+              color="#FF00C8"
               className="bg-white/5 backdrop-blur-md border-white/10 relative"
             >
               <div className="p-6 h-full flex flex-col relative z-10">
