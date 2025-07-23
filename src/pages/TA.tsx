@@ -137,7 +137,11 @@ export default function TA() {
   };
 
   
-  const etapasOptions = ["Novo", "OI", "PC", "N", "Apólice Emitida", "Apólice Entregue", "Ligar Depois"];
+  const etapasOptions = [
+    "Todos", "Novo", "TA", "Não atendido", "OI", "Delay OI", "PC", "Delay PC", 
+    "N", "Apólice Emitida", "Apólice Entregue", "C2", "Delay C2", "Ligar Depois", 
+    "Marcar", "Não", "Proposta Cancelada", "Apólice Cancelada"
+  ];
 
   const getLeadImageUrl = (leadName: string) => {
     // Generate different Unsplash images based on lead name
@@ -236,76 +240,76 @@ export default function TA() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/80 to-[#0D0D0D]/60" />
         </div>
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-8">
-          <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+          <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card 1 - Informações do Lead */}
             <GlareCard staticCard>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 h-full">
-                <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 h-full">
+                <h2 className="text-2xl font-bold text-white mb-4">{currentLead.nome}</h2>
                 
-                <div className="grid grid-cols-1 gap-4 text-lg">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Cidade:</span>
-                    <p className="text-white">{currentLead.cidade || 'Não informado'}</p>
+                    <span className="text-[#00FFF0] font-medium">Cidade:</span>
+                    <p className="text-white/90">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Etapa Atual:</span>
-                    <p className="text-white">{currentLead.etapa}</p>
+                    <span className="text-[#00FFF0] font-medium">Etapa:</span>
+                    <p className="text-white/90">{currentLead.etapa}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Profissão:</span>
-                    <p className="text-white">{currentLead.profissao || 'Não informado'}</p>
+                    <span className="text-[#00FFF0] font-medium">Profissão:</span>
+                    <p className="text-white/90">{currentLead.profissao || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Telefone:</span>
-                    <p className="text-white">{currentLead.telefone || 'Não informado'}</p>
+                    <span className="text-[#00FFF0] font-medium">Telefone:</span>
+                    <p className="text-white/90">{currentLead.telefone || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Casado:</span>
-                    <p className="text-white">{currentLead.casado ? 'Sim' : 'Não'}</p>
+                    <span className="text-[#00FFF0] font-medium">Casado:</span>
+                    <p className="text-white/90">{currentLead.casado ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Tem Filhos:</span>
-                    <p className="text-white">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
+                    <span className="text-[#00FFF0] font-medium">Filhos:</span>
+                    <p className="text-white/90">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Recomendante:</span>
-                    <p className="text-white">{currentLead.recomendante || 'Não informado'}</p>
+                    <span className="text-[#00FFF0] font-medium">Recomendante:</span>
+                    <p className="text-white/90">{currentLead.recomendante || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold">Email:</span>
-                    <p className="text-white">{currentLead.email || 'Não informado'}</p>
+                    <span className="text-[#00FFF0] font-medium">Email:</span>
+                    <p className="text-white/90 truncate">{currentLead.email || 'N/A'}</p>
                   </div>
-
-                  {currentLead.observacoes && (
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Observações Atuais:</span>
-                      <p className="text-white mt-2">{currentLead.observacoes}</p>
-                    </div>
-                  )}
                 </div>
+
+                {currentLead.observacoes && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <span className="text-[#00FFF0] font-medium">Observações:</span>
+                    <p className="text-white/90 text-sm mt-1">{currentLead.observacoes}</p>
+                  </div>
+                )}
               </div>
             </GlareCard>
 
             {/* Card 2 - Ações */}
             <GlareCard staticCard>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 h-full flex flex-col">
-                <h3 className="text-2xl font-bold text-white mb-6">Ações do TA</h3>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 h-full flex flex-col">
+                <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
-                <div className="space-y-6 flex-1">
+                <div className="space-y-4 flex-1">
                   {/* Seletor de Etapa */}
                   <div>
-                    <Label className="text-[#00FFF0] font-semibold">Nova Etapa do Funil</Label>
+                    <Label className="text-[#00FFF0] font-medium text-sm">Nova Etapa</Label>
                     <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
-                      <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
-                        <SelectValue placeholder="Selecione a nova etapa" />
+                      <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white h-9">
+                        <SelectValue placeholder="Selecione a etapa" />
                       </SelectTrigger>
                       <SelectContent>
                         {etapasOptions.map((etapa) => (
@@ -319,25 +323,25 @@ export default function TA() {
 
                   {/* Campo de Observações */}
                   <div>
-                    <Label className="text-[#00FFF0] font-semibold">Observações</Label>
+                    <Label className="text-[#00FFF0] font-medium text-sm">Observações</Label>
                     <Textarea
                       value={observacoes}
                       onChange={(e) => setObservacoes(e.target.value)}
-                      placeholder="Adicione observações sobre este contato..."
-                      className="mt-2 bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[100px]"
+                      placeholder="Notas sobre este contato..."
+                      className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[80px] text-sm"
                     />
                   </div>
 
                   {/* Agendamento para Ligar Depois */}
                   {selectedEtapa === "Ligar Depois" && (
                     <div>
-                      <Label className="text-[#00FFF0] font-semibold">Data para Ligar</Label>
+                      <Label className="text-[#00FFF0] font-medium text-sm">Data para Ligar</Label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full mt-2 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
+                              "w-full mt-1 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20 h-9 text-sm",
                               !agendamentoDate && "text-white/50"
                             )}
                           >
@@ -361,23 +365,21 @@ export default function TA() {
                 </div>
 
                 {/* Botão de Salvar */}
-                <div className="mt-8">
-                  <Button
-                    onClick={saveAndNext}
-                    disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
-                    className="w-full py-4 text-xl font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Save className="mr-3 h-6 w-6" />
-                    SALVAR E PRÓXIMO
-                  </Button>
-                </div>
+                <Button
+                  onClick={saveAndNext}
+                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
+                  className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                >
+                  <Save className="mr-2 h-5 w-5" />
+                  SALVAR E PRÓXIMO
+                </Button>
               </div>
             </GlareCard>
           </div>
 
           {/* Progress indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-            <div className="text-[#A9A9A9] text-lg">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+            <div className="text-[#A9A9A9] text-sm">
               Lead {currentLeadIndex + 1} de {leads.length}
             </div>
           </div>
