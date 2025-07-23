@@ -49,7 +49,7 @@ export default function TA() {
     if (stage === 'transition') {
       const timer = setTimeout(() => {
         setStage('presenting');
-      }, 3000);
+      }, 8000); // Aumentado para 8 segundos
       return () => {
         clearTimeout(timer);
       };
