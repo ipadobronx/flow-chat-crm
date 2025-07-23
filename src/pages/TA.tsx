@@ -49,7 +49,7 @@ export default function TA() {
     if (stage === 'transition') {
       const timer = setTimeout(() => {
         setStage('presenting');
-      }, 12000); // Aumentado para 12 segundos para dar tempo completo da apresentação
+      }, 16000); // 16 segundos para dar tempo de mostrar todas as 5 palavras (3 segundos cada + margem)
       return () => {
         clearTimeout(timer);
       };
