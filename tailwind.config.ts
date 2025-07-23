@@ -147,6 +147,9 @@ export default {
 			},
 			transitionProperty: {
 				smooth: 'var(--transition-smooth)'
+			},
+			perspective: {
+				'distant': '1000px'
 			}
 		}
 	},
