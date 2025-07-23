@@ -162,7 +162,8 @@ export default function TA() {
   if (stage === 'transition') {
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 flex items-center justify-center">
-        <div className="text-center space-y-8">
+        <ParticleTextEffect words={['PREPARE-SE', 'TEATRO', 'APRESENTAÇÃO']} />
+        <div className="text-center space-y-8 relative z-10">
           <div className={`transition-all duration-1000 ${transitionStep >= 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
             <h1 className="text-7xl font-bold text-[#00FFF0] tracking-wider">
               PREPARE-SE
@@ -182,7 +183,8 @@ export default function TA() {
   if (stage === 'countdown') {
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 flex items-center justify-center">
-        <div className="text-center">
+        <ParticleTextEffect words={[countdown.toString(), 'CONTAGEM', 'REGRESSIVA']} />
+        <div className="text-center relative z-10">
           <div className="text-9xl font-bold text-[#00FFF0] animate-pulse">
             {countdown}
           </div>
