@@ -303,9 +303,21 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className = "" }: Pa
       })
     }
 
-    // Auto-advance words (2 seconds per word - slower)
+    // Auto-advance words only when particles are in position
     frameCountRef.current++
-    if (frameCountRef.current % 180 === 0) { // 3 seconds per word (180 frames at 60fps)
+    
+    // Check if particles are close to their targets (word formation complete)
+    const activeParticles = particles.filter(p => !p.isKilled)
+    const particlesInPosition = activeParticles.filter(p => {
+      const distance = Math.sqrt(Math.pow(p.pos.x - p.target.x, 2) + Math.pow(p.pos.y - p.target.y, 2))
+      return distance < 20 // Consider particle "in position" if within 20px of target
+    })
+    
+    const formationComplete = activeParticles.length > 0 && particlesInPosition.length / activeParticles.length > 0.8 // 80% of particles in position
+    const minTimeElapsed = frameCountRef.current > 120 // Minimum 2 seconds have passed
+    
+    if (formationComplete && minTimeElapsed) {
+      frameCountRef.current = 0 // Reset frame count
       wordIndexRef.current = (wordIndexRef.current + 1) % words.length
       nextWord(words[wordIndexRef.current], canvas)
     }
