@@ -225,7 +225,7 @@ export type Database = {
           telefone: string | null
           tem_filhos: boolean | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           valor: string | null
         }
         Insert: {
@@ -256,7 +256,7 @@ export type Database = {
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           valor?: string | null
         }
         Update: {
@@ -287,7 +287,7 @@ export type Database = {
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           valor?: string | null
         }
         Relationships: []
