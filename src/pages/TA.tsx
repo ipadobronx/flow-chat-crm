@@ -4,9 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { GlareCard } from "@/components/ui/glare-card";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { Play, Save, ArrowLeft } from "lucide-react";
+import { Play, Save, ArrowLeft, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type Lead = Tables<"leads">;
 
@@ -19,6 +26,9 @@ export default function TA() {
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
   const [transitionStep, setTransitionStep] = useState(0);
+  const [selectedEtapa, setSelectedEtapa] = useState<string>("");
+  const [observacoes, setObservacoes] = useState("");
+  const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
   useEffect(() => {
     // Get selected leads from localStorage
@@ -74,11 +84,45 @@ export default function TA() {
     setTransitionStep(0);
   };
 
-  const saveAndNext = () => {
-    if (currentLeadIndex < leads.length - 1) {
-      setCurrentLeadIndex(currentLeadIndex + 1);
-    } else {
-      setStage('finished');
+  const saveAndNext = async () => {
+    if (!selectedEtapa) return;
+    
+    const currentLead = leads[currentLeadIndex];
+    
+    try {
+      // Atualizar etapa do lead
+      await supabase
+        .from("leads")
+        .update({ 
+          etapa: selectedEtapa as any,
+          observacoes: observacoes || currentLead.observacoes
+        })
+        .eq("id", currentLead.id);
+
+      // Se for "Ligar Depois" e tem data de agendamento, criar agendamento
+      if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
+        await supabase
+          .from("agendamentos_ligacoes")
+          .insert({
+            lead_id: currentLead.id,
+            data_agendamento: agendamentoDate.toISOString(),
+            observacoes: observacoes,
+            user_id: currentLead.user_id
+          });
+      }
+
+      // Resetar campos para o próximo lead
+      setSelectedEtapa("");
+      setObservacoes("");
+      setAgendamentoDate(undefined);
+
+      if (currentLeadIndex < leads.length - 1) {
+        setCurrentLeadIndex(currentLeadIndex + 1);
+      } else {
+        setStage('finished');
+      }
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
     }
   };
 
@@ -87,7 +131,13 @@ export default function TA() {
     setCurrentLeadIndex(0);
     setCountdown(5);
     setTransitionStep(0);
+    setSelectedEtapa("");
+    setObservacoes("");
+    setAgendamentoDate(undefined);
   };
+
+  
+  const etapasOptions = ["Novo", "OI", "PC", "N", "Apólice Emitida", "Apólice Entregue", "Ligar Depois"];
 
   const getLeadImageUrl = (leadName: string) => {
     // Generate different Unsplash images based on lead name
@@ -187,93 +237,148 @@ export default function TA() {
         </div>
 
         <div className="relative z-10 min-h-screen flex items-center justify-center p-8">
-          <div className="max-w-4xl w-full">
-            {/* Lead Card */}
-            <GlareCard>
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(0,255,240,0.2)] animate-fade-in">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                {/* Lead Image */}
-                <div className="md:col-span-1">
-                  <img
-                    src={getLeadImageUrl(currentLead.nome)}
-                    alt={currentLead.nome}
-                    className="w-full h-80 object-cover rounded-2xl border border-[#00FFF0]/30"
-                  />
-                </div>
-
-                {/* Lead Information */}
-                <div className="md:col-span-2 space-y-6">
-                  <h2 className="text-5xl font-bold text-white mb-6">{currentLead.nome}</h2>
-                  
-                  <div className="grid grid-cols-2 gap-6 text-lg">
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Cidade:</span>
-                      <p className="text-white">{currentLead.cidade || 'Não informado'}</p>
-                    </div>
-                    
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Etapa:</span>
-                      <p className="text-white">{currentLead.etapa}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Profissão:</span>
-                      <p className="text-white">{currentLead.profissao || 'Não informado'}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Telefone:</span>
-                      <p className="text-white">{currentLead.telefone || 'Não informado'}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Casado:</span>
-                      <p className="text-white">{currentLead.casado ? 'Sim' : 'Não'}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Tem Filhos:</span>
-                      <p className="text-white">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Recomendante:</span>
-                      <p className="text-white">{currentLead.recomendante || 'Não informado'}</p>
-                    </div>
-
-                    <div>
-                      <span className="text-[#00FFF0] font-semibold">Email:</span>
-                      <p className="text-white">{currentLead.email || 'Não informado'}</p>
-                    </div>
-
-                    {currentLead.observacoes && (
-                      <div className="col-span-2">
-                        <span className="text-[#00FFF0] font-semibold">Observações:</span>
-                        <p className="text-white mt-2">{currentLead.observacoes}</p>
-                      </div>
-                    )}
+          <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Card 1 - Informações do Lead */}
+            <GlareCard staticCard>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 h-full">
+                <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
+                
+                <div className="grid grid-cols-1 gap-4 text-lg">
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Cidade:</span>
+                    <p className="text-white">{currentLead.cidade || 'Não informado'}</p>
                   </div>
-                </div>
-              </div>
+                  
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Etapa Atual:</span>
+                    <p className="text-white">{currentLead.etapa}</p>
+                  </div>
 
-              {/* Action Button */}
-              <div className="flex justify-center mt-12">
-                <Button
-                  onClick={saveAndNext}
-                  className="px-16 py-6 text-2xl font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)]"
-                >
-                  <Save className="mr-3 h-6 w-6" />
-                  SALVAR
-                </Button>
-              </div>
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Profissão:</span>
+                    <p className="text-white">{currentLead.profissao || 'Não informado'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Telefone:</span>
+                    <p className="text-white">{currentLead.telefone || 'Não informado'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Casado:</span>
+                    <p className="text-white">{currentLead.casado ? 'Sim' : 'Não'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Tem Filhos:</span>
+                    <p className="text-white">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Recomendante:</span>
+                    <p className="text-white">{currentLead.recomendante || 'Não informado'}</p>
+                  </div>
+
+                  <div>
+                    <span className="text-[#00FFF0] font-semibold">Email:</span>
+                    <p className="text-white">{currentLead.email || 'Não informado'}</p>
+                  </div>
+
+                  {currentLead.observacoes && (
+                    <div>
+                      <span className="text-[#00FFF0] font-semibold">Observações Atuais:</span>
+                      <p className="text-white mt-2">{currentLead.observacoes}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </GlareCard>
 
-            {/* Progress indicator */}
-            <div className="flex justify-center mt-8">
-              <div className="text-[#A9A9A9] text-lg">
-                Lead {currentLeadIndex + 1} de {leads.length}
+            {/* Card 2 - Ações */}
+            <GlareCard staticCard>
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 h-full flex flex-col">
+                <h3 className="text-2xl font-bold text-white mb-6">Ações do TA</h3>
+                
+                <div className="space-y-6 flex-1">
+                  {/* Seletor de Etapa */}
+                  <div>
+                    <Label className="text-[#00FFF0] font-semibold">Nova Etapa do Funil</Label>
+                    <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
+                      <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                        <SelectValue placeholder="Selecione a nova etapa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {etapasOptions.map((etapa) => (
+                          <SelectItem key={etapa} value={etapa}>
+                            {etapa}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Campo de Observações */}
+                  <div>
+                    <Label className="text-[#00FFF0] font-semibold">Observações</Label>
+                    <Textarea
+                      value={observacoes}
+                      onChange={(e) => setObservacoes(e.target.value)}
+                      placeholder="Adicione observações sobre este contato..."
+                      className="mt-2 bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Agendamento para Ligar Depois */}
+                  {selectedEtapa === "Ligar Depois" && (
+                    <div>
+                      <Label className="text-[#00FFF0] font-semibold">Data para Ligar</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full mt-2 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
+                              !agendamentoDate && "text-white/50"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione a data"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={agendamentoDate}
+                            onSelect={setAgendamentoDate}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+                </div>
+
+                {/* Botão de Salvar */}
+                <div className="mt-8">
+                  <Button
+                    onClick={saveAndNext}
+                    disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
+                    className="w-full py-4 text-xl font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Save className="mr-3 h-6 w-6" />
+                    SALVAR E PRÓXIMO
+                  </Button>
+                </div>
               </div>
+            </GlareCard>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+            <div className="text-[#A9A9A9] text-lg">
+              Lead {currentLeadIndex + 1} de {leads.length}
             </div>
           </div>
         </div>

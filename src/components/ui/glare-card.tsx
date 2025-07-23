@@ -4,9 +4,11 @@ import { useRef } from "react";
 export const GlareCard = ({
   children,
   className,
+  staticCard = false,
 }: {
   children: React.ReactNode;
   className?: string;
+  staticCard?: boolean;
 }) => {
   const isPointerInside = useRef(false);
   const refElement = useRef<HTMLDivElement>(null);
@@ -63,6 +65,21 @@ export const GlareCard = ({
       refElement.current?.style.setProperty("--bg-y", `${background.y}%`);
     }
   };
+  
+  if (staticCard) {
+    return (
+      <div className="relative isolate w-full [aspect-ratio:17/21]">
+        <div className="h-full grid rounded-[var(--radius)] border border-slate-800 overflow-hidden">
+          <div className="w-full h-full grid [grid-area:1/1]">
+            <div className={cn("h-full w-full bg-slate-950", className)}>
+              {children}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={containerStyle}
