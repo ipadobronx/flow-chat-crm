@@ -84,8 +84,7 @@ export function TALeadsCard() {
   };
 
   return (
-    <GlareCard>
-      <Card>
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -197,7 +196,6 @@ export function TALeadsCard() {
           </div>
         )}
       </CardContent>
-      </Card>
-    </GlareCard>
+    </Card>
   );
 }
