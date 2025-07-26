@@ -185,7 +185,7 @@ export default function TA() {
               <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
               <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
               <Button
-                onClick={() => navigate('/sitplan')}
+                onClick={() => navigate('/dashboard/sitplan')}
                 className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
