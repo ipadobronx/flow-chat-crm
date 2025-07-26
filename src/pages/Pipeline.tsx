@@ -563,10 +563,6 @@ export default function Pipeline() {
                     WhatsApp
                   </Button>
                   <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    Incluir no Próximo Sit Plan
-                  </Button>
-                  <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     <Calendar className="w-4 h-4 mr-2" />
                     Agendamento
                   </Button>
