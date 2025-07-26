@@ -862,6 +862,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.incluir_sitplan === true || (!editingLead && selectedLead.incluir_sitplan) ? "default" : "outline"}
                         onClick={async (e) => {
+                          console.log('🔥 BOTÃO SIM CLICADO! selectedLead:', selectedLead);
                           e.preventDefault();
                           e.stopPropagation();
                           console.log('🎯 Incluindo no SitPlan - selectedLead:', selectedLead?.id);
