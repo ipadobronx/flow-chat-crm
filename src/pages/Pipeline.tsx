@@ -828,24 +828,35 @@ export default function Pipeline() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={async () => {
-                          console.log('Clicou no botão Incluir no Próx SitPlan');
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🎯 Clicou no botão Incluir no Próx SitPlan - selectedLead:', selectedLead?.id);
+                          
+                          if (!selectedLead?.id) {
+                            console.error('❌ Erro: selectedLead ou selectedLead.id não existe');
+                            toast({
+                              title: "Erro",
+                              description: "Lead não encontrado.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
                           try {
-                            const updatedLead = { ...selectedLead, incluir_sitplan: true };
-                            setEditingLead(updatedLead);
-                            
                             // Save the lead first
-                            console.log('Salvando lead...', updatedLead);
-                            const { error } = await supabase
+                            console.log('💾 Salvando lead no banco...', selectedLead.id);
+                            const { data, error } = await supabase
                               .from('leads')
                               .update({
                                 incluir_sitplan: true,
                                 updated_at: new Date().toISOString()
                               })
-                              .eq('id', selectedLead.id);
+                              .eq('id', selectedLead.id)
+                              .select();
 
                             if (error) {
-                              console.error('Erro ao salvar lead:', error);
+                              console.error('❌ Erro ao salvar lead:', error);
                               toast({
                                 title: "Erro ao salvar",
                                 description: "Não foi possível salvar as alterações do lead.",
@@ -854,13 +865,19 @@ export default function Pipeline() {
                               return;
                             }
 
+                            console.log('✅ Lead salvo com sucesso:', data);
+
                             // Add to SitPlan Selecionados
-                            console.log('Adicionando ao SitPlan Selecionados...');
+                            console.log('📋 Adicionando ao localStorage...');
                             const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
+                            console.log('📋 Selecionados atuais:', currentSelected);
+                            
                             if (!currentSelected.includes(selectedLead.id)) {
                               const newSelected = [...currentSelected, selectedLead.id];
                               localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
-                              console.log('Lead adicionado aos selecionados:', newSelected);
+                              console.log('✅ Lead adicionado aos selecionados:', newSelected);
+                            } else {
+                              console.log('ℹ️ Lead já estava nos selecionados');
                             }
 
                             toast({
@@ -868,15 +885,21 @@ export default function Pipeline() {
                               description: "Lead adicionado ao próximo SitPlan com sucesso.",
                             });
 
+                            // Update local state
+                            setLeads(prevLeads => 
+                              prevLeads.map(lead => 
+                                lead.id === selectedLead.id 
+                                  ? { ...lead, incluir_sitplan: true }
+                                  : lead
+                              )
+                            );
+
                             // Close modal
                             setSelectedLead(null);
                             setEditingLead(null);
                             
-                            // Refresh leads data
-                            window.location.reload();
-                            
                           } catch (error) {
-                            console.error('Erro inesperado:', error);
+                            console.error('💥 Erro inesperado:', error);
                             toast({
                               title: "Erro",
                               description: "Ocorreu um erro inesperado.",
