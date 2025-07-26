@@ -144,7 +144,7 @@ export function SelecionadosCard() {
                 
                 <div className="flex items-center gap-1">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
                     onClick={() => {
                       // Remove from SitPlan
@@ -165,10 +165,10 @@ export function SelecionadosCard() {
                         });
                       });
                     }}
-                    className="text-muted-foreground hover:text-primary"
+                    className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
                     title="Mover para TA"
                   >
-                    <span className="text-xs">→TA</span>
+                    TA
                   </Button>
                   
                   <Button
