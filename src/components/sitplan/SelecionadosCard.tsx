@@ -11,51 +11,71 @@ import { useToast } from "@/hooks/use-toast";
 type Lead = Tables<"leads">;
 
 export function SelecionadosCard() {
-  const [selectedLeadsIds, setSelectedLeadsIds] = useState<string[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const stored = localStorage.getItem('sitplanSelecionados');
-    if (stored) {
-      setSelectedLeadsIds(JSON.parse(stored));
-    }
-  }, []);
-
-  const { data: leads = [] } = useQuery({
-    queryKey: ["sitplan-selecionados", selectedLeadsIds],
+  const { data: leads = [], refetch } = useQuery({
+    queryKey: ["sitplan-selecionados"],
     queryFn: async () => {
-      if (selectedLeadsIds.length === 0) return [];
-      
+      console.log('🔄 Buscando leads selecionados para SitPlan...');
       const { data, error } = await supabase
         .from("leads")
         .select("*")
-        .in("id", selectedLeadsIds);
+        .eq("incluir_sitplan", true);
       
       if (error) throw error;
+      console.log(`✅ SitPlan encontrou ${data?.length || 0} leads selecionados:`, 
+        data?.map(lead => ({ id: lead.id, nome: lead.nome, incluir_sitplan: lead.incluir_sitplan }))
+      );
       return data as Lead[];
     },
-    enabled: selectedLeadsIds.length > 0,
   });
 
-  const removeFromSelecionados = (leadId: string) => {
-    const updated = selectedLeadsIds.filter(id => id !== leadId);
-    setSelectedLeadsIds(updated);
-    localStorage.setItem('sitplanSelecionados', JSON.stringify(updated));
-    
-    toast({
-      title: "Lead removido",
-      description: "Lead removido dos selecionados para SitPlan.",
-    });
+  const removeFromSelecionados = async (leadId: string) => {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ incluir_sitplan: false })
+        .eq("id", leadId);
+
+      if (error) throw error;
+
+      await refetch();
+      
+      toast({
+        title: "Lead removido",
+        description: "Lead removido dos selecionados para SitPlan.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o lead.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const clearAll = () => {
-    setSelectedLeadsIds([]);
-    localStorage.removeItem('sitplanSelecionados');
-    
-    toast({
-      title: "Lista limpa",
-      description: "Todos os leads foram removidos dos selecionados.",
-    });
+  const clearAll = async () => {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ incluir_sitplan: false })
+        .in("id", leads.map(lead => lead.id));
+
+      if (error) throw error;
+
+      await refetch();
+      
+      toast({
+        title: "Lista limpa",
+        description: "Todos os leads foram removidos dos selecionados.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível limpar a lista.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getEtapaColor = (etapa: string) => {
@@ -146,24 +166,29 @@ export function SelecionadosCard() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={() => {
-                      // Remove from SitPlan
-                      removeFromSelecionados(lead.id);
-                      
-                      // Add to TA
-                      const currentTA = JSON.parse(localStorage.getItem('selectedLeadsForTA') || '[]');
-                      if (!currentTA.includes(lead.id)) {
-                        const newTA = [...currentTA, lead.id];
-                        localStorage.setItem('selectedLeadsForTA', JSON.stringify(newTA));
-                      }
-                      
-                      // Show confirmation toast
-                      import('@/hooks/use-toast').then(({ toast }) => {
+                    onClick={async () => {
+                      try {
+                        // Remove from SitPlan
+                        await removeFromSelecionados(lead.id);
+                        
+                        // Add to TA
+                        const currentTA = JSON.parse(localStorage.getItem('selectedLeadsForTA') || '[]');
+                        if (!currentTA.includes(lead.id)) {
+                          const newTA = [...currentTA, lead.id];
+                          localStorage.setItem('selectedLeadsForTA', JSON.stringify(newTA));
+                        }
+                        
                         toast({
                           title: "Lead movido para TA!",
                           description: `${lead.nome} foi movido para os Leads Selecionados para TA.`,
                         });
-                      });
+                      } catch (error) {
+                        toast({
+                          title: "Erro",
+                          description: "Não foi possível mover o lead para TA.",
+                          variant: "destructive"
+                        });
+                      }
                     }}
                     className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
                     title="Mover para TA"

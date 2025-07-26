@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -149,6 +150,7 @@ const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNo
 export default function Pipeline() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -178,6 +180,7 @@ export default function Pipeline() {
       if (!user) return;
       
       try {
+        console.log('🔄 Buscando leads do Pipeline...');
         const { data, error } = await supabase
           .from('leads')
           .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
@@ -186,6 +189,13 @@ export default function Pipeline() {
         if (error) throw error;
         if (isMounted) {
           setLeads(data || []);
+          console.log(`📊 Pipeline carregou ${data?.length || 0} leads`);
+          
+          // Log leads with incluir_sitplan = true
+          const sitplanLeads = data?.filter(lead => lead.incluir_sitplan) || [];
+          console.log(`✅ Leads marcados para SitPlan no Pipeline: ${sitplanLeads.length}`, 
+            sitplanLeads.map(lead => ({ id: lead.id, nome: lead.nome, incluir_sitplan: lead.incluir_sitplan }))
+          );
         }
       } catch (error) {
         console.error('Erro ao buscar leads:', error);
@@ -205,13 +215,24 @@ export default function Pipeline() {
 
   // Organizar leads por etapa com memoização
   const getLeadsByStage = useCallback((stageName: string) => {
-    return leads.filter(lead => {
+    const stageLeads = leads.filter(lead => {
       const etapaMatch = lead.etapa === stageName;
       if (showOnlySitplan) {
-        return etapaMatch && lead.incluir_sitplan;
+        const result = etapaMatch && lead.incluir_sitplan;
+        if (result) {
+          console.log(`🎯 Lead ${lead.nome} incluído no filtro SitPlan para etapa ${stageName}`);
+        }
+        return result;
       }
       return etapaMatch;
     });
+    
+    if (showOnlySitplan && stageLeads.length > 0) {
+      console.log(`📊 Etapa ${stageName} com filtro SitPlan: ${stageLeads.length} leads`, 
+        stageLeads.map(lead => lead.nome));
+    }
+    
+    return stageLeads;
   }, [leads, showOnlySitplan]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -310,11 +331,17 @@ export default function Pipeline() {
       // Atualizar estado local
       setLeads(prev => prev.map(lead => 
         lead.id === editingLead.id ? editingLead : lead
-      ));
+       ));
 
-      setSelectedLead(editingLead);
-    } catch (error) {
-      console.error('Erro ao salvar lead:', error);
+       setSelectedLead(editingLead);
+       
+       // Invalidar cache do SitPlan se incluir_sitplan foi alterado
+       if (editingLead.incluir_sitplan !== undefined) {
+         queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+         console.log('🔄 Cache do SitPlan invalidado - sincronização ativada');
+       }
+     } catch (error) {
+       console.error('Erro ao salvar lead:', error);
     } finally {
       setSaving(false);
     }
@@ -451,8 +478,27 @@ export default function Pipeline() {
             <Label className="text-sm">Mostrar apenas leads do SitPlan</Label>
             <Switch
               checked={showOnlySitplan}
-              onCheckedChange={setShowOnlySitplan}
+              onCheckedChange={(checked) => {
+                setShowOnlySitplan(checked);
+                if (checked) {
+                  console.log('🔍 Filtro SitPlan ativado - mostrando apenas leads com incluir_sitplan = true');
+                  const sitplanLeads = leads.filter(lead => lead.incluir_sitplan);
+                  console.log(`📊 Total de leads marcados para SitPlan: ${sitplanLeads.length}`, 
+                    sitplanLeads.map(lead => ({ nome: lead.nome, etapa: lead.etapa })));
+                }
+              }}
             />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+                window.location.reload();
+              }}
+              className="ml-2"
+            >
+              🔄 Sincronizar
+            </Button>
           </div>
         </div>
 
