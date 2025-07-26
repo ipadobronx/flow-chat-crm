@@ -23,6 +23,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 import { 
   DndContext, 
@@ -147,6 +148,7 @@ const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNo
 
 export default function Pipeline() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -826,17 +828,61 @@ export default function Pipeline() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => {
-                          const updatedLead = { ...selectedLead, incluir_sitplan: true };
-                          setEditingLead(updatedLead);
-                          handleSaveLead();
-                          // Add to SitPlan Selecionados
-                          const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
-                          if (!currentSelected.includes(selectedLead.id)) {
-                            localStorage.setItem('sitplanSelecionados', JSON.stringify([...currentSelected, selectedLead.id]));
+                        onClick={async () => {
+                          console.log('Clicou no botão Incluir no Próx SitPlan');
+                          try {
+                            const updatedLead = { ...selectedLead, incluir_sitplan: true };
+                            setEditingLead(updatedLead);
+                            
+                            // Save the lead first
+                            console.log('Salvando lead...', updatedLead);
+                            const { error } = await supabase
+                              .from('leads')
+                              .update({
+                                incluir_sitplan: true,
+                                updated_at: new Date().toISOString()
+                              })
+                              .eq('id', selectedLead.id);
+
+                            if (error) {
+                              console.error('Erro ao salvar lead:', error);
+                              toast({
+                                title: "Erro ao salvar",
+                                description: "Não foi possível salvar as alterações do lead.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+
+                            // Add to SitPlan Selecionados
+                            console.log('Adicionando ao SitPlan Selecionados...');
+                            const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
+                            if (!currentSelected.includes(selectedLead.id)) {
+                              const newSelected = [...currentSelected, selectedLead.id];
+                              localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
+                              console.log('Lead adicionado aos selecionados:', newSelected);
+                            }
+
+                            toast({
+                              title: "Lead incluído!",
+                              description: "Lead adicionado ao próximo SitPlan com sucesso.",
+                            });
+
+                            // Close modal
+                            setSelectedLead(null);
+                            setEditingLead(null);
+                            
+                            // Refresh leads data
+                            window.location.reload();
+                            
+                          } catch (error) {
+                            console.error('Erro inesperado:', error);
+                            toast({
+                              title: "Erro",
+                              description: "Ocorreu um erro inesperado.",
+                              variant: "destructive"
+                            });
                           }
-                          setSelectedLead(null);
-                          setEditingLead(null);
                         }}
                       >
                         📋 Incluir no Próx SitPlan
