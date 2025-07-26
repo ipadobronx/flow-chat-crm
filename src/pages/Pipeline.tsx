@@ -808,9 +808,52 @@ export default function Pipeline() {
                       <Button
                         size="sm"
                         variant={editingLead?.incluir_sitplan === false || (!editingLead && !selectedLead.incluir_sitplan) ? "destructive" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...selectedLead, incluir_sitplan: false };
-                          setEditingLead(updatedLead);
+                        onClick={async () => {
+                          console.log('🎯 Removendo do SitPlan...');
+                          try {
+                            // Save to database
+                            const { error } = await supabase
+                              .from('leads')
+                              .update({
+                                incluir_sitplan: false,
+                                updated_at: new Date().toISOString()
+                              })
+                              .eq('id', selectedLead.id);
+
+                            if (error) {
+                              console.error('❌ Erro ao salvar:', error);
+                              toast({
+                                title: "Erro",
+                                description: "Não foi possível salvar as alterações.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+
+                            // Remove from localStorage
+                            const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
+                            const newSelected = currentSelected.filter((id: string) => id !== selectedLead.id);
+                            localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
+
+                            // Update local state
+                            setLeads(prevLeads => 
+                              prevLeads.map(lead => 
+                                lead.id === selectedLead.id 
+                                  ? { ...lead, incluir_sitplan: false }
+                                  : lead
+                              )
+                            );
+
+                            const updatedLead = { ...selectedLead, incluir_sitplan: false };
+                            setEditingLead(updatedLead);
+
+                            toast({
+                              title: "Removido do SitPlan",
+                              description: "Lead removido do próximo SitPlan."
+                            });
+                          } catch (error) {
+                            console.error('💥 Erro inesperado:', error);
+                          }
                         }}
                       >
                         ❌ Não
@@ -818,20 +861,10 @@ export default function Pipeline() {
                       <Button
                         size="sm"
                         variant={editingLead?.incluir_sitplan === true || (!editingLead && selectedLead.incluir_sitplan) ? "default" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...selectedLead, incluir_sitplan: true };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
                         onClick={async (e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('🎯 Clicou no botão Incluir no Próx SitPlan - selectedLead:', selectedLead?.id);
+                          console.log('🎯 Incluindo no SitPlan - selectedLead:', selectedLead?.id);
                           
                           if (!selectedLead?.id) {
                             console.error('❌ Erro: selectedLead ou selectedLead.id não existe');
@@ -844,8 +877,8 @@ export default function Pipeline() {
                           }
 
                           try {
-                            // Save the lead first
-                            console.log('💾 Salvando lead no banco...', selectedLead.id);
+                            // Save to database first
+                            console.log('💾 Salvando no banco...');
                             const { data, error } = await supabase
                               .from('leads')
                               .update({
@@ -856,34 +889,26 @@ export default function Pipeline() {
                               .select();
 
                             if (error) {
-                              console.error('❌ Erro ao salvar lead:', error);
+                              console.error('❌ Erro ao salvar:', error);
                               toast({
                                 title: "Erro ao salvar",
-                                description: "Não foi possível salvar as alterações do lead.",
+                                description: "Não foi possível salvar as alterações.",
                                 variant: "destructive"
                               });
                               return;
                             }
 
-                            console.log('✅ Lead salvo com sucesso:', data);
+                            console.log('✅ Salvo no banco:', data);
 
-                            // Add to SitPlan Selecionados
+                            // Add to localStorage
                             console.log('📋 Adicionando ao localStorage...');
                             const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
-                            console.log('📋 Selecionados atuais:', currentSelected);
                             
                             if (!currentSelected.includes(selectedLead.id)) {
                               const newSelected = [...currentSelected, selectedLead.id];
                               localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
-                              console.log('✅ Lead adicionado aos selecionados:', newSelected);
-                            } else {
-                              console.log('ℹ️ Lead já estava nos selecionados');
+                              console.log('✅ Adicionado aos selecionados:', newSelected);
                             }
-
-                            toast({
-                              title: "Lead incluído!",
-                              description: "Lead adicionado ao próximo SitPlan com sucesso.",
-                            });
 
                             // Update local state
                             setLeads(prevLeads => 
@@ -893,6 +918,14 @@ export default function Pipeline() {
                                   : lead
                               )
                             );
+
+                            const updatedLead = { ...selectedLead, incluir_sitplan: true };
+                            setEditingLead(updatedLead);
+
+                            toast({
+                              title: "Lead incluído!",
+                              description: "Lead adicionado ao próximo SitPlan com sucesso.",
+                            });
 
                             // Close modal
                             setSelectedLead(null);
@@ -908,7 +941,7 @@ export default function Pipeline() {
                           }
                         }}
                       >
-                        📋 Incluir no Próx SitPlan
+                        ✅ Sim
                       </Button>
                     </div>
                   </div>
