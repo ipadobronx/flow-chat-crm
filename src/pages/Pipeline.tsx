@@ -562,6 +562,90 @@ export default function Pipeline() {
                     <MessageSquare className="w-4 h-4 mr-2" />
                     WhatsApp
                   </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full sm:w-auto"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🎯 Botão separado "Incluir no Próximo Sit Plan" clicado');
+                      
+                      if (!selectedLead?.id) {
+                        console.error('❌ Erro: selectedLead não existe');
+                        toast({
+                          title: "Erro",
+                          description: "Lead não encontrado.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      try {
+                        // Save to database
+                        console.log('💾 Salvando no banco...');
+                        const { data, error } = await supabase
+                          .from('leads')
+                          .update({
+                            incluir_sitplan: true,
+                            updated_at: new Date().toISOString()
+                          })
+                          .eq('id', selectedLead.id)
+                          .select();
+
+                        if (error) {
+                          console.error('❌ Erro ao salvar:', error);
+                          toast({
+                            title: "Erro ao salvar",
+                            description: "Não foi possível salvar as alterações.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        console.log('✅ Salvo no banco:', data);
+
+                        // Add to localStorage
+                        console.log('📋 Adicionando ao localStorage...');
+                        const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
+                        
+                        if (!currentSelected.includes(selectedLead.id)) {
+                          const newSelected = [...currentSelected, selectedLead.id];
+                          localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
+                          console.log('✅ Adicionado aos selecionados:', newSelected);
+                        }
+
+                        // Update local state
+                        setLeads(prevLeads => 
+                          prevLeads.map(lead => 
+                            lead.id === selectedLead.id 
+                              ? { ...lead, incluir_sitplan: true }
+                              : lead
+                          )
+                        );
+
+                        toast({
+                          title: "Lead incluído!",
+                          description: "Lead adicionado ao próximo SitPlan com sucesso.",
+                        });
+
+                        // Close modal
+                        setSelectedLead(null);
+                        setEditingLead(null);
+                        
+                      } catch (error) {
+                        console.error('💥 Erro inesperado:', error);
+                        toast({
+                          title: "Erro",
+                          description: "Ocorreu um erro inesperado.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    Incluir no Próximo Sit Plan
+                  </Button>
                   <Button size="sm" variant="outline" className="w-full sm:w-auto">
                     <Calendar className="w-4 h-4 mr-2" />
                     Agendamento
