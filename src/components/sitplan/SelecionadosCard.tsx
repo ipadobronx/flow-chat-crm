@@ -102,7 +102,7 @@ export function SelecionadosCard() {
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Nenhum lead selecionado para o próximo SitPlan</p>
-            <p className="text-sm mt-2">Use o botão "Incluir no Próx SitPlan" no Pipeline para adicionar leads aqui</p>
+            <p className="text-sm mt-2">Use o botão "✅ Sim" em "Incluir no SitPlan" no Pipeline para adicionar leads aqui</p>
           </div>
         ) : (
           <div className="space-y-3">
