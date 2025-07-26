@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ type Lead = Tables<"leads">;
 
 export function SelecionadosCard() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: leads = [], refetch } = useQuery({
     queryKey: ["sitplan-selecionados"],
@@ -29,6 +30,30 @@ export function SelecionadosCard() {
       return data as Lead[];
     },
   });
+
+  // Configurar realtime para sincronização automática
+  useEffect(() => {
+    const channel = supabase
+      .channel('sitplan-leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads'
+        },
+        (payload) => {
+          console.log('🔴 SitPlan detectou mudança na tabela leads:', payload);
+          // Invalidar e refetch quando houver mudanças
+          queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const removeFromSelecionados = async (leadId: string) => {
     try {

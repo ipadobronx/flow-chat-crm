@@ -172,7 +172,7 @@ export default function Pipeline() {
     })
   );
 
-  // Buscar leads do Supabase com otimização
+  // Buscar leads do Supabase com otimização + realtime
   useEffect(() => {
     let isMounted = true;
     
@@ -207,11 +207,52 @@ export default function Pipeline() {
     }
 
     fetchLeads();
+
+    // Configurar realtime para sincronização automática
+    const channel = supabase
+      .channel('pipeline-leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔴 Mudança detectada na tabela leads:', payload);
+          
+          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+            const newLead = payload.new as Lead;
+            setLeads(prev => {
+              const index = prev.findIndex(lead => lead.id === newLead.id);
+              if (index >= 0) {
+                // Atualizar lead existente
+                const updated = [...prev];
+                updated[index] = newLead;
+                return updated;
+              } else {
+                // Adicionar novo lead
+                return [...prev, newLead];
+              }
+            });
+            
+            // Invalidar cache do SitPlan para sincronização
+            queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old.id;
+            setLeads(prev => prev.filter(lead => lead.id !== deletedId));
+            queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+          }
+        }
+      )
+      .subscribe();
     
     return () => {
       isMounted = false;
+      supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, queryClient]);
 
   // Organizar leads por etapa com memoização
   const getLeadsByStage = useCallback((stageName: string) => {
@@ -488,17 +529,6 @@ export default function Pipeline() {
                 }
               }}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
-                window.location.reload();
-              }}
-              className="ml-2"
-            >
-              🔄 Sincronizar
-            </Button>
           </div>
         </div>
 
