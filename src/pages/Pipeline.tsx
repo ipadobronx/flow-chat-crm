@@ -51,8 +51,8 @@ const stages = [
   { name: "PC", color: "bg-orange-500" },
   { name: "Delay PC", color: "bg-red-500" },
   { name: "Analisando Proposta", color: "bg-orange-600" },
-  { name: "Proposta Não Apresentada", color: "bg-gray-600" },
   { name: "N", color: "bg-purple-500" },
+  { name: "Proposta Não Apresentada", color: "bg-gray-600" },
   { name: "Pendência de UW", color: "bg-yellow-700" },
   { name: "Apólice Emitida", color: "bg-green-500" },
   { name: "Placed", color: "bg-emerald-600" },
@@ -822,6 +822,24 @@ export default function Pipeline() {
                         }}
                       >
                         ✅ Sim
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          const updatedLead = { ...selectedLead, incluir_sitplan: true };
+                          setEditingLead(updatedLead);
+                          handleSaveLead();
+                          // Add to SitPlan Selecionados
+                          const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
+                          if (!currentSelected.includes(selectedLead.id)) {
+                            localStorage.setItem('sitplanSelecionados', JSON.stringify([...currentSelected, selectedLead.id]));
+                          }
+                          setSelectedLead(null);
+                          setEditingLead(null);
+                        }}
+                      >
+                        📋 Incluir no Próx SitPlan
                       </Button>
                     </div>
                   </div>

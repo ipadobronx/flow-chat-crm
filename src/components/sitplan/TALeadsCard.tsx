@@ -65,8 +65,8 @@ export function TALeadsCard() {
       case "PC": return "bg-yellow-500";
       case "Delay PC": return "bg-red-500";
       case "Analisando Proposta": return "bg-orange-600";
-      case "Proposta Não Apresentada": return "bg-gray-600";
       case "N": return "bg-red-500";
+      case "Proposta Não Apresentada": return "bg-gray-600";
       case "Pendência de UW": return "bg-yellow-700";
       case "Apólice Emitida": return "bg-purple-500";
       case "Placed": return "bg-emerald-600";
