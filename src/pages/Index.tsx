@@ -4,8 +4,9 @@ import { KPIGrid } from "@/components/dashboard/KPIGrid";
 import { DateFilter } from "@/components/dashboard/DateFilter";
 import { LeadsChart } from "@/components/dashboard/charts/LeadsChart";
 import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
+import { DemographicsCharts } from "@/components/dashboard/charts/DemographicsCharts";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
 import { LigacoesHoje } from "@/components/dashboard/LigacoesHoje";
 
@@ -36,6 +37,31 @@ const Index = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           <LeadsChart startDate={startDate} endDate={endDate} />
           <ConversionChart startDate={startDate} endDate={endDate} />
+        </div>
+        
+        {/* Gráficos Demográficos */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Demografia dos Leads</h2>
+          <Tabs defaultValue="clientes" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="clientes">Clientes</TabsTrigger>
+              <TabsTrigger value="recs">Recomendações</TabsTrigger>
+            </TabsList>
+            <TabsContent value="clientes" className="space-y-4">
+              <DemographicsCharts 
+                startDate={startDate} 
+                endDate={endDate} 
+                type="clientes" 
+              />
+            </TabsContent>
+            <TabsContent value="recs" className="space-y-4">
+              <DemographicsCharts 
+                startDate={startDate} 
+                endDate={endDate} 
+                type="recs" 
+              />
+            </TabsContent>
+          </Tabs>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

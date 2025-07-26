@@ -729,6 +729,10 @@ export type Database = {
         | "Não"
         | "Proposta Cancelada"
         | "Apólice Cancelada"
+        | "Analisando Proposta"
+        | "Pendência de UW"
+        | "Placed"
+        | "Proposta Não Apresentada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -875,6 +879,10 @@ export const Constants = {
         "Não",
         "Proposta Cancelada",
         "Apólice Cancelada",
+        "Analisando Proposta",
+        "Pendência de UW",
+        "Placed",
+        "Proposta Não Apresentada",
       ],
     },
   },

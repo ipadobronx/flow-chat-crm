@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check } from "lucide-react";
+import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/integrations/supabase/types";
@@ -49,8 +50,12 @@ const stages = [
   { name: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", color: "bg-orange-500" },
   { name: "Delay PC", color: "bg-red-500" },
+  { name: "Analisando Proposta", color: "bg-orange-600" },
+  { name: "Proposta Não Apresentada", color: "bg-gray-600" },
   { name: "N", color: "bg-purple-500" },
+  { name: "Pendência de UW", color: "bg-yellow-700" },
   { name: "Apólice Emitida", color: "bg-green-500" },
+  { name: "Placed", color: "bg-emerald-600" },
   { name: "Apólice Entregue", color: "bg-emerald-500" },
   { name: "C2", color: "bg-teal-500" },
   { name: "Delay C2", color: "bg-cyan-500" },
@@ -153,6 +158,7 @@ export default function Pipeline() {
   const [editingLigacao, setEditingLigacao] = useState<string | null>(null);
   const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
+  const [showOnlySitplan, setShowOnlySitplan] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -197,8 +203,14 @@ export default function Pipeline() {
 
   // Organizar leads por etapa com memoização
   const getLeadsByStage = useCallback((stageName: string) => {
-    return leads.filter(lead => lead.etapa === stageName);
-  }, [leads]);
+    return leads.filter(lead => {
+      const etapaMatch = lead.etapa === stageName;
+      if (showOnlySitplan) {
+        return etapaMatch && lead.incluir_sitplan;
+      }
+      return etapaMatch;
+    });
+  }, [leads, showOnlySitplan]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -426,9 +438,20 @@ export default function Pipeline() {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 h-full flex flex-col">
-        <div className="flex-shrink-0">
-          <h1 className="text-2xl sm:text-3xl font-bold">Sales Pipeline</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Kanban board for lead management</p>
+        <div className="flex-shrink-0 space-y-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Sales Pipeline</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Kanban board for lead management</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            <Label className="text-sm">Mostrar apenas leads do SitPlan</Label>
+            <Switch
+              checked={showOnlySitplan}
+              onCheckedChange={setShowOnlySitplan}
+            />
+          </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
@@ -443,7 +466,7 @@ export default function Pipeline() {
             ) : (
             <div className="overflow-x-auto pb-4">
               <div className="flex gap-2 sm:gap-4 min-w-max">
-                {stages.slice(0, 14).map((stage) => {
+                {stages.map((stage) => {
                   const stageLeads = getLeadsByStage(stage.name);
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
