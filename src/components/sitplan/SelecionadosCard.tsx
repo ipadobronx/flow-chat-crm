@@ -141,14 +141,46 @@ export function SelecionadosCard() {
                   )}
                 </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeFromSelecionados(lead.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      // Remove from SitPlan
+                      removeFromSelecionados(lead.id);
+                      
+                      // Add to TA
+                      const currentTA = JSON.parse(localStorage.getItem('selectedLeadsForTA') || '[]');
+                      if (!currentTA.includes(lead.id)) {
+                        const newTA = [...currentTA, lead.id];
+                        localStorage.setItem('selectedLeadsForTA', JSON.stringify(newTA));
+                      }
+                      
+                      // Show confirmation toast
+                      import('@/hooks/use-toast').then(({ toast }) => {
+                        toast({
+                          title: "Lead movido para TA!",
+                          description: `${lead.nome} foi movido para os Leads Selecionados para TA.`,
+                        });
+                      });
+                    }}
+                    className="text-muted-foreground hover:text-primary"
+                    title="Mover para TA"
+                  >
+                    <span className="text-xs">→TA</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFromSelecionados(lead.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                    title="Remover do SitPlan"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
