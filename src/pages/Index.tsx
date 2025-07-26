@@ -5,6 +5,9 @@ import { DateFilter } from "@/components/dashboard/DateFilter";
 import { LeadsChart } from "@/components/dashboard/charts/LeadsChart";
 import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
 import { DemographicsCharts } from "@/components/dashboard/charts/DemographicsCharts";
+import { StagePerformanceChart } from "@/components/dashboard/charts/StagePerformanceChart";
+import { DailyActivityChart } from "@/components/dashboard/charts/DailyActivityChart";
+import { SalesPipelineChart } from "@/components/dashboard/charts/SalesPipelineChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
@@ -37,6 +40,13 @@ const Index = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           <LeadsChart startDate={startDate} endDate={endDate} />
           <ConversionChart startDate={startDate} endDate={endDate} />
+        </div>
+        
+        {/* Novos Gráficos com dados reais */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+          <StagePerformanceChart startDate={startDate} endDate={endDate} />
+          <DailyActivityChart startDate={startDate} endDate={endDate} />
+          <SalesPipelineChart startDate={startDate} endDate={endDate} />
         </div>
         
         {/* Gráficos Demográficos */}
