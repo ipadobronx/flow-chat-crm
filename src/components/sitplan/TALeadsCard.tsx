@@ -18,18 +18,8 @@ export function TALeadsCard() {
   const [etapasOrder, setEtapasOrder] = useState<string[]>(DEFAULT_ETAPAS_ORDER);
   const [showEtapasConfig, setShowEtapasConfig] = useState(false);
 
-  // Load selected leads from localStorage on component mount
-  useEffect(() => {
-    const stored = localStorage.getItem('selectedLeadsForTA');
-    if (stored) {
-      setSelectedLeadsIds(JSON.parse(stored));
-    }
-
-    const storedOrder = localStorage.getItem('taEtapasOrder');
-    if (storedOrder) {
-      setEtapasOrder(JSON.parse(storedOrder));
-    }
-  }, []);
+  // Note: This component needs refactoring to use database state management
+  // instead of localStorage for security and data consistency
 
   const { data: leads = [] } = useQuery({
     queryKey: ["ta-leads", selectedLeadsIds],
@@ -55,7 +45,7 @@ export function TALeadsCard() {
     items.splice(result.destination.index, 0, reorderedItem);
 
     setEtapasOrder(items);
-    localStorage.setItem('taEtapasOrder', JSON.stringify(items));
+    // Note: Should persist order to user preferences in database
   };
 
   const getEtapaColor = (etapa: string) => {
@@ -85,7 +75,7 @@ export function TALeadsCard() {
 
   const clearSelectedLeads = () => {
     setSelectedLeadsIds([]);
-    localStorage.removeItem('selectedLeadsForTA');
+    // Note: Should clear from database state instead of localStorage
   };
 
   return (

@@ -30,13 +30,8 @@ export default function TA() {
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
-  useEffect(() => {
-    // Get selected leads from localStorage
-    const stored = localStorage.getItem('selectedLeadsForTA');
-    if (stored) {
-      setSelectedLeadIds(JSON.parse(stored));
-    }
-  }, []);
+  // Note: This component needs refactoring to use proper database state management
+  // instead of localStorage for security and data consistency
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["ta-leads", selectedLeadIds],

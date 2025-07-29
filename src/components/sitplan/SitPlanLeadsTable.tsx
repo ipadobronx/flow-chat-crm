@@ -71,8 +71,8 @@ export function SitPlanLeadsTable() {
       return;
     }
 
-    // Store selected leads in localStorage for now
-    localStorage.setItem('selectedLeadsForTA', JSON.stringify(selectedLeads));
+    // Note: Lead selection should be handled through database state management
+    // rather than localStorage for security and consistency
     
     toast({
       title: "Leads enviados para TA",

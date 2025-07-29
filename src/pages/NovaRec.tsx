@@ -6,6 +6,13 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { 
+  validatePhoneNumber, 
+  validateEmail, 
+  validateObservations, 
+  validateLeadName,
+  globalRateLimiter 
+} from "@/lib/validation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,21 +24,36 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Save, Plus, X } from "lucide-react";
 
 const formSchema = z.object({
-  nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  nome: z.string()
+    .min(2, "Nome deve ter pelo menos 2 caracteres")
+    .max(100, "Nome não pode exceder 100 caracteres")
+    .refine((val) => validateLeadName(val).isValid, "Nome contém caracteres inválidos"),
   recomendantes: z.array(z.object({
-    nome: z.string().min(1, "Nome do recomendante é obrigatório")
+    nome: z.string()
+      .min(1, "Nome do recomendante é obrigatório")
+      .max(100, "Nome não pode exceder 100 caracteres")
+      .refine((val) => validateLeadName(val).isValid, "Nome contém caracteres inválidos")
   })).optional(),
-  telefone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
-  celular_secundario: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  telefone: z.string()
+    .min(10, "Telefone deve ter pelo menos 10 dígitos")
+    .max(15, "Telefone não pode exceder 15 dígitos")
+    .refine((val) => validatePhoneNumber(val).isValid, "Formato de telefone inválido"),
+  celular_secundario: z.string()
+    .optional()
+    .refine((val) => !val || validatePhoneNumber(val).isValid, "Formato de telefone inválido"),
+  email: z.string()
+    .optional()
+    .refine((val) => !val || val === "" || validateEmail(val), "Email inválido"),
   idade: z.string().optional(),
-  profissao: z.string().optional(),
+  profissao: z.string().max(100, "Profissão não pode exceder 100 caracteres").optional(),
   renda_estimada: z.string().optional(),
   casado: z.enum(["true", "false"]),
   tem_filhos: z.enum(["true", "false"]),
   quantidade_filhos: z.string().optional(),
-  cidade: z.string().optional(),
-  observacoes: z.string().optional(),
+  cidade: z.string().max(100, "Cidade não pode exceder 100 caracteres").optional(),
+  observacoes: z.string()
+    .optional()
+    .refine((val) => !val || validateObservations(val).isValid, "Observações muito longas ou contêm conteúdo inválido"),
   avisado: z.enum(["true", "false"]),
   incluir_sitplan: z.enum(["true", "false"]),
 });
@@ -79,16 +101,38 @@ export default function NovaRec() {
       return;
     }
 
+    // Rate limiting check
+    if (!globalRateLimiter.canSubmit(user.id)) {
+      toast({
+        title: "Muitas tentativas",
+        description: "Aguarde alguns minutos antes de tentar novamente",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
+    // Record the submission attempt
+    globalRateLimiter.recordSubmission(user.id);
+
     try {
+      // Sanitize input data before database insertion
+      const phoneValidation = validatePhoneNumber(data.telefone);
+      const observationsValidation = validateObservations(data.observacoes || '');
+      const nameValidation = validateLeadName(data.nome);
+
+      if (!phoneValidation.isValid || !observationsValidation.isValid || !nameValidation.isValid) {
+        throw new Error("Dados de entrada inválidos após validação");
+      }
+
       const leadData = {
-        nome: data.nome,
+        nome: nameValidation.sanitized,
         recomendante: data.recomendantes && data.recomendantes.length > 0 
-          ? data.recomendantes.map(r => r.nome) 
+          ? data.recomendantes.map(r => validateLeadName(r.nome).sanitized) 
           : null,
-        telefone: data.telefone,
-        celular_secundario: data.celular_secundario || null,
+        telefone: phoneValidation.sanitized,
+        celular_secundario: data.celular_secundario ? validatePhoneNumber(data.celular_secundario).sanitized : null,
         email: data.email || null,
         idade: data.idade ? parseInt(data.idade) : null,
         profissao: data.profissao || null,
@@ -97,7 +141,7 @@ export default function NovaRec() {
         tem_filhos: data.tem_filhos === "true",
         quantidade_filhos: data.tem_filhos === "true" && data.quantidade_filhos ? parseInt(data.quantidade_filhos) : null,
         cidade: data.cidade || null,
-        observacoes: data.observacoes || null,
+        observacoes: observationsValidation.sanitized || null,
         avisado: data.avisado === "true",
         incluir_sitplan: data.incluir_sitplan === "true",
         user_id: user.id,

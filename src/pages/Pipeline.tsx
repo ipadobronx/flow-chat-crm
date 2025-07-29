@@ -681,15 +681,8 @@ export default function Pipeline() {
 
                         console.log('✅ Salvo no banco:', data);
 
-                        // Add to localStorage
-                        console.log('📋 Adicionando ao localStorage...');
-                        const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
-                        
-                        if (!currentSelected.includes(selectedLead.id)) {
-                          const newSelected = [...currentSelected, selectedLead.id];
-                          localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
-                          console.log('✅ Adicionado aos selecionados:', newSelected);
-                        }
+                        // Database state is the single source of truth for SitPlan selections
+                        console.log('✅ Lead marcado para SitPlan no banco de dados');
 
                         // Update local state
                         setLeads(prevLeads => 
@@ -986,10 +979,8 @@ export default function Pipeline() {
                               return;
                             }
 
-                            // Remove from localStorage
-                            const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
-                            const newSelected = currentSelected.filter((id: string) => id !== selectedLead.id);
-                            localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
+                            // Database state is the single source of truth for SitPlan selections
+                            console.log('✅ Lead removido do SitPlan no banco de dados');
 
                             // Update local state
                             setLeads(prevLeads => 
@@ -1057,15 +1048,8 @@ export default function Pipeline() {
 
                             console.log('✅ Salvo no banco:', data);
 
-                            // Add to localStorage
-                            console.log('📋 Adicionando ao localStorage...');
-                            const currentSelected = JSON.parse(localStorage.getItem('sitplanSelecionados') || '[]');
-                            
-                            if (!currentSelected.includes(selectedLead.id)) {
-                              const newSelected = [...currentSelected, selectedLead.id];
-                              localStorage.setItem('sitplanSelecionados', JSON.stringify(newSelected));
-                              console.log('✅ Adicionado aos selecionados:', newSelected);
-                            }
+                            // Database state is the single source of truth for SitPlan selections
+                            console.log('✅ Lead marcado para SitPlan no banco de dados');
 
                             // Update local state
                             setLeads(prevLeads => 

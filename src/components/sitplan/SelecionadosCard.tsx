@@ -196,12 +196,8 @@ export function SelecionadosCard() {
                         // Remove from SitPlan
                         await removeFromSelecionados(lead.id);
                         
-                        // Add to TA
-                        const currentTA = JSON.parse(localStorage.getItem('selectedLeadsForTA') || '[]');
-                        if (!currentTA.includes(lead.id)) {
-                          const newTA = [...currentTA, lead.id];
-                          localStorage.setItem('selectedLeadsForTA', JSON.stringify(newTA));
-                        }
+                        // Note: TA selection should be handled through database state management
+                        // rather than localStorage for security and consistency
                         
                         toast({
                           title: "Lead movido para TA!",
