@@ -2,10 +2,19 @@ import { createContext, useContext, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { validateSession } from "@/lib/security";
+import { useSecurityCheck } from "@/hooks/useSecurityCheck";
 
 interface SecurityContextType {
   isSessionValid: boolean;
   logSecureOperation: (operation: string, details?: Record<string, any>) => void;
+  securityStatus: {
+    hasErrors: boolean;
+    hasWarnings: boolean;
+    errorCount: number;
+    warningCount: number;
+    isSecure: boolean;
+    isChecking: boolean;
+  };
 }
 
 const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
@@ -13,6 +22,7 @@ const SecurityContext = createContext<SecurityContextType | undefined>(undefined
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { logUserLogin, logOperation } = useAuditLog();
+  const securityCheck = useSecurityCheck();
 
   useEffect(() => {
     if (user) {
@@ -56,6 +66,14 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
     <SecurityContext.Provider value={{
       isSessionValid: isSessionValid(),
       logSecureOperation,
+      securityStatus: {
+        hasErrors: securityCheck.hasErrors,
+        hasWarnings: securityCheck.hasWarnings,
+        errorCount: securityCheck.errorCount,
+        warningCount: securityCheck.warningCount,
+        isSecure: securityCheck.isSecure,
+        isChecking: securityCheck.isChecking,
+      },
     }}>
       {children}
     </SecurityContext.Provider>
