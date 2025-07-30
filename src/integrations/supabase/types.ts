@@ -253,6 +253,7 @@ export type Database = {
           id: string
           idade: number | null
           incluir_sitplan: boolean | null
+          incluir_ta: boolean | null
           nome: string
           observacoes: string | null
           pa_estimado: string | null
@@ -261,6 +262,7 @@ export type Database = {
           recomendante: string[] | null
           renda_estimada: string | null
           status: string | null
+          ta_order: number | null
           telefone: string | null
           tem_filhos: boolean | null
           updated_at: string | null
@@ -284,6 +286,7 @@ export type Database = {
           id?: string
           idade?: number | null
           incluir_sitplan?: boolean | null
+          incluir_ta?: boolean | null
           nome: string
           observacoes?: string | null
           pa_estimado?: string | null
@@ -292,6 +295,7 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
@@ -315,6 +319,7 @@ export type Database = {
           id?: string
           idade?: number | null
           incluir_sitplan?: boolean | null
+          incluir_ta?: boolean | null
           nome?: string
           observacoes?: string | null
           pa_estimado?: string | null
@@ -323,6 +328,7 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
@@ -418,6 +424,48 @@ export type Database = {
           is_compliant?: boolean | null
           last_checked_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ta_historico: {
+        Row: {
+          created_at: string
+          data_mudanca: string
+          etapa_anterior: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
+          id: string
+          lead_id: string
+          observacoes: string | null
+          origem: string | null
+          ta_order_anterior: number | null
+          ta_order_nova: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_mudanca?: string
+          etapa_anterior?: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          origem?: string | null
+          ta_order_anterior?: number | null
+          ta_order_nova?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_mudanca?: string
+          etapa_anterior?: Database["public"]["Enums"]["etapa_funil"] | null
+          etapa_nova?: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          origem?: string | null
+          ta_order_anterior?: number | null
+          ta_order_nova?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -623,6 +671,26 @@ export type Database = {
           lead_id: string
           lead_nome: string
           lead_telefone: string
+        }[]
+      }
+      get_ta_historico: {
+        Args: {
+          p_user_id: string
+          p_lead_id?: string
+          p_start_date?: string
+          p_end_date?: string
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          lead_id: string
+          lead_nome: string
+          etapa_anterior: Database["public"]["Enums"]["etapa_funil"]
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
+          data_mudanca: string
+          observacoes: string
+          ta_order_anterior: number
+          ta_order_nova: number
         }[]
       }
       gtrgm_compress: {

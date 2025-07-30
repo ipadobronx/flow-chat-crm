@@ -21,7 +21,6 @@ type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' |
 
 export default function TA() {
   const navigate = useNavigate();
-  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
@@ -30,25 +29,47 @@ export default function TA() {
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
-  // Note: This component needs refactoring to use proper database state management
-  // instead of localStorage for security and data consistency
-
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["ta-leads", selectedLeadIds],
+  // Carregar leads selecionados para TA do banco de dados
+  const { data: leads = [], isLoading, refetch } = useQuery({
+    queryKey: ["ta-leads"],
     queryFn: async () => {
-      if (selectedLeadIds.length === 0) return [];
-      
       const { data, error } = await supabase
         .from("leads")
         .select("*")
-        .in("id", selectedLeadIds)
-        .order("created_at", { ascending: false });
+        .eq("incluir_ta", true)
+        .order("ta_order", { ascending: true }); // Ordenar por ta_order
       
       if (error) throw error;
-      return data;
+      console.log(`🎯 TA encontrou ${data?.length || 0} leads selecionados:`, 
+        data?.map(lead => ({ id: lead.id, nome: lead.nome, ta_order: lead.ta_order }))
+      );
+      return data as Lead[];
     },
-    enabled: selectedLeadIds.length > 0,
   });
+
+  // Configurar realtime para sincronização automática
+  useEffect(() => {
+    const channel = supabase
+      .channel('ta-leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: 'incluir_ta=eq.true'
+        },
+        (payload) => {
+          console.log('🎯 TA detectou mudança nos leads:', payload);
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   // Transition effect
   useEffect(() => {
