@@ -154,7 +154,7 @@ export default function TA() {
 
       if (error) throw error;
 
-      // Voltar para a tela inicial
+      // Limpar o estado do TA
       setStage('initial');
       setCurrentLeadIndex(0);
       setCountdown(5);
@@ -163,8 +163,8 @@ export default function TA() {
       setObservacoes("");
       setAgendamentoDate(undefined);
       
-      // Navegar de volta para o dashboard
-      navigate('/dashboard');
+      // Navegar para o relatório do TA
+      navigate('/dashboard/reports');
     } catch (error) {
       console.error("Erro ao finalizar TA:", error);
     }
