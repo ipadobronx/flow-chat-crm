@@ -253,6 +253,7 @@ export type Database = {
           id: string
           idade: number | null
           incluir_sitplan: boolean | null
+          incluir_ta: boolean | null
           nome: string
           observacoes: string | null
           pa_estimado: string | null
@@ -261,6 +262,7 @@ export type Database = {
           recomendante: string[] | null
           renda_estimada: string | null
           status: string | null
+          ta_order: number | null
           telefone: string | null
           tem_filhos: boolean | null
           updated_at: string | null
@@ -284,6 +286,7 @@ export type Database = {
           id?: string
           idade?: number | null
           incluir_sitplan?: boolean | null
+          incluir_ta?: boolean | null
           nome: string
           observacoes?: string | null
           pa_estimado?: string | null
@@ -292,6 +295,7 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
@@ -315,6 +319,7 @@ export type Database = {
           id?: string
           idade?: number | null
           incluir_sitplan?: boolean | null
+          incluir_ta?: boolean | null
           nome?: string
           observacoes?: string | null
           pa_estimado?: string | null
@@ -323,6 +328,7 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null
           updated_at?: string | null
