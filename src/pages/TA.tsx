@@ -142,6 +142,34 @@ export default function TA() {
     }
   };
 
+  const finalizarTA = async () => {
+    try {
+      // Remover todos os leads do TA (incluir_ta = false)
+      const leadIds = leads.map(lead => lead.id);
+      
+      const { error } = await supabase
+        .from("leads")
+        .update({ incluir_ta: false })
+        .in("id", leadIds);
+
+      if (error) throw error;
+
+      // Voltar para a tela inicial
+      setStage('initial');
+      setCurrentLeadIndex(0);
+      setCountdown(5);
+      setTransitionStep(0);
+      setSelectedEtapa("");
+      setObservacoes("");
+      setAgendamentoDate(undefined);
+      
+      // Navegar de volta para o dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Erro ao finalizar TA:", error);
+    }
+  };
+
   const resetPresentation = () => {
     setStage('initial');
     setCurrentLeadIndex(0);
@@ -415,12 +443,20 @@ export default function TA() {
           <p className="text-xl text-[#A9A9A9]">
             Todos os {leads.length} leads foram apresentados
           </p>
-          <Button
-            onClick={resetPresentation}
-            className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20 hover:scale-105 transition-all duration-300"
-          >
-            REINICIAR
-          </Button>
+          <div className="flex gap-6 justify-center">
+            <Button
+              onClick={finalizarTA}
+              className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#00FFF0] text-[#00FFF0] hover:bg-[#00FFF0]/20 hover:scale-105 transition-all duration-300"
+            >
+              FINALIZAR
+            </Button>
+            <Button
+              onClick={resetPresentation}
+              className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20 hover:scale-105 transition-all duration-300"
+            >
+              REINICIAR
+            </Button>
+          </div>
         </div>
       </div>
     );
