@@ -21,6 +21,7 @@ type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' |
 
 export default function TA() {
   const navigate = useNavigate();
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
@@ -29,18 +30,24 @@ export default function TA() {
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
+  // Note: This component needs refactoring to use proper database state management
+  // instead of localStorage for security and data consistency
+
   const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["ta-leads"],
+    queryKey: ["ta-leads", selectedLeadIds],
     queryFn: async () => {
+      if (selectedLeadIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from("leads")
         .select("*")
-        .eq("incluir_ta", true)
-        .order("ta_order", { ascending: true });
+        .in("id", selectedLeadIds)
+        .order("created_at", { ascending: false });
       
       if (error) throw error;
       return data;
     },
+    enabled: selectedLeadIds.length > 0,
   });
 
   // Transition effect

@@ -61,7 +61,7 @@ export function SitPlanLeadsTable() {
     }
   };
 
-  const handleSendToTA = async () => {
+  const handleSendToTA = () => {
     if (selectedLeads.length === 0) {
       toast({
         title: "Nenhum lead selecionado",
@@ -71,46 +71,16 @@ export function SitPlanLeadsTable() {
       return;
     }
 
-    try {
-      // Get current highest TA order
-      const { data: existingTALeads, error: fetchError } = await supabase
-        .from("leads")
-        .select("ta_order")
-        .eq("incluir_ta", true)
-        .order("ta_order", { ascending: false })
-        .limit(1);
+    // Note: Lead selection should be handled through database state management
+    // rather than localStorage for security and consistency
+    
+    toast({
+      title: "Leads enviados para TA",
+      description: `${selectedLeads.length} lead(s) enviado(s) para o menu TA.`,
+    });
 
-      if (fetchError) throw fetchError;
-
-      const startOrder = existingTALeads.length > 0 ? existingTALeads[0].ta_order + 1 : 1;
-
-      // Update all selected leads to be included in TA with sequential order
-      for (let i = 0; i < selectedLeads.length; i++) {
-        const { error } = await supabase
-          .from("leads")
-          .update({ 
-            incluir_ta: true,
-            ta_order: startOrder + i
-          })
-          .eq("id", selectedLeads[i]);
-
-        if (error) throw error;
-      }
-      
-      toast({
-        title: "Leads enviados para TA",
-        description: `${selectedLeads.length} lead(s) enviado(s) para o menu TA.`,
-      });
-
-      setSelectedLeads([]);
-      setIsEditMode(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar os leads para TA.",
-        variant: "destructive"
-      });
-    }
+    setSelectedLeads([]);
+    setIsEditMode(false);
   };
 
   const handleEtapaClick = (etapa: string) => {

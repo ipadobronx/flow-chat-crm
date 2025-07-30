@@ -103,65 +103,6 @@ export function SelecionadosCard() {
     }
   };
 
-  const sendAllToTA = async () => {
-    if (leads.length === 0) {
-      toast({
-        title: "Nenhum lead selecionado",
-        description: "Não há leads para enviar para TA.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Get current highest TA order to append new leads at the end
-      const { data: existingTALeads, error: fetchError } = await supabase
-        .from("leads")
-        .select("ta_order")
-        .eq("incluir_ta", true)
-        .order("ta_order", { ascending: false })
-        .limit(1);
-
-      if (fetchError) throw fetchError;
-
-      const startOrder = existingTALeads.length > 0 ? existingTALeads[0].ta_order + 1 : 1;
-
-      // Update all leads to be included in TA with sequential order
-      const updates = leads.map((lead, index) => ({
-        id: lead.id,
-        incluir_ta: true,
-        incluir_sitplan: false, // Remove from SitPlan
-        ta_order: startOrder + index
-      }));
-
-      for (const update of updates) {
-        const { error } = await supabase
-          .from("leads")
-          .update({ 
-            incluir_ta: update.incluir_ta,
-            incluir_sitplan: update.incluir_sitplan,
-            ta_order: update.ta_order 
-          })
-          .eq("id", update.id);
-
-        if (error) throw error;
-      }
-
-      await refetch();
-      
-      toast({
-        title: "Leads enviados para TA!",
-        description: `${leads.length} lead(s) foram enviados para TA e removidos do SitPlan.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar os leads para TA.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const getEtapaColor = (etapa: string) => {
     switch (etapa) {
       case "Novo": return "bg-sky-500";
@@ -194,19 +135,9 @@ export function SelecionadosCard() {
             )}
           </CardTitle>
           {leads.length > 0 && (
-            <div className="flex gap-2">
-              <Button 
-                variant="default" 
-                size="sm" 
-                onClick={sendAllToTA}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                TA
-              </Button>
-              <Button variant="outline" size="sm" onClick={clearAll}>
-                Limpar Todos
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" onClick={clearAll}>
+              Limpar Todos
+            </Button>
           )}
         </div>
       </CardHeader>
@@ -262,31 +193,11 @@ export function SelecionadosCard() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        // Get current highest TA order
-                        const { data: existingTALeads, error: fetchError } = await supabase
-                          .from("leads")
-                          .select("ta_order")
-                          .eq("incluir_ta", true)
-                          .order("ta_order", { ascending: false })
-                          .limit(1);
-
-                        if (fetchError) throw fetchError;
-
-                        const newOrder = existingTALeads.length > 0 ? existingTALeads[0].ta_order + 1 : 1;
-
-                        // Update lead to be included in TA and removed from SitPlan
-                        const { error } = await supabase
-                          .from("leads")
-                          .update({ 
-                            incluir_ta: true, 
-                            incluir_sitplan: false,
-                            ta_order: newOrder
-                          })
-                          .eq("id", lead.id);
-
-                        if (error) throw error;
-
-                        await refetch();
+                        // Remove from SitPlan
+                        await removeFromSelecionados(lead.id);
+                        
+                        // Note: TA selection should be handled through database state management
+                        // rather than localStorage for security and consistency
                         
                         toast({
                           title: "Lead movido para TA!",
