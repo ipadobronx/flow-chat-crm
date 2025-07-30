@@ -40,6 +40,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     // Clear sensitive data before signing out
     clearSensitiveData();
+    
+    // Clear audit logs on logout for security
+    localStorage.removeItem('audit_logs');
+    
     await supabase.auth.signOut();
   };
 

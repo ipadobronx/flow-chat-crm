@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { TypewriterEffect } from "@/components/TypewriterEffect";
+import { sanitizeErrorMessage } from "@/lib/security";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -65,7 +66,7 @@ export default function Auth() {
         } else {
           toast({
             title: "Erro no cadastro",
-            description: error.message,
+            description: sanitizeErrorMessage(error.message),
             variant: "destructive",
           });
         }
@@ -106,7 +107,7 @@ export default function Auth() {
         } else {
           toast({
             title: "Erro no login",
-            description: error.message,
+            description: sanitizeErrorMessage(error.message),
             variant: "destructive",
           });
         }

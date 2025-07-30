@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { SecurityProvider } from "@/components/SecurityProvider";
 import Index from "./pages/Index";
 import LiveChat from "./pages/LiveChat";
 import Pipeline from "./pages/Pipeline";
@@ -27,7 +28,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
-        <TooltipProvider>
+        <SecurityProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -48,7 +50,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </SecurityProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
