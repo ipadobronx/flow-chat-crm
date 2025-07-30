@@ -112,17 +112,17 @@ function SortableLeadItem({
           variant="secondary"
           size="sm"
           onClick={async () => {
-            try {
-              const timestamp = Date.now();
-              
-              const { error } = await supabase
-                .from("leads")
-                .update({ 
-                  incluir_ta: true,
-                  incluir_sitplan: false,
-                  ta_order: timestamp
-                })
-                .eq("id", lead.id);
+             try {
+               const orderValue = Math.floor(Date.now() / 1000); // Timestamp em segundos
+               
+               const { error } = await supabase
+                 .from("leads")
+                 .update({ 
+                   incluir_ta: true,
+                   incluir_sitplan: false,
+                   ta_order: orderValue
+                 })
+                 .eq("id", lead.id);
 
               if (error) throw error;
 
@@ -284,8 +284,8 @@ export function SelecionadosCard() {
 
   const moveAllToTA = async () => {
     try {
-      // Buscar timestamp atual para usar como referência de ordem
-      const timestamp = Date.now();
+      // Usar um valor sequencial simples ao invés de timestamp
+      const baseOrder = Math.floor(Date.now() / 1000); // Timestamp em segundos (menor)
       
       // Atualizar todos os leads para aparecerem no topo do TA
       for (let i = 0; i < leads.length; i++) {
@@ -294,7 +294,7 @@ export function SelecionadosCard() {
           .update({ 
             incluir_ta: true,
             incluir_sitplan: false,
-            ta_order: timestamp + i  // Usar timestamp + índice para garantir ordem no topo
+            ta_order: baseOrder + i  // Usar timestamp em segundos + índice
           })
           .eq("id", leads[i].id);
 
