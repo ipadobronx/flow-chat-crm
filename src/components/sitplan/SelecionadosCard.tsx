@@ -103,6 +103,33 @@ export function SelecionadosCard() {
     }
   };
 
+  const moveAllToTA = async () => {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ 
+          incluir_ta: true,
+          incluir_sitplan: false 
+        })
+        .in("id", leads.map(lead => lead.id));
+
+      if (error) throw error;
+
+      await refetch();
+      
+      toast({
+        title: "Leads movidos para TA",
+        description: `${leads.length} lead(s) foram movidos para os Selecionados para TA.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover os leads para TA.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getEtapaColor = (etapa: string) => {
     switch (etapa) {
       case "Novo": return "bg-sky-500";
@@ -135,9 +162,19 @@ export function SelecionadosCard() {
             )}
           </CardTitle>
           {leads.length > 0 && (
-            <Button variant="outline" size="sm" onClick={clearAll}>
-              Limpar Todos
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={moveAllToTA}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                TA
+              </Button>
+              <Button variant="outline" size="sm" onClick={clearAll}>
+                Limpar Todos
+              </Button>
+            </div>
           )}
         </div>
       </CardHeader>
