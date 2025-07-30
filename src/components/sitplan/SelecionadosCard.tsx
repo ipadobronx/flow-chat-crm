@@ -105,23 +105,31 @@ export function SelecionadosCard() {
 
   const moveAllToTA = async () => {
     try {
-      const { error } = await supabase
-        .from("leads")
-        .update({ 
-          incluir_ta: true,
-          incluir_sitplan: false 
-        })
-        .in("id", leads.map(lead => lead.id));
+      // Buscar timestamp atual para usar como referência de ordem
+      const timestamp = Date.now();
+      
+      // Atualizar todos os leads para aparecerem no topo do TA
+      for (let i = 0; i < leads.length; i++) {
+        const { error } = await supabase
+          .from("leads")
+          .update({ 
+            incluir_ta: true,
+            incluir_sitplan: false,
+            ta_order: timestamp + i  // Usar timestamp + índice para garantir ordem no topo
+          })
+          .eq("id", leads[i].id);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
 
       await refetch();
       
       toast({
         title: "Leads movidos para TA",
-        description: `${leads.length} lead(s) foram movidos para os Selecionados para TA.`,
+        description: `${leads.length} lead(s) foram movidos para o topo da lista do TA.`,
       });
     } catch (error) {
+      console.error("Erro ao mover leads para TA:", error);
       toast({
         title: "Erro",
         description: "Não foi possível mover os leads para TA.",
@@ -230,15 +238,25 @@ export function SelecionadosCard() {
                     size="sm"
                     onClick={async () => {
                       try {
-                        // Remove from SitPlan
-                        await removeFromSelecionados(lead.id);
+                        // Mover lead individual para TA com alta prioridade
+                        const timestamp = Date.now();
                         
-                        // Note: TA selection should be handled through database state management
-                        // rather than localStorage for security and consistency
+                        const { error } = await supabase
+                          .from("leads")
+                          .update({ 
+                            incluir_ta: true,
+                            incluir_sitplan: false,
+                            ta_order: timestamp  // Usar timestamp para aparecer no topo
+                          })
+                          .eq("id", lead.id);
+
+                        if (error) throw error;
+
+                        await refetch();
                         
                         toast({
                           title: "Lead movido para TA!",
-                          description: `${lead.nome} foi movido para os Leads Selecionados para TA.`,
+                          description: `${lead.nome} foi movido para o topo da lista do TA.`,
                         });
                       } catch (error) {
                         toast({
