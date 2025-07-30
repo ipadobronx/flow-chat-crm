@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SecurityCheckResult {
   hasErrors: boolean;
@@ -26,18 +27,27 @@ export function useSecurityCheck() {
     setSecurityStatus(prev => ({ ...prev, isChecking: true }));
     
     try {
-      // Em um ambiente real, isto faria uma chamada para a API do Supabase
-      // Por agora, simula os problemas conhecidos baseados no linter
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const knownErrors = 1; // Security Definer View
-      const knownWarnings = 4; // Extensions + OTP + Leaked Password
+      // Get security configuration from database
+      const { data: securityConfig, error } = await supabase
+        .from('security_config')
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      // Analyze security configuration
+      const nonCompliantConfigs = securityConfig?.filter(config => !config.is_compliant) || [];
+      const criticalIssues = nonCompliantConfigs.filter(config => 
+        config.config_key === 'leaked_password_protection' || 
+        config.config_key === 'security_definer_views'
+      );
       
       const result: SecurityCheckResult = {
-        hasErrors: knownErrors > 0,
-        hasWarnings: knownWarnings > 0,
-        errorCount: knownErrors,
-        warningCount: knownWarnings,
+        hasErrors: criticalIssues.length > 0,
+        hasWarnings: nonCompliantConfigs.length > criticalIssues.length,
+        errorCount: criticalIssues.length,
+        warningCount: nonCompliantConfigs.length - criticalIssues.length,
         lastCheck: new Date(),
         isChecking: false,
       };
@@ -48,13 +58,13 @@ export function useSecurityCheck() {
       if (result.hasErrors) {
         toast({
           title: "🚨 Problemas Críticos de Segurança",
-          description: `${result.errorCount} erro(s) crítico(s) detectado(s). Correção urgente necessária.`,
+          description: `${result.errorCount} erro(s) crítico(s) detectado(s). Configurações do Supabase Dashboard precisam ser corrigidas.`,
           variant: "destructive",
         });
       } else if (result.hasWarnings) {
         toast({
           title: "⚠️ Avisos de Segurança",
-          description: `${result.warningCount} aviso(s) detectado(s). Recomenda-se correção.`,
+          description: `${result.warningCount} aviso(s) detectado(s). Configurações recomendadas precisam ser ajustadas.`,
         });
       }
       

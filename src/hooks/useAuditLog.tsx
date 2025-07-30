@@ -33,14 +33,27 @@ export function useAuditLog() {
         console.log('Audit Log:', auditEntry);
       }
 
-      // In a production environment, you would send this to a secure audit log service
-      // For now, we'll store it in localStorage with a timestamp for debugging
-      const existingLogs = JSON.parse(localStorage.getItem('audit_logs') || '[]');
-      existingLogs.push(auditEntry);
-      
-      // Keep only last 100 entries to prevent storage bloat
-      const trimmedLogs = existingLogs.slice(-100);
-      localStorage.setItem('audit_logs', JSON.stringify(trimmedLogs));
+      // Store in Supabase audit_logs table
+      const { error } = await supabase
+        .from('audit_logs')
+        .insert({
+          user_id: user.id,
+          action: auditEntry.action,
+          resource_type: auditEntry.resource_type,
+          resource_id: auditEntry.resource_id,
+          details: auditEntry.details,
+          ip_address: auditEntry.ip_address,
+          user_agent: auditEntry.user_agent
+        });
+
+      if (error) {
+        console.error('Failed to store audit log in database:', error);
+        // Fallback to localStorage in case of database error
+        const existingLogs = JSON.parse(localStorage.getItem('audit_logs') || '[]');
+        existingLogs.push(auditEntry);
+        const trimmedLogs = existingLogs.slice(-100);
+        localStorage.setItem('audit_logs', JSON.stringify(trimmedLogs));
+      }
 
     } catch (error) {
       console.error('Failed to create audit log:', error);

@@ -158,6 +158,42 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       historico_etapas_funil: {
         Row: {
           created_at: string
@@ -352,6 +388,36 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      security_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          created_at: string
+          id: string
+          is_compliant: boolean | null
+          last_checked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          created_at?: string
+          id?: string
+          is_compliant?: boolean | null
+          last_checked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          created_at?: string
+          id?: string
+          is_compliant?: boolean | null
+          last_checked_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -707,6 +773,14 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      update_security_compliance: {
+        Args: {
+          p_config_key: string
+          p_is_compliant: boolean
+          p_config_value?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
