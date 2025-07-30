@@ -54,19 +54,7 @@ export function useSecurityCheck() {
       
       setSecurityStatus(result);
       
-      // Notifica sobre problemas críticos
-      if (result.hasErrors) {
-        toast({
-          title: "🚨 Problemas Críticos de Segurança",
-          description: `${result.errorCount} erro(s) crítico(s) detectado(s). Configurações do Supabase Dashboard precisam ser corrigidas.`,
-          variant: "destructive",
-        });
-      } else if (result.hasWarnings) {
-        toast({
-          title: "⚠️ Avisos de Segurança",
-          description: `${result.warningCount} aviso(s) detectado(s). Configurações recomendadas precisam ser ajustadas.`,
-        });
-      }
+      // Security checks completed without user notification
       
       return result;
     } catch (error) {

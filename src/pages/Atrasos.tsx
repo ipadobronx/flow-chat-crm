@@ -27,9 +27,8 @@ export default function Atrasos() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("atrasos_calculados")
-        .select("*")
-        .order("dias_atraso_calculado", { ascending: false });
+        .from("atrasos")
+        .select("*");
 
       if (error) throw error;
       setAtrasos(data || []);
