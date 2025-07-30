@@ -51,12 +51,6 @@ const navItems = [
     description: "Gestão de leads"
   },
   {
-    title: "Relatórios",
-    url: "/dashboard/reports",
-    icon: BarChart,
-    description: "Analytics & insights"
-  },
-  {
     title: "Atrasos",
     url: "/dashboard/atrasos",
     icon: Clock,
@@ -73,6 +67,12 @@ const navItems = [
     url: "/dashboard/ta",
     icon: CheckSquare,
     description: "Leads selecionados"
+  },
+  {
+    title: "Relatório do TA",
+    url: "/dashboard/reports",
+    icon: BarChart,
+    description: "Histórico de mudanças"
   },
   {
     title: "Configurações",
