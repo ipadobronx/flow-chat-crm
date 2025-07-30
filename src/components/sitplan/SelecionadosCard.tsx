@@ -3,16 +3,167 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Clock } from "lucide-react";
+import { X, Calendar, Clock, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import {
+  CSS,
+} from "@dnd-kit/utilities";
 
 type Lead = Tables<"leads">;
+
+// Componente para item arrastável
+interface SortableLeadItemProps {
+  lead: Lead;
+  removeFromSelecionados: (leadId: string) => void;
+  refetch: () => void;
+  getEtapaColor: (etapa: string) => string;
+  calculateDaysInStage: (etapaChangedAt: string) => number;
+}
+
+function SortableLeadItem({ 
+  lead, 
+  removeFromSelecionados, 
+  refetch, 
+  getEtapaColor, 
+  calculateDaysInStage 
+}: SortableLeadItemProps) {
+  const { toast } = useToast();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lead.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
+    >
+      <div className="flex items-center gap-2 flex-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="font-medium">{lead.nome}</h4>
+            <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
+              {lead.etapa}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            {lead.empresa && (
+              <span>🏢 {lead.empresa}</span>
+            )}
+            {lead.telefone && (
+              <span>📱 {lead.telefone}</span>
+            )}
+            {lead.etapa === "Analisando Proposta" && lead.etapa_changed_at && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{calculateDaysInStage(lead.etapa_changed_at)} dias nesta etapa</span>
+              </div>
+            )}
+          </div>
+          
+          {lead.data_sitplan && (
+            <div className="mt-1 text-sm text-muted-foreground">
+              📅 Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-1">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={async () => {
+            try {
+              const timestamp = Date.now();
+              
+              const { error } = await supabase
+                .from("leads")
+                .update({ 
+                  incluir_ta: true,
+                  incluir_sitplan: false,
+                  ta_order: timestamp
+                })
+                .eq("id", lead.id);
+
+              if (error) throw error;
+
+              await refetch();
+              
+              toast({
+                title: "Lead movido para TA!",
+                description: `${lead.nome} foi movido para o topo da lista do TA.`,
+              });
+            } catch (error) {
+              toast({
+                title: "Erro",
+                description: "Não foi possível mover o lead para TA.",
+                variant: "destructive"
+              });
+            }
+          }}
+          className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
+          title="Mover para TA"
+        >
+          TA
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => removeFromSelecionados(lead.id)}
+          className="text-muted-foreground hover:text-destructive"
+          title="Remover do SitPlan"
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function SelecionadosCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [sortedLeads, setSortedLeads] = useState<Lead[]>([]);
 
   const { data: leads = [], refetch } = useQuery({
     queryKey: ["sitplan-selecionados"],
@@ -21,7 +172,8 @@ export function SelecionadosCard() {
       const { data, error } = await supabase
         .from("leads")
         .select("*")
-        .eq("incluir_sitplan", true);
+        .eq("incluir_sitplan", true)
+        .order("created_at", { ascending: true }); // Ordem padrão por criação
       
       if (error) throw error;
       console.log(`✅ SitPlan encontrou ${data?.length || 0} leads selecionados:`, 
@@ -30,6 +182,33 @@ export function SelecionadosCard() {
       return data as Lead[];
     },
   });
+
+  // Atualizar lista local quando os dados mudam
+  useEffect(() => {
+    setSortedLeads(leads);
+  }, [leads]);
+
+  // Configurar sensores para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Função para lidar com o fim do drag
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setSortedLeads((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over?.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   // Configurar realtime para sincronização automática
   useEffect(() => {
@@ -195,96 +374,29 @@ export function SelecionadosCard() {
             <p className="text-sm mt-2">Use o botão "✅ Sim" em "Incluir no SitPlan" no Pipeline para adicionar leads aqui</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {leads.map((lead) => (
-              <div
-                key={lead.id}
-                className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">{lead.nome}</h4>
-                    <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
-                      {lead.etapa}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    {lead.empresa && (
-                      <span>🏢 {lead.empresa}</span>
-                    )}
-                    {lead.telefone && (
-                      <span>📱 {lead.telefone}</span>
-                    )}
-                    {lead.etapa === "Analisando Proposta" && lead.etapa_changed_at && (
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{calculateDaysInStage(lead.etapa_changed_at)} dias nesta etapa</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {lead.data_sitplan && (
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      📅 Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}
-                    </div>
-                  )}
-                </div>
-                
-                
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        // Mover lead individual para TA com alta prioridade
-                        const timestamp = Date.now();
-                        
-                        const { error } = await supabase
-                          .from("leads")
-                          .update({ 
-                            incluir_ta: true,
-                            incluir_sitplan: false,
-                            ta_order: timestamp  // Usar timestamp para aparecer no topo
-                          })
-                          .eq("id", lead.id);
-
-                        if (error) throw error;
-
-                        await refetch();
-                        
-                        toast({
-                          title: "Lead movido para TA!",
-                          description: `${lead.nome} foi movido para o topo da lista do TA.`,
-                        });
-                      } catch (error) {
-                        toast({
-                          title: "Erro",
-                          description: "Não foi possível mover o lead para TA.",
-                          variant: "destructive"
-                        });
-                      }
-                    }}
-                    className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
-                    title="Mover para TA"
-                  >
-                    TA
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFromSelecionados(lead.id)}
-                    className="text-muted-foreground hover:text-destructive"
-                    title="Remover do SitPlan"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sortedLeads.map(lead => lead.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3">
+                {sortedLeads.map((lead) => (
+                  <SortableLeadItem
+                    key={lead.id}
+                    lead={lead}
+                    removeFromSelecionados={removeFromSelecionados}
+                    refetch={refetch}
+                    getEtapaColor={getEtapaColor}
+                    calculateDaysInStage={calculateDaysInStage}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
       </CardContent>
     </Card>
