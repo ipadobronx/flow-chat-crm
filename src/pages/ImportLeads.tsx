@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { FileUploader } from "@/components/import/FileUploader";
+import { FieldMapper } from "@/components/import/FieldMapper";
+import { ImportPreview } from "@/components/import/ImportPreview";
+import { ImportHistory } from "@/components/import/ImportHistory";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, FileSpreadsheet, History } from "lucide-react";
 
 export interface ImportedData {
   headers: string[];
@@ -17,31 +20,32 @@ export interface FieldMapping {
 }
 
 export default function ImportLeads() {
-  const [error, setError] = useState<string | null>(null);
+  const [importedData, setImportedData] = useState<ImportedData | null>(null);
+  const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
+  const [currentStep, setCurrentStep] = useState<'upload' | 'map' | 'preview'>('upload');
 
-  useEffect(() => {
-    console.log('ImportLeads component mounted successfully');
-    
-    // Verificar se as dependências estão disponíveis
-    try {
-      import('react-dropzone').then(() => {
-        console.log('react-dropzone carregado com sucesso');
-      }).catch((err) => {
-        console.error('Erro ao carregar react-dropzone:', err);
-        setError('Erro ao carregar dependências de upload');
-      });
+  const handleFileUploaded = (data: ImportedData, mappings: FieldMapping[]) => {
+    setImportedData(data);
+    setFieldMappings(mappings);
+    setCurrentStep('map');
+  };
 
-      import('xlsx').then(() => {
-        console.log('xlsx carregado com sucesso');
-      }).catch((err) => {
-        console.error('Erro ao carregar xlsx:', err);
-        setError('Erro ao carregar dependências de planilha');
-      });
-    } catch (err) {
-      console.error('Erro geral:', err);
-      setError('Erro ao inicializar componente');
-    }
-  }, []);
+  const handleMappingConfirmed = (mappings: FieldMapping[]) => {
+    setFieldMappings(mappings);
+    setCurrentStep('preview');
+  };
+
+  const handleImportComplete = () => {
+    setImportedData(null);
+    setFieldMappings([]);
+    setCurrentStep('upload');
+  };
+
+  const resetImport = () => {
+    setImportedData(null);
+    setFieldMappings([]);
+    setCurrentStep('upload');
+  };
 
   return (
     <DashboardLayout>
@@ -50,54 +54,54 @@ export default function ImportLeads() {
           <h2 className="text-3xl font-bold tracking-tight">Importar Leads</h2>
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <Tabs defaultValue="import" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="import" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Importar
+            </TabsTrigger>
+            <TabsTrigger value="history" className="flex items-center gap-2">
+              <History className="w-4 h-4" />
+              Histórico
+            </TabsTrigger>
+          </TabsList>
 
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <FileSpreadsheet className="w-5 h-5" />
-              <h3 className="text-lg font-semibold">Sistema de Importação</h3>
-            </div>
-            
-            <div className="text-center space-y-4 py-8">
-              <div className="p-4 rounded-full bg-primary/10 w-fit mx-auto">
-                <Upload className="w-8 h-8 text-primary" />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-2">
-                  Funcionalidade em Carregamento
-                </h3>
-                <p className="text-muted-foreground">
-                  O sistema de importação está sendo inicializado...
-                </p>
-              </div>
+          <TabsContent value="import" className="space-y-4">
+            <Card className="p-6">
+              {currentStep === 'upload' && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileSpreadsheet className="w-5 h-5" />
+                    <h3 className="text-lg font-semibold">Upload de Planilha</h3>
+                  </div>
+                  <FileUploader onFileUploaded={handleFileUploaded} />
+                </div>
+              )}
 
-              <Button 
-                onClick={() => window.location.reload()} 
-                variant="outline"
-              >
-                Recarregar Página
-              </Button>
-            </div>
+              {currentStep === 'map' && importedData && (
+                <FieldMapper
+                  data={importedData}
+                  initialMappings={fieldMappings}
+                  onMappingConfirmed={handleMappingConfirmed}
+                  onBack={resetImport}
+                />
+              )}
 
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p><strong>Funcionalidades planejadas:</strong></p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Upload de arquivos Excel (.xlsx, .xls) e CSV</li>
-                <li>Mapeamento inteligente de campos</li>
-                <li>Validação automática de dados</li>
-                <li>Preview antes da importação</li>
-                <li>Histórico de importações</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
+              {currentStep === 'preview' && importedData && (
+                <ImportPreview
+                  data={importedData}
+                  mappings={fieldMappings}
+                  onImportComplete={handleImportComplete}
+                  onBack={() => setCurrentStep('map')}
+                />
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <ImportHistory />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
