@@ -84,6 +84,23 @@ export default function Reports() {
     return true;
   });
 
+  // Agrupar por lead e mostrar apenas a mudança mais recente de cada lead
+  const historicoGrouped = historicoFiltrado.reduce((acc, item) => {
+    const existingLead = acc.find(lead => lead.lead_id === item.lead_id);
+    
+    if (!existingLead) {
+      acc.push(item);
+    } else {
+      // Se já existe, manter apenas o mais recente
+      if (new Date(item.data_mudanca) > new Date(existingLead.data_mudanca)) {
+        const index = acc.findIndex(lead => lead.lead_id === item.lead_id);
+        acc[index] = item;
+      }
+    }
+    
+    return acc;
+  }, [] as TAHistorico[]);
+
   const getEtapaColor = (etapa: string) => {
     switch (etapa) {
       case "Novo": return "bg-sky-500";
@@ -100,7 +117,7 @@ export default function Reports() {
   };
 
   const exportarRelatorio = () => {
-    const dados = historicoFiltrado.map(item => ({
+    const dados = historicoGrouped.map(item => ({
       Lead: item.lead_nome,
       "Etapa Anterior": item.etapa_anterior || "Sem etapa",
       "Etapa Nova": item.etapa_nova,
@@ -142,7 +159,7 @@ export default function Reports() {
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {historicoFiltrado.length} registro{historicoFiltrado.length !== 1 ? 's' : ''}
+              {historicoGrouped.length} registro{historicoGrouped.length !== 1 ? 's' : ''}
             </Badge>
             <Button variant="outline" size="sm" onClick={fetchHistorico} disabled={loading}>
               <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
@@ -261,7 +278,7 @@ export default function Reports() {
                 variant="outline" 
                 size="sm"
                 onClick={exportarRelatorio}
-                disabled={historicoFiltrado.length === 0}
+                disabled={historicoGrouped.length === 0}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar CSV
@@ -281,7 +298,7 @@ export default function Reports() {
                 <RefreshCw className="w-6 h-6 animate-spin" />
                 <span className="ml-2">Carregando histórico...</span>
               </div>
-            ) : historicoFiltrado.length === 0 ? (
+            ) : historicoGrouped.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum registro encontrado</p>
@@ -300,7 +317,7 @@ export default function Reports() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {historicoFiltrado.map((item) => (
+                    {historicoGrouped.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
