@@ -26,10 +26,11 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
 
   const handleMappingChange = (index: number, targetField: string) => {
     const newMappings = [...mappings];
+    const actualField = targetField === "__none__" ? "" : targetField;
     newMappings[index] = {
       ...newMappings[index],
-      targetField,
-      confidence: targetField ? 0.9 : 0
+      targetField: actualField,
+      confidence: actualField ? 0.9 : 0
     };
     setMappings(newMappings);
   };
@@ -121,14 +122,14 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={mapping.targetField}
+                      value={mapping.targetField || "__none__"}
                       onValueChange={(value) => handleMappingChange(index, value)}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecionar campo..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Não mapear</SelectItem>
+                        <SelectItem value="__none__">Não mapear</SelectItem>
                         {availableFields.map((field) => {
                           const fieldConfig = FIELD_MAPPINGS[field as keyof typeof FIELD_MAPPINGS];
                           return (
