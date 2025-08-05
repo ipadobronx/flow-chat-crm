@@ -369,6 +369,8 @@ export function mapEtapaToEnum(etapa: string): string {
     'no': 'Não',
     'nao atendido': 'Não atendido',
     'não atendido': 'Não atendido',
+    'nao atendeu': 'Não atendido',
+    'não atendeu': 'Não atendido',
     'ligar depois': 'Ligar Depois',
     'callback': 'Ligar Depois',
     'reagendar': 'Ligar Depois',
