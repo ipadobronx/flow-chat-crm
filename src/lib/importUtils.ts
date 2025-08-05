@@ -86,6 +86,11 @@ export const FIELD_MAPPINGS = {
     synonyms: ['recomendante', 'recomendado por', 'indicado por', 'referencia', 'indicacao', 'referral', 'referred by'],
     required: false,
     dataType: 'text'
+  },
+  etapa: {
+    synonyms: ['etapa', 'etapa funil', 'stage', 'fase', 'status', 'situacao'],
+    required: false,
+    dataType: 'text'
   }
 };
 
@@ -325,4 +330,34 @@ function convertValue(value: string, dataType: string): any {
     default:
       return value;
   }
+}
+
+// Função para mapear etapas da planilha para valores válidos do enum
+export function mapEtapaToEnum(etapa: string): string {
+  if (!etapa) return 'Novo';
+  
+  const etapaNormalizada = normalizeText(etapa);
+  
+  // Mapeamento das etapas mais comuns
+  const etapaMap: { [key: string]: string } = {
+    'novo': 'Novo',
+    'new': 'Novo',
+    'todos': 'Todos',
+    'all': 'Todos',
+    'oi': 'OI',
+    'delay oi': 'Delay OI',
+    'delayoi': 'Delay OI',
+    'pc': 'PC',
+    'delay pc': 'Delay PC',
+    'delaypc': 'Delay PC',
+    'n': 'N',
+    'nao': 'Não',
+    'não': 'Não',
+    'no': 'Não',
+    'ligar depois': 'Ligar Depois',
+    'callback': 'Ligar Depois',
+    'reagendar': 'Ligar Depois'
+  };
+  
+  return etapaMap[etapaNormalizada] || 'Novo';
 }
