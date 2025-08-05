@@ -307,7 +307,11 @@ export function convertImportedData(data: any[][], mappings: FieldMapping[]): an
 function convertValue(value: string, dataType: string): any {
   switch (dataType) {
     case 'phone':
-      return value.replace(/\D/g, ''); // Remove tudo que não é dígito
+      // Converte para string primeiro para lidar com números grandes
+      const valueStr = String(value);
+      // Remove apenas caracteres não numéricos, preservando todos os dígitos
+      const phoneDigits = valueStr.replace(/\D/g, '');
+      return phoneDigits || null;
     
     case 'email':
       return value.toLowerCase();
