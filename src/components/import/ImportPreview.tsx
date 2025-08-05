@@ -122,6 +122,7 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
         celular_secundario: row.celular_secundario || null,
         pa_estimado: row.pa_estimado || null,
         valor: row.valor || null,
+        recomendante: row.recomendante ? [row.recomendante] : null,
         etapa: 'Novo' as const,
         incluir_ta: false,
         incluir_sitplan: false,
@@ -272,6 +273,7 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
               <TableHead>Nome</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Recomendante</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -282,6 +284,7 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
                 <TableCell>{row.nome || "-"}</TableCell>
                 <TableCell>{row.telefone || "-"}</TableCell>
                 <TableCell>{row.email || "-"}</TableCell>
+                <TableCell>{row.recomendante || "-"}</TableCell>
                 <TableCell>
                   {row._isValid ? (
                     <span className="text-green-600 text-sm">✓ Válido</span>

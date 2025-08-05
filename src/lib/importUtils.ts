@@ -81,6 +81,11 @@ export const FIELD_MAPPINGS = {
     synonyms: ['valor', 'value', 'preco', 'price', 'montante'],
     required: false,
     dataType: 'currency'
+  },
+  recomendante: {
+    synonyms: ['recomendante', 'recomendado por', 'indicado por', 'referencia', 'indicacao', 'referral', 'referred by'],
+    required: false,
+    dataType: 'text'
   }
 };
 
