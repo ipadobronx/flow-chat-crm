@@ -123,8 +123,14 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
-          <p className="text-xs text-muted-foreground truncate">{lead.empresa || lead.profissao}</p>
-          <p className="text-xs sm:text-sm font-semibold text-success mt-1">{lead.valor || 'Valor não informado'}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
+              ? lead.recomendante.join(", ") 
+              : "Sem recomendante"}
+          </p>
+          <p className="text-xs sm:text-sm font-semibold text-success mt-1">
+            {lead.profissao || "Profissão não informada"}
+          </p>
         </div>
       </div>
     </div>
