@@ -88,7 +88,12 @@ export const FIELD_MAPPINGS = {
     dataType: 'text'
   },
   etapa: {
-    synonyms: ['etapa', 'etapa funil', 'stage', 'fase', 'status', 'situacao'],
+    synonyms: ['etapa', 'etapa funil', 'stage', 'fase', 'situacao'],
+    required: false,
+    dataType: 'text'
+  },
+  status: {
+    synonyms: ['status', 'estado', 'condition', 'situacao atual'],
     required: false,
     dataType: 'text'
   }
@@ -360,4 +365,19 @@ export function mapEtapaToEnum(etapa: string): string {
   };
   
   return etapaMap[etapaNormalizada] || 'Novo';
+}
+
+// Função para determinar a etapa final priorizando status sobre etapa
+export function determineEtapaFinal(etapa?: string, status?: string): string {
+  // Se existe status, ele tem prioridade
+  if (status && status.trim()) {
+    const etapaFromStatus = mapEtapaToEnum(status);
+    // Se o status foi mapeado para algo diferente de 'Novo', usa ele
+    if (etapaFromStatus !== 'Novo' || normalizeText(status) === 'novo') {
+      return etapaFromStatus;
+    }
+  }
+  
+  // Caso contrário, usa a etapa
+  return mapEtapaToEnum(etapa || '');
 }

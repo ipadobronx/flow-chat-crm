@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { ImportedData, FieldMapping } from "@/pages/ImportLeads";
-import { convertImportedData, mapEtapaToEnum } from "@/lib/importUtils";
+import { convertImportedData, determineEtapaFinal } from "@/lib/importUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -123,7 +123,7 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
         pa_estimado: row.pa_estimado || null,
         valor: row.valor || null,
         recomendante: row.recomendante ? [row.recomendante] : null,
-        etapa: mapEtapaToEnum(row.etapa) as any,
+        etapa: determineEtapaFinal(row.etapa, row.status) as any,
         incluir_ta: false,
         incluir_sitplan: false,
         high_ticket: false,
