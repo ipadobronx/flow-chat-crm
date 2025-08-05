@@ -347,12 +347,13 @@ export function mapEtapaToEnum(etapa: string): string {
   
   const etapaNormalizada = normalizeText(etapa);
   
-  // Mapeamento das etapas mais comuns
+  // Mapeamento das etapas mais comuns baseado nas etapas válidas do sistema
   const etapaMap: { [key: string]: string } = {
     'novo': 'Novo',
     'new': 'Novo',
     'todos': 'Todos',
     'all': 'Todos',
+    'ta': 'TA',
     'oi': 'OI',
     'delay oi': 'Delay OI',
     'delayoi': 'Delay OI',
@@ -360,25 +361,31 @@ export function mapEtapaToEnum(etapa: string): string {
     'delay pc': 'Delay PC',
     'delaypc': 'Delay PC',
     'c2': 'C2',
-    'c1': 'C1',
-    'c3': 'C3',
-    'c4': 'C4',
-    'c5': 'C5',
-    'v1': 'V1',
-    'v2': 'V2',
-    'v3': 'V3',
-    'v4': 'V4',
-    'v5': 'V5',
+    'delay c2': 'Delay C2',
+    'delayc2': 'Delay C2',
     'n': 'N',
     'nao': 'Não',
     'não': 'Não',
     'no': 'Não',
+    'nao atendido': 'Não atendido',
+    'não atendido': 'Não atendido',
     'ligar depois': 'Ligar Depois',
     'callback': 'Ligar Depois',
     'reagendar': 'Ligar Depois',
-    'vendido': 'Vendido',
-    'venda': 'Vendido',
-    'sold': 'Vendido'
+    'marcar': 'Marcar',
+    'apolice emitida': 'Apólice Emitida',
+    'apólice emitida': 'Apólice Emitida',
+    'apolice entregue': 'Apólice Entregue',
+    'apólice entregue': 'Apólice Entregue',
+    'proposta cancelada': 'Proposta Cancelada',
+    'apolice cancelada': 'Apólice Cancelada',
+    'apólice cancelada': 'Apólice Cancelada',
+    'analisando proposta': 'Analisando Proposta',
+    'pendencia de uw': 'Pendência de UW',
+    'pendência de uw': 'Pendência de UW',
+    'placed': 'Placed',
+    'proposta nao apresentada': 'Proposta Não Apresentada',
+    'proposta não apresentada': 'Proposta Não Apresentada'
   };
   
   return etapaMap[etapaNormalizada] || 'Novo';
