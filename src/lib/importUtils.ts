@@ -359,13 +359,26 @@ export function mapEtapaToEnum(etapa: string): string {
     'pc': 'PC',
     'delay pc': 'Delay PC',
     'delaypc': 'Delay PC',
+    'c2': 'C2',
+    'c1': 'C1',
+    'c3': 'C3',
+    'c4': 'C4',
+    'c5': 'C5',
+    'v1': 'V1',
+    'v2': 'V2',
+    'v3': 'V3',
+    'v4': 'V4',
+    'v5': 'V5',
     'n': 'N',
     'nao': 'Não',
     'não': 'Não',
     'no': 'Não',
     'ligar depois': 'Ligar Depois',
     'callback': 'Ligar Depois',
-    'reagendar': 'Ligar Depois'
+    'reagendar': 'Ligar Depois',
+    'vendido': 'Vendido',
+    'venda': 'Vendido',
+    'sold': 'Vendido'
   };
   
   return etapaMap[etapaNormalizada] || 'Novo';
