@@ -1,4 +1,4 @@
-import { Calendar, MessageSquare, Users, Send, Target, BarChart, Settings, Clock, FileText, CheckSquare } from "lucide-react";
+import { Calendar, MessageSquare, Users, Send, Target, BarChart, Settings, Clock, FileText, CheckSquare, Upload } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -19,6 +19,12 @@ const navItems = [
     url: "/dashboard/nova-rec",
     icon: Users,
     description: "Cadastro de leads"
+  },
+  {
+    title: "Importar Leads",
+    url: "/dashboard/import",
+    icon: Upload,
+    description: "Importação em massa"
   },
   {
     title: "Pipeline",

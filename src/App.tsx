@@ -13,6 +13,7 @@ import Pipeline from "./pages/Pipeline";
 import SitPlan from "./pages/SitPlan";
 import TA from "./pages/TA";
 import NovaRec from "./pages/NovaRec";
+import ImportLeads from "./pages/ImportLeads";
 import Schedule from "./pages/Schedule";
 import BulkSend from "./pages/BulkSend";
 import FollowUp from "./pages/FollowUp";
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/dashboard/nova-rec" element={<ProtectedRoute><NovaRec /></ProtectedRoute>} />
+              <Route path="/dashboard/import" element={<ProtectedRoute><ImportLeads /></ProtectedRoute>} />
               <Route path="/dashboard/chat" element={<ProtectedRoute><LiveChat /></ProtectedRoute>} />
               <Route path="/dashboard/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
               <Route path="/dashboard/bulk" element={<ProtectedRoute><BulkSend /></ProtectedRoute>} />
