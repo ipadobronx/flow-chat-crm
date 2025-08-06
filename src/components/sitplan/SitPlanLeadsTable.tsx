@@ -61,26 +61,39 @@ export function SitPlanLeadsTable() {
     }
   };
 
-  const handleSendToTA = () => {
+  const handleAddToSitPlan = async () => {
     if (selectedLeads.length === 0) {
       toast({
         title: "Nenhum lead selecionado",
-        description: "Selecione pelo menos um lead para enviar para TA.",
+        description: "Selecione pelo menos um lead para adicionar ao SitPlan.",
         variant: "destructive"
       });
       return;
     }
 
-    // Note: Lead selection should be handled through database state management
-    // rather than localStorage for security and consistency
-    
-    toast({
-      title: "Leads enviados para TA",
-      description: `${selectedLeads.length} lead(s) enviado(s) para o menu TA.`,
-    });
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ incluir_sitplan: true })
+        .in("id", selectedLeads);
 
-    setSelectedLeads([]);
-    setIsEditMode(false);
+      if (error) throw error;
+
+      toast({
+        title: "Leads adicionados ao SitPlan",
+        description: `${selectedLeads.length} lead(s) adicionado(s) aos selecionados para o SitPlan.`,
+      });
+
+      setSelectedLeads([]);
+      setIsEditMode(false);
+    } catch (error) {
+      console.error("Erro ao adicionar leads ao SitPlan:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar leads ao SitPlan.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEtapaClick = (etapa: string) => {
@@ -145,13 +158,13 @@ export function SitPlanLeadsTable() {
               </Button>
             )}
             {isEditMode && (
-              <Button onClick={handleSendToTA} className="gap-2">
+              <Button onClick={handleAddToSitPlan} className="gap-2">
                 <Send className="w-4 h-4" />
-                Enviar para TA ({selectedLeads.length})
+                Adicionar ao SitPlan ({selectedLeads.length})
               </Button>
             )}
             <Button 
-              variant={isEditMode ? "secondary" : "outline"}
+              variant={isEditMode ? "secondary" : "default"}
               onClick={() => {
                 setIsEditMode(!isEditMode);
                 if (!isEditMode) setSelectedLeads([]);
