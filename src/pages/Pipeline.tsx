@@ -107,7 +107,7 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
       style={style}
       {...listeners}
       {...attributes}
-      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing ${
+      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing relative ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={(e) => {
@@ -117,18 +117,18 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
         }
       }}
     >
+      {lead.etapa !== "Todos" && (
+        <Badge className="absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
+          {lead.dias_na_etapa_atual || 1}d
+        </Badge>
+      )}
       <div className="flex items-start space-x-2 sm:space-x-3">
         <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
           <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+        <div className="flex-1 min-w-0 pr-8">
+          <div className="mb-1">
             <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
-            {lead.etapa !== "Todos" && (
-              <Badge variant="outline" className="text-xs px-1 py-0">
-                {lead.dias_na_etapa_atual || 1}d
-              </Badge>
-            )}
           </div>
           <p className="text-xs text-muted-foreground truncate">
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 

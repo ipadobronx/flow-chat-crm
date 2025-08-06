@@ -102,25 +102,25 @@ export function SitPlanLeadsList({ selectedLead, onSelectLead }: SitPlanLeadsLis
             <div
               key={lead.id}
               onClick={() => onSelectLead(lead)}
-              className={`p-4 border-b border-border cursor-pointer hover:bg-accent transition-colors ${
+              className={`p-4 border-b border-border cursor-pointer hover:bg-accent transition-colors relative ${
                 selectedLead?.id === lead.id ? "bg-accent" : ""
               }`}
             >
+              {lead.etapa !== "Todos" && (
+                <Badge className="absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
+                  {lead.dias_na_etapa_atual || 1}d
+                </Badge>
+              )}
               <div className="flex items-start gap-3">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={`https://source.unsplash.com/40x40/?person,face&${lead.id}`} />
                   <AvatarFallback>{lead.nome.charAt(0)}</AvatarFallback>
                 </Avatar>
                 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-8">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium truncate">{lead.nome}</h4>
-                      {lead.etapa !== "Todos" && (
-                        <Badge variant="outline" className="text-xs">
-                          {lead.dias_na_etapa_atual || 1}d
-                        </Badge>
-                      )}
                     </div>
                     {getStatusIcon(lead.status)}
                   </div>

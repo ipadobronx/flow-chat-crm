@@ -65,8 +65,13 @@ function SortableLeadItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
+      className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors relative"
     >
+      {lead.etapa !== "Todos" && (
+        <Badge className="absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
+          {lead.dias_na_etapa_atual || 1}d
+        </Badge>
+      )}
       <div className="flex items-center gap-2 flex-1">
         <div
           {...attributes}
@@ -76,17 +81,12 @@ function SortableLeadItem({
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
         
-        <div className="flex-1">
+        <div className="flex-1 pr-8">
           <div className="flex items-center gap-2 mb-2">
             <h4 className="font-medium">{lead.nome}</h4>
             <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
             </Badge>
-            {lead.etapa !== "Todos" && (
-              <Badge variant="outline" className="text-xs">
-                {lead.dias_na_etapa_atual || 1}d
-              </Badge>
-            )}
           </div>
           
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
