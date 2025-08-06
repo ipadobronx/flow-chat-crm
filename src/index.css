@@ -6,38 +6,27 @@
 
 @layer base {
   :root {
-    /* Apple-inspired Color Palette */
-    --apple-gray-50: 0 0% 98%; /* #FAFAFA */
-    --apple-gray-100: 0 0% 100%; /* #FFFFFF */
-    --apple-gray-900: 220 14% 11%; /* #1C1C1E */
-    --apple-gray-500: 240 4% 56%; /* #8E8E93 */
-    --apple-gray-200: 240 6% 90%; /* #E5E5EA */
-    --apple-blue: 211 100% 50%; /* #007AFF */
-    --apple-green: 145 83% 48%; /* #34C759 */
-    --apple-yellow: 48 100% 50%; /* #FFCC00 */
-    --apple-red: 4 90% 58%; /* #FF3B30 */
-
     /* Colors */
-    --background: var(--apple-gray-50);
-    --foreground: var(--apple-gray-900);
-    --card: var(--apple-gray-100);
-    --card-foreground: var(--apple-gray-900);
-    --popover: var(--apple-gray-100);
-    --popover-foreground: var(--apple-gray-900);
-    --primary: var(--apple-blue);
-    --primary-foreground: var(--apple-gray-100);
-    --secondary: var(--apple-gray-200);
-    --secondary-foreground: var(--apple-gray-900);
-    --muted: var(--apple-gray-200);
-    --muted-foreground: var(--apple-gray-500);
-    --accent: var(--apple-gray-200);
-    --accent-foreground: var(--apple-gray-900);
-    --destructive: var(--apple-red);
-    --destructive-foreground: var(--apple-gray-100);
-    --border: var(--apple-gray-200);
-    --input: var(--apple-gray-200);
-    --ring: var(--apple-blue);
-    --radius: 0.75rem;
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 217 91% 60%;
+    --radius: 1.25rem;
     
     /* Success colors */
     --success: 142 71% 45%;
