@@ -109,7 +109,7 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
   // If a lead is selected, show detailed view
   if (selectedLead) {
     return (
-      <div className="flex-1 bg-background">
+      <div className="flex-1 bg-background h-full flex flex-col">
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-4 mb-4">
             <Button
@@ -124,7 +124,7 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 flex-1 overflow-y-auto">
           <div className="max-w-4xl mx-auto">
             {/* Lead Header */}
             <div className="flex items-start gap-6 mb-8">
@@ -246,7 +246,7 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
 
   // Default view: All leads table
   return (
-    <div className="flex-1 bg-background">
+    <div className="flex-1 bg-background h-full flex flex-col">
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-semibold text-foreground">Todos os Leads</h2>
@@ -277,9 +277,9 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="rounded-xl border border-border bg-card overflow-hidden max-h-[calc(100vh-300px)]">
-          <div className="overflow-y-auto max-h-full">
+      <div className="p-6 flex-1 overflow-hidden">
+        <div className="rounded-xl border border-border bg-card h-full flex flex-col">
+          <div className="flex-1 overflow-y-auto">
             <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent border-border">

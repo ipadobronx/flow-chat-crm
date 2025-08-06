@@ -65,7 +65,7 @@ export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarPro
   };
 
   return (
-    <div className="w-full lg:w-80 flex flex-col h-auto lg:h-full border-r-0 lg:border-r border-b lg:border-b-0 border-border bg-card min-h-[300px] lg:min-h-full">
+    <div className="w-full lg:w-80 flex flex-col h-full border-r-0 lg:border-r border-b lg:border-b-0 border-border bg-card">
       <div className="p-6 border-b border-border">
         <h2 className="text-xl font-semibold text-foreground mb-1">
           Leads Selecionados para SitPlan
