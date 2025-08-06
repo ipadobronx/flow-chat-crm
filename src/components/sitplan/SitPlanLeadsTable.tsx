@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Edit, Send } from "lucide-react";
+import { Search, Edit, Send, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -164,15 +164,19 @@ export function SitPlanLeadsTable() {
               </Button>
             )}
             <Button 
-              variant={isEditMode ? "secondary" : "default"}
+              size="sm"
+              className={`h-8 w-8 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
+                isEditMode 
+                  ? "bg-blue-600 text-white" 
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              }`}
               onClick={() => {
                 setIsEditMode(!isEditMode);
                 if (!isEditMode) setSelectedLeads([]);
               }}
-              className="gap-2"
+              title="Selecionar leads para SitPlan"
             >
-              <Edit className="w-4 h-4" />
-              {isEditMode ? "Cancelar" : "Editar"}
+              <CheckSquare className="h-4 w-4" />
             </Button>
           </div>
         </div>
