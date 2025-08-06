@@ -107,17 +107,31 @@ export function SitPlanLeadsTable() {
   const getEtapaColor = (etapa: string, isSelected?: boolean) => {
     const baseColor = (() => {
       switch (etapa) {
-        case "Novo": return "blue-500";
-        case "OI": return "green-500";
-        case "PC": return "yellow-500";
-        case "N": return "red-500";
-        case "Apólice Emitida": return "purple-500";
-        case "Apólice Entregue": return "green-600";
-        default: return "gray-500";
+        case "Todos": return "bg-blue-500";
+        case "Novo": return "bg-sky-500";
+        case "TA": return "bg-purple-600";
+        case "Não atendido": return "bg-red-600";
+        case "Ligar Depois": return "bg-yellow-600";
+        case "Marcar": return "bg-green-600";
+        case "OI": return "bg-indigo-500";
+        case "Delay OI": return "bg-yellow-500";
+        case "PC": return "bg-orange-500";
+        case "Delay PC": return "bg-red-500";
+        case "Analisando Proposta": return "bg-orange-600";
+        case "N": return "bg-purple-500";
+        case "Proposta Não Apresentada": return "bg-gray-600";
+        case "Pendência de UW": return "bg-yellow-700";
+        case "Apólice Emitida": return "bg-green-500";
+        case "Apólice Entregue": return "bg-emerald-500";
+        case "Delay C2": return "bg-cyan-500";
+        case "Não": return "bg-gray-500";
+        case "Proposta Cancelada": return "bg-red-600";
+        case "Apólice Cancelada": return "bg-red-700";
+        default: return "bg-gray-500";
       }
     })();
     
-    return isSelected ? `bg-${baseColor} ring-2 ring-${baseColor} ring-opacity-50` : `bg-${baseColor}`;
+    return isSelected ? `${baseColor} ring-2 ring-offset-2 ring-primary` : baseColor;
   };
 
   // Get unique etapas from leads
