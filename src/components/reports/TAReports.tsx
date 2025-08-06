@@ -3,9 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
 import { Tables } from "@/integrations/supabase/types";
 
 type TARelatorio = Tables<"ta_relatorios">;
@@ -142,18 +143,22 @@ export function TAReports() {
             <CardTitle>Evolução dos Últimos TAs</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ChartContainer config={{
+              totalLeads: { label: "Total Leads", color: "hsl(var(--primary))" },
+              ligacoes: { label: "Ligações", color: "hsl(var(--secondary))" },
+              atendidas: { label: "Atendidas", color: "hsl(var(--accent))" },
+              agendadas: { label: "Agendadas", color: "hsl(var(--destructive))" }
+            }} className="h-80 w-full">
               <BarChart data={dadosGraficoBarras}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="data" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="Total Leads" fill="hsl(var(--primary))" />
-                <Bar dataKey="Ligações" fill="hsl(var(--secondary))" />
-                <Bar dataKey="Atendidas" fill="hsl(var(--accent))" />
-                <Bar dataKey="Agendadas" fill="hsl(var(--destructive))" />
+                <XAxis dataKey="data" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="Total Leads" fill="var(--color-totalLeads)" />
+                <Bar dataKey="Ligações" fill="var(--color-ligacoes)" />
+                <Bar dataKey="Atendidas" fill="var(--color-atendidas)" />
+                <Bar dataKey="Agendadas" fill="var(--color-agendadas)" />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -163,25 +168,20 @@ export function TAReports() {
             <CardTitle>Distribuição de Status das Ligações</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={dadosPizza}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {dadosPizza.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              <div className="text-4xl font-bold">{totaisGerais.totalLigacoes}</div>
+              <div className="grid grid-cols-2 gap-4">
+                {dadosPizza.map((item, index) => (
+                  <div key={item.name} className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm">{item.name}: {item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
