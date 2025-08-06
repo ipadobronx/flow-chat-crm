@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { ArrowLeft, Play, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,11 +16,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 type Lead = Tables<"leads">;
 
 export default function TACategories() {
   const navigate = useNavigate();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    categoria: string;
+    tipo: 'etapa' | 'profissao';
+    conflitos: any[];
+  }>({ open: false, categoria: '', tipo: 'etapa', conflitos: [] });
 
   // Carregar leads selecionados para TA
   const { data: leads = [], isLoading } = useQuery({
@@ -60,8 +67,8 @@ export default function TACategories() {
     return { leadsNaCategoria, conflitos };
   };
 
-  // Função para acessar categoria (automática para conflitos)
-  const acessarCategoria = async (categoria: string, tipo: 'etapa' | 'profissao') => {
+  // Função para acessar categoria
+  const acessarCategoria = (categoria: string, tipo: 'etapa' | 'profissao') => {
     const { leadsNaCategoria, conflitos } = detectarConflitos(categoria, tipo);
     
     // Se não há conflitos, navegar diretamente
@@ -71,7 +78,20 @@ export default function TACategories() {
       return;
     }
 
-    // Com conflitos: remover automaticamente seguindo hierarquia
+    // Com conflitos: mostrar confirmação
+    setConfirmDialog({
+      open: true,
+      categoria,
+      tipo,
+      conflitos
+    });
+  };
+
+  // Função para confirmar e processar remoção automática
+  const confirmarRemocao = async () => {
+    const { categoria, tipo, conflitos } = confirmDialog;
+    const { leadsNaCategoria } = detectarConflitos(categoria, tipo);
+
     try {
       if (tipo === 'profissao') {
         // Profissão: remover da etapa automaticamente
@@ -86,7 +106,10 @@ export default function TACategories() {
 
         if (error) throw error;
 
-        toast.success(`${conflitos.length} lead(s) removido(s) das etapas automaticamente`);
+        toast({
+          title: "Leads movidos com sucesso",
+          description: `${conflitos.length} lead(s) removido(s) das etapas automaticamente`,
+        });
       } else {
         // Etapa: remover da profissão automaticamente  
         const { error } = await supabase
@@ -100,14 +123,23 @@ export default function TACategories() {
 
         if (error) throw error;
 
-        toast.success(`${conflitos.length} lead(s) removido(s) das profissões automaticamente`);
+        toast({
+          title: "Leads movidos com sucesso", 
+          description: `${conflitos.length} lead(s) removido(s) das profissões automaticamente`,
+        });
       }
       
       const param = tipo === 'etapa' ? 'etapa' : 'profissao';
       navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&exclusivo=true`);
     } catch (error) {
       console.error('Erro ao processar categoria:', error);
-      toast.error('Erro ao acessar categoria. Tente novamente.');
+      toast({
+        title: "Erro",
+        description: "Erro ao acessar categoria. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setConfirmDialog({ open: false, categoria: '', tipo: 'etapa', conflitos: [] });
     }
   };
 
@@ -149,13 +181,20 @@ export default function TACategories() {
 
       if (error) throw error;
 
-      toast.success('Exclusividades removidas. Todas as categorias foram restauradas.');
+      toast({
+        title: "Exclusividades removidas",
+        description: "Todas as categorias foram restauradas.",
+      });
       
       // Recarregar a página para mostrar todas as categorias
       window.location.reload();
     } catch (error) {
       console.error('Erro ao limpar exclusividades:', error);
-      toast.error('Erro ao remover exclusividades. Tente novamente.');
+      toast({
+        title: "Erro",
+        description: "Erro ao remover exclusividades. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -290,24 +329,14 @@ export default function TACategories() {
                   <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
                     <div className="absolute top-4 left-4">
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                        {conflitos.length > 0 ? "CONFLITO" : "NOVO"}
+                        ETAPA
                       </span>
                     </div>
-                    {conflitos.length > 0 && (
-                      <div className="absolute top-4 right-4">
-                        <AlertTriangle className="h-5 w-5 text-yellow-300" />
-                      </div>
-                    )}
                   </div>
                   <div className="p-6">
                     <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
                     <p className="text-sm text-muted-foreground mb-4 font-inter">
                       Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
-                      {conflitos.length > 0 && (
-                        <span className="block text-yellow-400 text-xs mt-1">
-                          {conflitos.length} conflito{conflitos.length !== 1 ? 's' : ''} detectado{conflitos.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
                     </p>
                     
                     {/* Barra de Progresso */}
@@ -367,24 +396,14 @@ export default function TACategories() {
                   <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
                     <div className="absolute top-4 left-4">
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                        {conflitos.length > 0 ? "CONFLITO" : "NOVO"}
+                        PROFISSÃO
                       </span>
                     </div>
-                    {conflitos.length > 0 && (
-                      <div className="absolute top-4 right-4">
-                        <AlertTriangle className="h-5 w-5 text-yellow-300" />
-                      </div>
-                    )}
                   </div>
                   <div className="p-6">
                     <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
                     <p className="text-sm text-muted-foreground mb-4 font-inter">
                       Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
-                      {conflitos.length > 0 && (
-                        <span className="block text-yellow-400 text-xs mt-1">
-                          {conflitos.length} conflito{conflitos.length !== 1 ? 's' : ''} detectado{conflitos.length !== 1 ? 's' : ''}
-                        </span>
-                      )}
                     </p>
                     
                     {/* Barra de Progresso */}
@@ -431,6 +450,51 @@ export default function TACategories() {
             })}
           </div>
         </div>
+
+        {/* Dialog de Confirmação */}
+        <AlertDialog open={confirmDialog.open} onOpenChange={(open) => 
+          setConfirmDialog(prev => ({ ...prev, open }))
+        }>
+          <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">
+                Confirmar Acesso - {confirmDialog.categoria}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300">
+                {confirmDialog.conflitos.length > 0 && (
+                  <>
+                    Esta categoria contém {confirmDialog.conflitos.length} lead{confirmDialog.conflitos.length !== 1 ? 's' : ''} que também está{confirmDialog.conflitos.length !== 1 ? 'ão' : ''} em outras categorias.
+                    <br /><br />
+                    <strong>Leads que serão movidos:</strong>
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      {confirmDialog.conflitos.slice(0, 5).map((lead) => (
+                        <li key={lead.id} className="text-sm">
+                          {lead.nome} - será removido de "{confirmDialog.tipo === 'profissao' ? lead.etapa : lead.profissao}"
+                        </li>
+                      ))}
+                      {confirmDialog.conflitos.length > 5 && (
+                        <li className="text-sm text-gray-400">
+                          ... e mais {confirmDialog.conflitos.length - 5} lead{confirmDialog.conflitos.length - 5 !== 1 ? 's' : ''}
+                        </li>
+                      )}
+                    </ul>
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmarRemocao}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Confirmar e Acessar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
