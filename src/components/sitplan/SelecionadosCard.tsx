@@ -65,14 +65,9 @@ function SortableLeadItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors relative"
+      className="flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
     >
-      {lead.etapa !== "Todos" && (
-        <Badge className="absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
-          {lead.dias_na_etapa_atual || 1}d
-        </Badge>
-      )}
-      <div className="flex items-center gap-2 flex-1">
+      <div className="flex items-center gap-3 flex-1">
         <div
           {...attributes}
           {...listeners}
@@ -81,34 +76,45 @@ function SortableLeadItem({
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
         
-        <div className="flex-1 pr-8">
-          <div className="flex items-center gap-2 mb-2">
-            <h4 className="font-medium">{lead.nome}</h4>
-            <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
+        <div className="flex-1 min-w-0">
+          {/* Linha principal com nome e etapa */}
+          <div className="flex items-center gap-3 mb-2">
+            <h4 className="font-semibold text-base truncate flex-shrink-0 min-w-0">{lead.nome}</h4>
+            <Badge className={`text-white text-xs px-2 py-1 flex-shrink-0 ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
             </Badge>
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            {lead.empresa && (
-              <span>🏢 {lead.empresa}</span>
-            )}
+          {/* Grid de informações organizadas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-muted-foreground">
             {lead.telefone && (
-              <span>📱 {lead.telefone}</span>
-            )}
-            {lead.etapa === "Analisando Proposta" && lead.etapa_changed_at && (
               <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{calculateDaysInStage(lead.etapa_changed_at)} dias nesta etapa</span>
+                <span className="text-xs">📱</span>
+                <span className="truncate">{lead.telefone}</span>
+              </div>
+            )}
+            
+            {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs">👥</span>
+                <span className="truncate">{lead.recomendante.join(', ')}</span>
+              </div>
+            )}
+            
+            {lead.profissao && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs">💼</span>
+                <span className="truncate">{lead.profissao}</span>
+              </div>
+            )}
+            
+            {lead.data_sitplan && (
+              <div className="flex items-center gap-1">
+                <span className="text-xs">📅</span>
+                <span className="truncate">{new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}</span>
               </div>
             )}
           </div>
-          
-          {lead.data_sitplan && (
-            <div className="mt-1 text-sm text-muted-foreground">
-              📅 Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}
-            </div>
-          )}
         </div>
       </div>
       
