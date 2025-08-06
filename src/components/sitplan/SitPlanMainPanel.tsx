@@ -278,8 +278,9 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
       </div>
 
       <div className="p-6">
-        <div className="rounded-xl border border-border bg-card overflow-x-auto">
-          <Table className="min-w-[800px]">
+        <div className="rounded-xl border border-border bg-card overflow-hidden max-h-[calc(100vh-300px)]">
+          <div className="overflow-y-auto max-h-full">
+            <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent border-border">
                 <TableHead className="font-semibold text-muted-foreground">NOME</TableHead>
@@ -353,7 +354,8 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
                 </TableRow>
               )}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         </div>
       </div>
     </div>
