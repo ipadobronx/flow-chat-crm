@@ -245,6 +245,7 @@ export type Database = {
           data_callback: string | null
           data_nascimento: string | null
           data_sitplan: string | null
+          dias_na_etapa_atual: number | null
           email: string | null
           empresa: string | null
           etapa: Database["public"]["Enums"]["etapa_funil"]
@@ -278,6 +279,7 @@ export type Database = {
           data_callback?: string | null
           data_nascimento?: string | null
           data_sitplan?: string | null
+          dias_na_etapa_atual?: number | null
           email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
@@ -311,6 +313,7 @@ export type Database = {
           data_callback?: string | null
           data_nascimento?: string | null
           data_sitplan?: string | null
+          dias_na_etapa_atual?: number | null
           email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
@@ -465,6 +468,42 @@ export type Database = {
           origem?: string | null
           ta_order_anterior?: number | null
           ta_order_nova?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tempo_etapas_historico: {
+        Row: {
+          created_at: string
+          data_entrada: string
+          data_saida: string | null
+          dias_na_etapa: number | null
+          etapa: Database["public"]["Enums"]["etapa_funil"]
+          id: string
+          lead_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_entrada: string
+          data_saida?: string | null
+          dias_na_etapa?: number | null
+          etapa: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_entrada?: string
+          data_saida?: string | null
+          dias_na_etapa?: number | null
+          etapa?: Database["public"]["Enums"]["etapa_funil"]
+          id?: string
+          lead_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
