@@ -77,44 +77,46 @@ function SortableLeadItem({
         </div>
         
         <div className="flex-1 min-w-0">
-          {/* Linha principal com etapa e nome */}
-          <div className="flex items-center gap-3 mb-2">
+          {/* Nome principal */}
+          <div className="mb-2">
+            <h4 className="font-semibold text-base truncate">{lead.nome}</h4>
+          </div>
+          
+          {/* Linha com etapa e informações */}
+          <div className="flex items-center gap-3 flex-wrap text-sm">
             <Badge className={`text-white text-xs px-2 py-1 flex-shrink-0 ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
             </Badge>
-            <h4 className="font-semibold text-base truncate flex-shrink-0 min-w-0">{lead.nome}</h4>
-          </div>
-          
-          {/* Grid de informações organizadas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-muted-foreground">
+            
             {lead.telefone && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <span className="text-xs">📱</span>
                 <span className="truncate">{lead.telefone}</span>
               </div>
             )}
             
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <span className="text-xs">👥</span>
                 <span className="truncate">{lead.recomendante.join(', ')}</span>
               </div>
             )}
             
             {lead.profissao && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <span className="text-xs">💼</span>
                 <span className="truncate">{lead.profissao}</span>
               </div>
             )}
-            
-            {lead.data_sitplan && (
-              <div className="flex items-center gap-1">
-                <span className="text-xs">📅</span>
-                <span className="truncate">{new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}</span>
-              </div>
-            )}
           </div>
+          
+          {/* Data do SitPlan se existir */}
+          {lead.data_sitplan && (
+            <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+              <span className="text-xs">📅</span>
+              <span>Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}</span>
+            </div>
+          )}
         </div>
       </div>
       
