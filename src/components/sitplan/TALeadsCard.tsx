@@ -172,9 +172,11 @@ export function TALeadsCard() {
                            <div className="flex-1">
                              <div className="flex items-center gap-2">
                                <h4 className="font-medium">{lead.nome}</h4>
-                               <Badge variant="outline" className="text-xs">
-                                 {lead.dias_na_etapa_atual || 1}d
-                               </Badge>
+                               {lead.etapa !== "Todos" && (
+                                 <Badge variant="outline" className="text-xs">
+                                   {lead.dias_na_etapa_atual || 1}d
+                                 </Badge>
+                               )}
                              </div>
                              <p className="text-sm text-muted-foreground">
                                {lead.telefone || "Sem telefone"}

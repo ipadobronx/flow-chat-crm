@@ -40,6 +40,7 @@ import {
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
+import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
 
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
@@ -123,9 +124,11 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
-            <Badge variant="outline" className="text-xs px-1 py-0">
-              {lead.dias_na_etapa_atual || 1}d
-            </Badge>
+            {lead.etapa !== "Todos" && (
+              <Badge variant="outline" className="text-xs px-1 py-0">
+                {lead.dias_na_etapa_atual || 1}d
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground truncate">
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
@@ -1261,6 +1264,11 @@ export default function Pipeline() {
                     leadId={selectedLead.id} 
                     leadNome={selectedLead.nome}
                   />
+                </div>
+
+                {/* Histórico de Tempo em Etapas */}
+                <div className="mt-6">
+                  <StageTimeHistory leadId={selectedLead.id} showLeadName={false} limit={15} />
                 </div>
 
                 {/* Histórico de Etapas */}
