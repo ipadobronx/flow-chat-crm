@@ -24,6 +24,7 @@ export default function TAPresentation() {
   const [searchParams] = useSearchParams();
   const filterEtapa = searchParams.get('etapa');
   const filterProfissao = searchParams.get('profissao');
+  const isExclusivo = searchParams.get('exclusivo') === 'true';
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
@@ -35,26 +36,42 @@ export default function TAPresentation() {
 
   // Carregar leads selecionados para TA do banco de dados
   const { data: allLeads = [], isLoading, refetch } = useQuery({
-    queryKey: ["ta-leads", filterEtapa, filterProfissao],
+    queryKey: ["ta-leads", filterEtapa, filterProfissao, isExclusivo],
     queryFn: async () => {
       let query = supabase
         .from("leads")
         .select("*")
         .eq("incluir_ta", true);
 
-      // Aplicar filtros se necessário
-      if (filterEtapa) {
-        query = query.eq("etapa", filterEtapa as any);
-      }
-      if (filterProfissao) {
-        query = query.eq("profissao", filterProfissao);
+      // Se for acesso exclusivo, filtra apenas leads exclusivos para esta categoria
+      if (isExclusivo && (filterEtapa || filterProfissao)) {
+        if (filterEtapa) {
+          query = query
+            .eq("ta_categoria_ativa", "etapa")
+            .eq("ta_categoria_valor", filterEtapa)
+            .eq("ta_exclusividade", true);
+        }
+        if (filterProfissao) {
+          query = query
+            .eq("ta_categoria_ativa", "profissao")
+            .eq("ta_categoria_valor", filterProfissao)
+            .eq("ta_exclusividade", true);
+        }
+      } else {
+        // Filtros normais (não exclusivos)
+        if (filterEtapa) {
+          query = query.eq("etapa", filterEtapa as any);
+        }
+        if (filterProfissao) {
+          query = query.eq("profissao", filterProfissao);
+        }
       }
 
       const { data, error } = await query.order("ta_order", { ascending: true });
       
       if (error) throw error;
       console.log(`🎯 TA encontrou ${data?.length || 0} leads selecionados:`, 
-        data?.map(lead => ({ id: lead.id, nome: lead.nome, ta_order: lead.ta_order }))
+        data?.map(lead => ({ id: lead.id, nome: lead.nome, ta_order: lead.ta_order, exclusivo: lead.ta_exclusividade }))
       );
       return data as Lead[];
     },

@@ -263,6 +263,9 @@ export type Database = {
           recomendante: string[] | null
           renda_estimada: string | null
           status: string | null
+          ta_categoria_ativa: string | null
+          ta_categoria_valor: string | null
+          ta_exclusividade: boolean | null
           ta_order: number | null
           telefone: string | null
           tem_filhos: boolean | null
@@ -297,6 +300,9 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_categoria_ativa?: string | null
+          ta_categoria_valor?: string | null
+          ta_exclusividade?: boolean | null
           ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null
@@ -331,6 +337,9 @@ export type Database = {
           recomendante?: string[] | null
           renda_estimada?: string | null
           status?: string | null
+          ta_categoria_ativa?: string | null
+          ta_categoria_valor?: string | null
+          ta_exclusividade?: boolean | null
           ta_order?: number | null
           telefone?: string | null
           tem_filhos?: boolean | null

@@ -3,7 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Play, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Lead = Tables<"leads">;
 
@@ -25,25 +37,110 @@ export default function TACategories() {
     },
   });
 
-  // Agrupar leads por etapa
-  const leadsByEtapa = leads.reduce((acc, lead) => {
-    const etapa = lead.etapa || "Sem Etapa";
-    if (!acc[etapa]) {
-      acc[etapa] = [];
-    }
-    acc[etapa].push(lead);
-    return acc;
-  }, {} as Record<string, Lead[]>);
+  // Detectar conflitos entre categorias
+  const detectarConflitos = (categoria: string, tipo: 'etapa' | 'profissao') => {
+    const leadsNaCategoria = leads.filter(lead => {
+      if (tipo === 'etapa') {
+        return lead.etapa === categoria;
+      } else {
+        return lead.profissao === categoria;
+      }
+    });
 
-  // Agrupar leads por profissão
-  const leadsByProfissao = leads.reduce((acc, lead) => {
-    const profissao = lead.profissao || "Sem Profissão";
-    if (!acc[profissao]) {
-      acc[profissao] = [];
+    const conflitos = leadsNaCategoria.filter(lead => {
+      if (tipo === 'etapa') {
+        // Verifica se o lead também aparece em alguma profissão
+        return lead.profissao && lead.profissao.trim() !== "";
+      } else {
+        // Verifica se o lead também aparece em alguma etapa válida
+        return lead.etapa && lead.etapa !== "Todos";
+      }
+    });
+
+    return { leadsNaCategoria, conflitos };
+  };
+
+  // Função para marcar categoria como exclusiva
+  const marcarCategoriaExclusiva = async (categoria: string, tipo: 'etapa' | 'profissao') => {
+    const { leadsNaCategoria, conflitos } = detectarConflitos(categoria, tipo);
+    
+    if (conflitos.length === 0) {
+      // Sem conflitos, navegue diretamente
+      const param = tipo === 'etapa' ? 'etapa' : 'profissao';
+      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}`);
+      return;
     }
-    acc[profissao].push(lead);
-    return acc;
-  }, {} as Record<string, Lead[]>);
+
+    try {
+      // Marcar todos os leads da categoria como exclusivos
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          ta_categoria_ativa: tipo,
+          ta_categoria_valor: categoria,
+          ta_exclusividade: true
+        })
+        .in('id', leadsNaCategoria.map(lead => lead.id));
+
+      if (error) throw error;
+
+      toast.success(`${conflitos.length} lead(s) removido(s) automaticamente de outras categorias`);
+      
+      const param = tipo === 'etapa' ? 'etapa' : 'profissao';
+      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&exclusivo=true`);
+    } catch (error) {
+      console.error('Erro ao marcar categoria como exclusiva:', error);
+      toast.error('Erro ao processar a exclusividade. Tente novamente.');
+    }
+  };
+
+  // Agrupar leads por etapa (apenas os que não são exclusivos de profissão)
+  const leadsByEtapa = leads
+    .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'etapa')
+    .reduce((acc, lead) => {
+      const etapa = lead.etapa || "Sem Etapa";
+      if (!acc[etapa]) {
+        acc[etapa] = [];
+      }
+      acc[etapa].push(lead);
+      return acc;
+    }, {} as Record<string, Lead[]>);
+
+  // Agrupar leads por profissão (apenas os que não são exclusivos de etapa)
+  const leadsByProfissao = leads
+    .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'profissao')
+    .reduce((acc, lead) => {
+      const profissao = lead.profissao || "Sem Profissão";
+      if (!acc[profissao]) {
+        acc[profissao] = [];
+      }
+      acc[profissao].push(lead);
+      return acc;
+    }, {} as Record<string, Lead[]>);
+
+  // Função para limpar exclusividades
+  const limparExclusividades = async () => {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          ta_categoria_ativa: null,
+          ta_categoria_valor: null,
+          ta_exclusividade: false
+        })
+        .eq('incluir_ta', true);
+
+      if (error) throw error;
+
+      toast.success('Exclusividades removidas. Todas as categorias foram restauradas.');
+      
+      // Recarregar a página para mostrar todas as categorias
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao limpar exclusividades:', error);
+      toast.error('Erro ao remover exclusividades. Tente novamente.');
+    }
+  };
 
   // Função para obter cor da etapa
   const getEtapaColor = (etapa: string) => {
@@ -117,6 +214,36 @@ export default function TACategories() {
             <p className="text-[#A9A9A9] font-inter">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
           </div>
           <div className="flex gap-4">
+            {/* Botão para limpar exclusividades se existirem */}
+            {leads.some(lead => lead.ta_exclusividade) && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="px-6 py-3 bg-yellow-500/10 backdrop-blur-md border border-yellow-500 text-yellow-500 hover:bg-yellow-500/20">
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Resetar Categorias
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-white">Resetar Categorias Exclusivas</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-300">
+                      Alguns leads foram marcados como exclusivos para categorias específicas. Isso pode estar ocultando leads de outras categorias.
+                      Deseja restaurar todas as categorias e remover as exclusividades?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={limparExclusividades}
+                      className="bg-yellow-600 text-white hover:bg-yellow-700"
+                    >
+                      Sim, Resetar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            
             <Button
               onClick={() => navigate('/dashboard/sitplan')}
               className="px-6 py-3 bg-white/5 backdrop-blur-md border border-[#A9A9A9] text-[#A9A9A9] hover:bg-white/10"
@@ -138,51 +265,103 @@ export default function TACategories() {
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Etapa do Funil</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Object.entries(leadsByEtapa).map(([etapa, leadsInEtapa]) => (
-              <div 
-                key={etapa}
-                className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#00FFF0]/10 overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
-              >
-                <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
-                  <div className="absolute top-4 left-4">
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                      NOVO
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 font-inter">
-                    Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
-                  </p>
-                  
-                  {/* Barra de Progresso */}
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+            {Object.entries(leadsByEtapa).map(([etapa, leadsInEtapa]) => {
+              const { conflitos } = detectarConflitos(etapa, 'etapa');
+              
+              const CardComponent = () => (
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#00FFF0]/10 overflow-hidden cursor-pointer">
+                  <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                        {conflitos.length > 0 ? "CONFLITO" : "NOVO"}
+                      </span>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
-                    </div>
+                    {conflitos.length > 0 && (
+                      <div className="absolute top-4 right-4">
+                        <AlertTriangle className="h-5 w-5 text-yellow-300" />
+                      </div>
+                    )}
                   </div>
+                  <div className="p-6">
+                    <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 font-inter">
+                      Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
+                      {conflitos.length > 0 && (
+                        <span className="block text-yellow-400 text-xs mt-1">
+                          {conflitos.length} conflito{conflitos.length !== 1 ? 's' : ''} detectado{conflitos.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </p>
+                    
+                    {/* Barra de Progresso */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-inter font-semibold tracking-tight text-white">
-                      {leadsInEtapa.length}
-                    </span>
-                    <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
-                      Acessar
-                    </button>
-                  </div>
-                  
-                  <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
-                    <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
-                    Espaço privado
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-inter font-semibold tracking-tight text-white">
+                        {leadsInEtapa.length}
+                      </span>
+                      <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                        Acessar
+                      </button>
+                    </div>
+                    
+                    <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                      <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                      Espaço privado
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+
+              if (conflitos.length > 0) {
+                return (
+                  <AlertDialog key={etapa}>
+                    <AlertDialogTrigger asChild>
+                      <CardComponent />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white">Conflito Detectado - {etapa}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-300">
+                          Esta categoria contém {conflitos.length} lead{conflitos.length !== 1 ? 's' : ''} que também apare{conflitos.length !== 1 ? 'cem' : 'ce'} em outras categorias.
+                          Deseja marcar esta categoria como exclusiva e remover automaticamente estes leads das outras categorias?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel 
+                          onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
+                          className="bg-gray-800 text-white hover:bg-gray-700"
+                        >
+                          Continuar sem Remover
+                        </AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => marcarCategoriaExclusiva(etapa, 'etapa')}
+                          className="bg-red-600 text-white hover:bg-red-700"
+                        >
+                          Sim, Remover Conflitos
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                );
+              } else {
+                return (
+                  <div 
+                    key={etapa}
+                    onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
+                  >
+                    <CardComponent />
+                  </div>
+                );
+              }
+            })}
           </div>
         </div>
 
@@ -190,51 +369,103 @@ export default function TACategories() {
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Profissão</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Object.entries(leadsByProfissao).map(([profissao, leadsInProfissao]) => (
-              <div 
-                key={profissao}
-                className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#FF00C8]/10 overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
-              >
-                <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
-                  <div className="absolute top-4 left-4">
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                      NOVO
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 font-inter">
-                    Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
-                  </p>
-                  
-                  {/* Barra de Progresso */}
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+            {Object.entries(leadsByProfissao).map(([profissao, leadsInProfissao]) => {
+              const { conflitos } = detectarConflitos(profissao, 'profissao');
+              
+              const CardComponent = () => (
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#FF00C8]/10 overflow-hidden cursor-pointer">
+                  <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                    <div className="absolute top-4 left-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                        {conflitos.length > 0 ? "CONFLITO" : "NOVO"}
+                      </span>
                     </div>
-                    <div className="w-full bg-white/10 rounded-full h-2">
-                      <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
-                    </div>
+                    {conflitos.length > 0 && (
+                      <div className="absolute top-4 right-4">
+                        <AlertTriangle className="h-5 w-5 text-yellow-300" />
+                      </div>
+                    )}
                   </div>
+                  <div className="p-6">
+                    <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 font-inter">
+                      Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
+                      {conflitos.length > 0 && (
+                        <span className="block text-yellow-400 text-xs mt-1">
+                          {conflitos.length} conflito{conflitos.length !== 1 ? 's' : ''} detectado{conflitos.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </p>
+                    
+                    {/* Barra de Progresso */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-2">
+                        <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-inter font-semibold tracking-tight text-white">
-                      {leadsInProfissao.length}
-                    </span>
-                    <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
-                      Acessar
-                    </button>
-                  </div>
-                  
-                  <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
-                    <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
-                    Espaço privado
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-inter font-semibold tracking-tight text-white">
+                        {leadsInProfissao.length}
+                      </span>
+                      <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                        Acessar
+                      </button>
+                    </div>
+                    
+                    <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                      <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                      Espaço privado
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+
+              if (conflitos.length > 0) {
+                return (
+                  <AlertDialog key={profissao}>
+                    <AlertDialogTrigger asChild>
+                      <CardComponent />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-white">Conflito Detectado - {profissao}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-300">
+                          Esta categoria contém {conflitos.length} lead{conflitos.length !== 1 ? 's' : ''} que também apare{conflitos.length !== 1 ? 'cem' : 'ce'} em outras categorias.
+                          Deseja marcar esta categoria como exclusiva e remover automaticamente estes leads das outras categorias?
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel 
+                          onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
+                          className="bg-gray-800 text-white hover:bg-gray-700"
+                        >
+                          Continuar sem Remover
+                        </AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => marcarCategoriaExclusiva(profissao, 'profissao')}
+                          className="bg-red-600 text-white hover:bg-red-700"
+                        >
+                          Sim, Remover Conflitos
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                );
+              } else {
+                return (
+                  <div 
+                    key={profissao}
+                    onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
+                  >
+                    <CardComponent />
+                  </div>
+                );
+              }
+            })}
           </div>
         </div>
       </div>
