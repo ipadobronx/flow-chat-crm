@@ -114,7 +114,12 @@ export function SitPlanLeadsList({ selectedLead, onSelectLead }: SitPlanLeadsLis
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium truncate">{lead.nome}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium truncate">{lead.nome}</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {lead.dias_na_etapa_atual || 1}d
+                      </Badge>
+                    </div>
                     {getStatusIcon(lead.status)}
                   </div>
                   

@@ -82,6 +82,9 @@ function SortableLeadItem({
             <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
             </Badge>
+            <Badge variant="outline" className="text-xs">
+              {lead.dias_na_etapa_atual || 1}d
+            </Badge>
           </div>
           
           <div className="flex items-center gap-4 text-sm text-muted-foreground">

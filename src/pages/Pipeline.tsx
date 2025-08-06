@@ -85,6 +85,7 @@ type Lead = {
   observacoes: string | null;
   pa_estimado: string | null;
   data_sitplan: string | null;
+  dias_na_etapa_atual: number | null;
 };
 
 // Componente para card arrastável otimizado
@@ -120,7 +121,12 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
           <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
+            <Badge variant="outline" className="text-xs px-1 py-0">
+              {lead.dias_na_etapa_atual || 1}d
+            </Badge>
+          </div>
           <p className="text-xs text-muted-foreground truncate">
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
               ? lead.recomendante.join(", ") 
@@ -187,7 +193,7 @@ export default function Pipeline() {
         console.log('🔄 Buscando leads do Pipeline...');
         const { data, error } = await supabase
           .from('leads')
-          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan')
+          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan, dias_na_etapa_atual')
           .eq('user_id', user.id);
 
         if (error) throw error;

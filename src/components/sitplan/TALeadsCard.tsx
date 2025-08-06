@@ -169,17 +169,22 @@ export function TALeadsCard() {
                     {etapaLeads.map((lead) => (
                       <Card key={lead.id} className="p-3">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium">{lead.nome}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {lead.telefone || "Sem telefone"}
-                            </p>
-                            {lead.observacoes && (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {lead.observacoes}
-                              </p>
-                            )}
-                          </div>
+                           <div className="flex-1">
+                             <div className="flex items-center gap-2">
+                               <h4 className="font-medium">{lead.nome}</h4>
+                               <Badge variant="outline" className="text-xs">
+                                 {lead.dias_na_etapa_atual || 1}d
+                               </Badge>
+                             </div>
+                             <p className="text-sm text-muted-foreground">
+                               {lead.telefone || "Sem telefone"}
+                             </p>
+                             {lead.observacoes && (
+                               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                 {lead.observacoes}
+                               </p>
+                             )}
+                           </div>
                         </div>
                       </Card>
                     ))}
