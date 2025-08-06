@@ -118,9 +118,7 @@ const DraggableLeadCard = ({
       }
     : undefined;
 
-  const handleCheckboxChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleCheckboxChange = (checked: boolean) => {
     onToggleSelection(lead.id);
   };
 
@@ -148,7 +146,7 @@ const DraggableLeadCard = ({
         <div className="absolute top-2 right-2 z-10">
           <Checkbox
             checked={isSelected}
-            onChange={handleCheckboxChange}
+            onCheckedChange={handleCheckboxChange}
             className="h-5 w-5 rounded border-2 border-primary"
           />
         </div>
