@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { ArrowLeft, Play, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -167,36 +167,6 @@ export default function TACategories() {
       return acc;
     }, {} as Record<string, Lead[]>);
 
-  // Função para limpar exclusividades
-  const limparExclusividades = async () => {
-    try {
-      const { error } = await supabase
-        .from('leads')
-        .update({
-          ta_categoria_ativa: null,
-          ta_categoria_valor: null,
-          ta_exclusividade: false
-        })
-        .eq('incluir_ta', true);
-
-      if (error) throw error;
-
-      toast({
-        title: "Exclusividades removidas",
-        description: "Todas as categorias foram restauradas.",
-      });
-      
-      // Recarregar a página para mostrar todas as categorias
-      window.location.reload();
-    } catch (error) {
-      console.error('Erro ao limpar exclusividades:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao remover exclusividades. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Função para obter cor da etapa
   const getEtapaColor = (etapa: string) => {
@@ -270,36 +240,6 @@ export default function TACategories() {
             <p className="text-[#A9A9A9] font-inter">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
           </div>
           <div className="flex gap-4">
-            {/* Botão para limpar exclusividades se existirem */}
-            {leads.some(lead => lead.ta_exclusividade) && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="px-6 py-3 bg-yellow-500/10 backdrop-blur-md border border-yellow-500 text-yellow-500 hover:bg-yellow-500/20">
-                    <AlertTriangle className="mr-2 h-4 w-4" />
-                    Resetar Categorias
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-white">Resetar Categorias Exclusivas</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-300">
-                      Alguns leads foram marcados como exclusivos para categorias específicas. Isso pode estar ocultando leads de outras categorias.
-                      Deseja restaurar todas as categorias e remover as exclusividades?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-gray-800 text-white hover:bg-gray-700">Cancelar</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={limparExclusividades}
-                      className="bg-yellow-600 text-white hover:bg-yellow-700"
-                    >
-                      Sim, Resetar
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            
             <Button
               onClick={() => navigate('/dashboard/sitplan')}
               className="px-6 py-3 bg-white/5 backdrop-blur-md border border-[#A9A9A9] text-[#A9A9A9] hover:bg-white/10"
