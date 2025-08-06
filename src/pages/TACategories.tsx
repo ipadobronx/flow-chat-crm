@@ -113,8 +113,8 @@ export default function TACategories() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Apresentação TA</h1>
-            <p className="text-[#A9A9A9]">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
+            <h1 className="text-4xl font-bold text-white mb-2 font-inter tracking-tight">Apresentação TA</h1>
+            <p className="text-[#A9A9A9] font-inter">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
           </div>
           <div className="flex gap-4">
             <Button
@@ -136,7 +136,7 @@ export default function TACategories() {
 
         {/* Seção por Etapa */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6">📊 Por Etapa do Funil</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Etapa do Funil</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Object.entries(leadsByEtapa).map(([etapa, leadsInEtapa]) => (
               <div 
@@ -144,19 +144,41 @@ export default function TACategories() {
                 className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#00FFF0]/10 overflow-hidden cursor-pointer"
                 onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
               >
-                <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%]`}></div>
-                <div className="p-4">
-                  <h3 className="font-inter font-normal tracking-tighter text-lg mb-1 text-white">{etapa}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''}
+                <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                      NOVO
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
+                  <p className="text-sm text-muted-foreground mb-4 font-inter">
+                    Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
                   </p>
+                  
+                  {/* Barra de Progresso */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-inter font-normal tracking-tighter text-[#00FFF0]">
+                    <span className="text-2xl font-inter font-semibold tracking-tight text-white">
                       {leadsInEtapa.length}
                     </span>
-                    <button className="inline-flex items-center justify-center rounded-2xl text-sm font-inter font-normal tracking-tighter h-9 px-4 bg-border/20 dark:bg-white/20 backdrop-blur-md border border-border/40 dark:border-white/30 text-foreground transition-all duration-300 hover:scale-105 hover:bg-border/30 dark:hover:bg-white/30 active:scale-95">
-                      Ver Leads
+                    <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                      Acessar
                     </button>
+                  </div>
+                  
+                  <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                    <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                    Espaço privado
                   </div>
                 </div>
               </div>
@@ -166,7 +188,7 @@ export default function TACategories() {
 
         {/* Seção por Profissão */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-6">👔 Por Profissão</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Profissão</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Object.entries(leadsByProfissao).map(([profissao, leadsInProfissao]) => (
               <div 
@@ -174,19 +196,41 @@ export default function TACategories() {
                 className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#FF00C8]/10 overflow-hidden cursor-pointer"
                 onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
               >
-                <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%]`}></div>
-                <div className="p-4">
-                  <h3 className="font-inter font-normal tracking-tighter text-lg mb-1 text-white">{profissao}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''}
+                <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                  <div className="absolute top-4 left-4">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                      NOVO
+                    </span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
+                  <p className="text-sm text-muted-foreground mb-4 font-inter">
+                    Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
                   </p>
+                  
+                  {/* Barra de Progresso */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-inter font-normal tracking-tighter text-[#FF00C8]">
+                    <span className="text-2xl font-inter font-semibold tracking-tight text-white">
                       {leadsInProfissao.length}
                     </span>
-                    <button className="inline-flex items-center justify-center rounded-2xl text-sm font-inter font-normal tracking-tighter h-9 px-4 bg-border/20 dark:bg-white/20 backdrop-blur-md border border-border/40 dark:border-white/30 text-foreground transition-all duration-300 hover:scale-105 hover:bg-border/30 dark:hover:bg-white/30 active:scale-95">
-                      Ver Leads
+                    <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                      Acessar
                     </button>
+                  </div>
+                  
+                  <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                    <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                    Espaço privado
                   </div>
                 </div>
               </div>
