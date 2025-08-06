@@ -77,12 +77,12 @@ function SortableLeadItem({
         </div>
         
         <div className="flex-1 min-w-0">
-          {/* Linha principal com nome e etapa */}
+          {/* Linha principal com etapa e nome */}
           <div className="flex items-center gap-3 mb-2">
-            <h4 className="font-semibold text-base truncate flex-shrink-0 min-w-0">{lead.nome}</h4>
             <Badge className={`text-white text-xs px-2 py-1 flex-shrink-0 ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
             </Badge>
+            <h4 className="font-semibold text-base truncate flex-shrink-0 min-w-0">{lead.nome}</h4>
           </div>
           
           {/* Grid de informações organizadas */}
