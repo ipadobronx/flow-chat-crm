@@ -11,7 +11,8 @@ import Index from "./pages/Index";
 import LiveChat from "./pages/LiveChat";
 import Pipeline from "./pages/Pipeline";
 import SitPlan from "./pages/SitPlan";
-import TA from "./pages/TA";
+import TACategories from "./pages/TACategories";
+import TAPresentation from "./pages/TAPresentation";
 import NovaRec from "./pages/NovaRec";
 import ImportLeads from "./pages/ImportLeads";
 import Schedule from "./pages/Schedule";
@@ -50,7 +51,8 @@ const App = () => (
               <Route path="/dashboard/security" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
               <Route path="/dashboard/sitplan" element={<ProtectedRoute><SitPlan /></ProtectedRoute>} />
-              <Route path="/dashboard/ta" element={<ProtectedRoute><TA /></ProtectedRoute>} />
+              <Route path="/dashboard/ta" element={<ProtectedRoute><TACategories /></ProtectedRoute>} />
+              <Route path="/dashboard/ta-presentation" element={<ProtectedRoute><TAPresentation /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

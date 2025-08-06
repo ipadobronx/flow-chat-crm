@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
@@ -19,8 +19,11 @@ type Lead = Tables<"leads">;
 
 type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' | 'finished';
 
-export default function TA() {
+export default function TAPresentation() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const filterEtapa = searchParams.get('etapa');
+  const filterProfissao = searchParams.get('profissao');
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
@@ -30,14 +33,23 @@ export default function TA() {
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
   // Carregar leads selecionados para TA do banco de dados
-  const { data: leads = [], isLoading, refetch } = useQuery({
-    queryKey: ["ta-leads"],
+  const { data: allLeads = [], isLoading, refetch } = useQuery({
+    queryKey: ["ta-leads", filterEtapa, filterProfissao],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("leads")
         .select("*")
-        .eq("incluir_ta", true)
-        .order("ta_order", { ascending: true }); // Ordenar por ta_order
+        .eq("incluir_ta", true);
+
+      // Aplicar filtros se necessário
+      if (filterEtapa) {
+        query = query.eq("etapa", filterEtapa as any);
+      }
+      if (filterProfissao) {
+        query = query.eq("profissao", filterProfissao);
+      }
+
+      const { data, error } = await query.order("ta_order", { ascending: true });
       
       if (error) throw error;
       console.log(`🎯 TA encontrou ${data?.length || 0} leads selecionados:`, 
@@ -46,6 +58,9 @@ export default function TA() {
       return data as Lead[];
     },
   });
+
+  // Filtrar leads localmente se não há filtros de URL
+  const leads = allLeads;
 
   // Configurar realtime para sincronização automática
   useEffect(() => {
@@ -229,7 +244,7 @@ export default function TA() {
               <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
               <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
               <Button
-                onClick={() => navigate('/dashboard/sitplan')}
+                onClick={() => navigate('/dashboard/ta')}
                 className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
