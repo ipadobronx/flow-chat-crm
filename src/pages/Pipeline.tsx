@@ -95,19 +95,21 @@ type Lead = {
 const DraggableLeadCard = ({ 
   lead, 
   onClick, 
-  onSelectAllStage,
+  isSelectionMode,
+  isSelected,
   onToggleSelection,
   stageName
 }: { 
   lead: Lead; 
   onClick: () => void;
-  onSelectAllStage: (stageName: string) => void;
+  isSelectionMode: boolean;
+  isSelected: boolean;
   onToggleSelection: (leadId: string) => void;
   stageName: string;
 }) => {
-  const [showButtons, setShowButtons] = useState(false);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
+    disabled: isSelectionMode, // Disable drag during selection mode
   });
 
   const style = transform
@@ -116,57 +118,39 @@ const DraggableLeadCard = ({
       }
     : undefined;
 
-  const handleSelectAllStage = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onSelectAllStage(stageName);
-  };
-
-  const handleToggleSelection = async (e: React.MouseEvent) => {
+  const handleCheckboxChange = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     onToggleSelection(lead.id);
+  };
+
+  const handleCardClick = () => {
+    if (isSelectionMode) {
+      onToggleSelection(lead.id);
+    } else {
+      onClick();
+    }
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
-      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-grab active:cursor-grabbing group ${
+      {...(isSelectionMode ? {} : listeners)}
+      {...(isSelectionMode ? {} : attributes)}
+      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-pointer group ${
         isDragging ? 'opacity-50 z-50' : ''
-      }`}
-      onMouseEnter={() => setShowButtons(true)}
-      onMouseLeave={() => setShowButtons(false)}
-      onClick={(e) => {
-        e.preventDefault();
-        if (!isDragging) {
-          onClick();
-        }
-      }}
+      } ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+      onClick={handleCardClick}
     >
-      {/* Safari-style Action Buttons */}
-      {showButtons && (
-        <div className="absolute top-1 right-1 flex gap-1 z-20">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 sm:h-7 sm:w-7 bg-green-500/90 hover:bg-green-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
-            onClick={handleSelectAllStage}
-            title="Incluir toda etapa no SitPlan"
-          >
-            <Users className="h-3 w-3" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 sm:h-7 sm:w-7 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
-            onClick={handleToggleSelection}
-            title="Incluir este lead no SitPlan"
-          >
-            <Plus className="h-3 w-3" />
-          </Button>
+      {/* Checkbox for multi-selection */}
+      {isSelectionMode && (
+        <div className="absolute top-2 right-2 z-10">
+          <Checkbox
+            checked={isSelected}
+            onChange={handleCheckboxChange}
+            className="h-5 w-5 rounded border-2 border-primary"
+          />
         </div>
       )}
       
@@ -230,46 +214,57 @@ export default function Pipeline() {
   const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
   const [showOnlySitplan, setShowOnlySitplan] = useState(false);
+  const [activeSelectionStage, setActiveSelectionStage] = useState<string | null>(null);
+  const [stageToInclude, setStageToInclude] = useState<string | null>(null);
 
-  // Individual lead selection
-  const handleToggleSelection = async (leadId: string) => {
-    try {
-      const { error } = await supabase
-        .from('leads')
-        .update({ 
-          incluir_sitplan: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', leadId);
+  // Multi-select functionality
+  const multiSelect = useMultiSelect({
+    onSelectionComplete: async (selectedIds: string[]) => {
+      if (selectedIds.length === 0) return;
+      
+      try {
+        console.log(`🎯 Incluindo ${selectedIds.length} leads selecionados no SitPlan`);
+        
+        const { error } = await supabase
+          .from('leads')
+          .update({ 
+            incluir_sitplan: true,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', selectedIds);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // Update local state
-      setLeads(prevLeads =>
-        prevLeads.map(lead =>
-          lead.id === leadId
-            ? { ...lead, incluir_sitplan: true }
-            : lead
-        )
-      );
+        // Update local state
+        setLeads(prevLeads =>
+          prevLeads.map(lead =>
+            selectedIds.includes(lead.id)
+              ? { ...lead, incluir_sitplan: true }
+              : lead
+          )
+        );
 
-      toast({
-        title: "Lead incluído!",
-        description: "Lead adicionado ao SitPlan com sucesso.",
-      });
+        toast({
+          title: "Leads incluídos!",
+          description: `${selectedIds.length} leads foram adicionados ao SitPlan.`,
+        });
 
-    } catch (error) {
-      console.error('Erro ao incluir lead no SitPlan:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível incluir o lead no SitPlan.",
-        variant: "destructive"
-      });
+        // Reset selection state
+        setActiveSelectionStage(null);
+
+      } catch (error) {
+        console.error('Erro ao incluir leads selecionados no SitPlan:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível incluir os leads no SitPlan.",
+          variant: "destructive"
+        });
+      }
     }
-  };
+  });
 
-  // Select all leads from a stage
-  const handleSelectAllStage = async (stageName: string) => {
+  // Send all leads from a stage to SitPlan
+  const handleIncludeAllStage = async (stageName: string) => {
     const stageLeads = getLeadsByStage(stageName);
     const leadIds = stageLeads.map(lead => lead.id);
     
@@ -301,6 +296,8 @@ export default function Pipeline() {
         title: "Etapa incluída!",
         description: `Todos os ${leadIds.length} leads da etapa ${stageName} foram adicionados ao SitPlan.`,
       });
+
+      setStageToInclude(null);
 
     } catch (error) {
       console.error('Erro ao incluir leads da etapa no SitPlan:', error);
@@ -679,9 +676,39 @@ export default function Pipeline() {
                 }}
               />
             </div>
-            
           </div>
         </div>
+
+        {/* Action bar for multi-selection */}
+        {activeSelectionStage && multiSelect.selectedCount > 0 && (
+          <div className="flex-shrink-0 bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-5 h-5 text-primary" />
+              <span className="font-medium">
+                {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  multiSelect.clearSelections();
+                  setActiveSelectionStage(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={multiSelect.confirmSelection}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Incluir no SitPlan
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-hidden">
           <DndContext
@@ -697,6 +724,8 @@ export default function Pipeline() {
               <div className="flex gap-2 sm:gap-4 min-w-max">
                 {stages.map((stage) => {
                   const stageLeads = getLeadsByStage(stage.name);
+                  const isSelectionActive = activeSelectionStage === stage.name;
+                  
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
                       <Card className="w-64 sm:w-72 lg:w-80 flex-shrink-0">
@@ -705,6 +734,44 @@ export default function Pipeline() {
                             <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.name}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                              
+                              {/* Safari-style Stage Action Buttons */}
+                              {stageLeads.length > 0 && (
+                                <div className="flex gap-1">
+                                  {/* Green button - Send all leads from stage */}
+                                  <Button
+                                    size="sm"
+                                    className="h-6 w-6 p-0 bg-green-500/90 hover:bg-green-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
+                                    onClick={() => setStageToInclude(stage.name)}
+                                    title="Enviar toda a etapa para o SitPlan"
+                                  >
+                                    <Users className="h-3 w-3" />
+                                  </Button>
+                                  
+                                  {/* Blue button - Activate selection mode */}
+                                  <Button
+                                    size="sm"
+                                    variant={isSelectionActive ? "default" : "ghost"}
+                                    className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 backdrop-blur-sm ${
+                                      isSelectionActive 
+                                        ? "bg-primary text-primary-foreground" 
+                                        : "bg-blue-500/90 hover:bg-blue-600 text-white"
+                                    }`}
+                                    onClick={() => {
+                                      if (isSelectionActive) {
+                                        multiSelect.clearSelections();
+                                        setActiveSelectionStage(null);
+                                      } else {
+                                        setActiveSelectionStage(stage.name);
+                                        multiSelect.clearSelections();
+                                      }
+                                    }}
+                                    title="Selecionar leads específicos"
+                                  >
+                                    <CheckSquare className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
@@ -715,8 +782,9 @@ export default function Pipeline() {
                               key={lead.id}
                               lead={lead}
                               onClick={() => setSelectedLead(lead)}
-                              onSelectAllStage={handleSelectAllStage}
-                              onToggleSelection={handleToggleSelection}
+                              isSelectionMode={isSelectionActive}
+                              isSelected={multiSelect.isSelected(lead.id)}
+                              onToggleSelection={multiSelect.toggleSelection}
                               stageName={stage.name}
                             />
                           ))}
@@ -755,6 +823,32 @@ export default function Pipeline() {
             </DragOverlay>
           </DndContext>
         </div>
+
+        {/* Confirmation Dialog for sending all stage leads */}
+        <AlertDialog open={!!stageToInclude} onOpenChange={() => setStageToInclude(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Inclusão da Etapa</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja incluir todos os {getLeadsByStage(stageToInclude || '').length} leads da etapa "{stageToInclude}" no SitPlan?
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (stageToInclude) {
+                    handleIncludeAllStage(stageToInclude);
+                  }
+                }}
+                className="bg-green-600 text-white hover:bg-green-700"
+              >
+                Incluir Todos
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Dialog com informações detalhadas do lead */}
         <Dialog open={!!selectedLead} onOpenChange={() => {
