@@ -183,7 +183,7 @@ export default function TA() {
   
   const etapasOptions = [
     "Todos", "Novo", "TA", "Não atendido", "OI", "Delay OI", "PC", "Delay PC", 
-    "N", "Apólice Emitida", "Apólice Entregue", "C2", "Delay C2", "Ligar Depois", 
+    "N", "Apólice Emitida", "Apólice Entregue", "Delay C2", "Ligar Depois", 
     "Marcar", "Não", "Proposta Cancelada", "Apólice Cancelada"
   ];
 

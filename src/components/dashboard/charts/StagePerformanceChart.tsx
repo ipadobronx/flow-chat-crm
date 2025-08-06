@@ -51,7 +51,7 @@ export function StagePerformanceChart({ startDate, endDate }: StagePerformanceCh
         acc[stage].total++;
         
         // Definir conversões e pendências baseado na etapa
-        if (["Apólice Emitida", "Placed", "Apólice Entregue"].includes(stage)) {
+        if (["Apólice Emitida", "Apólice Entregue"].includes(stage)) {
           acc[stage].conversions++;
         } else if (["Analisando Proposta", "Pendência de UW", "Delay PC"].includes(stage)) {
           acc[stage].pending++;

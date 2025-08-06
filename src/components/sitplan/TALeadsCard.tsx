@@ -11,7 +11,7 @@ import { Tables } from "@/integrations/supabase/types";
 
 type Lead = Tables<"leads">;
 
-const DEFAULT_ETAPAS_ORDER = ["Novo", "OI", "PC", "Delay PC", "Analisando Proposta", "Proposta Não Apresentada", "N", "Pendência de UW", "Apólice Emitida", "Placed", "Apólice Entregue"];
+const DEFAULT_ETAPAS_ORDER = ["Novo", "OI", "PC", "Delay PC", "Analisando Proposta", "Proposta Não Apresentada", "N", "Pendência de UW", "Apólice Emitida", "Apólice Entregue"];
 
 export function TALeadsCard() {
   const [selectedLeadsIds, setSelectedLeadsIds] = useState<string[]>([]);
@@ -59,7 +59,6 @@ export function TALeadsCard() {
       case "Proposta Não Apresentada": return "bg-gray-600";
       case "Pendência de UW": return "bg-yellow-700";
       case "Apólice Emitida": return "bg-purple-500";
-      case "Placed": return "bg-emerald-600";
       case "Apólice Entregue": return "bg-green-600";
       default: return "bg-gray-500";
     }
