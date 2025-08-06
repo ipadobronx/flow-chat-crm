@@ -60,37 +60,54 @@ export default function TACategories() {
     return { leadsNaCategoria, conflitos };
   };
 
-  // Função para marcar categoria como exclusiva
-  const marcarCategoriaExclusiva = async (categoria: string, tipo: 'etapa' | 'profissao') => {
+  // Função para acessar categoria (automática para conflitos)
+  const acessarCategoria = async (categoria: string, tipo: 'etapa' | 'profissao') => {
     const { leadsNaCategoria, conflitos } = detectarConflitos(categoria, tipo);
     
+    // Se não há conflitos, navegar diretamente
     if (conflitos.length === 0) {
-      // Sem conflitos, navegue diretamente
       const param = tipo === 'etapa' ? 'etapa' : 'profissao';
       navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}`);
       return;
     }
 
+    // Com conflitos: remover automaticamente seguindo hierarquia
     try {
-      // Marcar todos os leads da categoria como exclusivos
-      const { error } = await supabase
-        .from('leads')
-        .update({
-          ta_categoria_ativa: tipo,
-          ta_categoria_valor: categoria,
-          ta_exclusividade: true
-        })
-        .in('id', leadsNaCategoria.map(lead => lead.id));
+      if (tipo === 'profissao') {
+        // Profissão: remover da etapa automaticamente
+        const { error } = await supabase
+          .from('leads')
+          .update({
+            ta_categoria_ativa: 'profissao',
+            ta_categoria_valor: categoria,
+            ta_exclusividade: true
+          })
+          .in('id', leadsNaCategoria.map(lead => lead.id));
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success(`${conflitos.length} lead(s) removido(s) automaticamente de outras categorias`);
+        toast.success(`${conflitos.length} lead(s) removido(s) das etapas automaticamente`);
+      } else {
+        // Etapa: remover da profissão automaticamente  
+        const { error } = await supabase
+          .from('leads')
+          .update({
+            ta_categoria_ativa: 'etapa',
+            ta_categoria_valor: categoria,
+            ta_exclusividade: true
+          })
+          .in('id', leadsNaCategoria.map(lead => lead.id));
+
+        if (error) throw error;
+
+        toast.success(`${conflitos.length} lead(s) removido(s) das profissões automaticamente`);
+      }
       
       const param = tipo === 'etapa' ? 'etapa' : 'profissao';
       navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&exclusivo=true`);
     } catch (error) {
-      console.error('Erro ao marcar categoria como exclusiva:', error);
-      toast.error('Erro ao processar a exclusividade. Tente novamente.');
+      console.error('Erro ao processar categoria:', error);
+      toast.error('Erro ao acessar categoria. Tente novamente.');
     }
   };
 
@@ -307,7 +324,13 @@ export default function TACategories() {
                       <span className="text-2xl font-inter font-semibold tracking-tight text-white">
                         {leadsInEtapa.length}
                       </span>
-                      <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          acessarCategoria(etapa, 'etapa');
+                        }}
+                        className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
+                      >
                         Acessar
                       </button>
                     </div>
@@ -320,47 +343,14 @@ export default function TACategories() {
                 </div>
               );
 
-              if (conflitos.length > 0) {
-                return (
-                  <AlertDialog key={etapa}>
-                    <AlertDialogTrigger asChild>
-                      <CardComponent />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-white">Conflito Detectado - {etapa}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-300">
-                          Esta categoria contém {conflitos.length} lead{conflitos.length !== 1 ? 's' : ''} que também apare{conflitos.length !== 1 ? 'cem' : 'ce'} em outras categorias.
-                          Deseja marcar esta categoria como exclusiva e remover automaticamente estes leads das outras categorias?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel 
-                          onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
-                          className="bg-gray-800 text-white hover:bg-gray-700"
-                        >
-                          Continuar sem Remover
-                        </AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => marcarCategoriaExclusiva(etapa, 'etapa')}
-                          className="bg-red-600 text-white hover:bg-red-700"
-                        >
-                          Sim, Remover Conflitos
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                );
-              } else {
-                return (
-                  <div 
-                    key={etapa}
-                    onClick={() => navigate(`/dashboard/ta-presentation?etapa=${encodeURIComponent(etapa)}`)}
-                  >
-                    <CardComponent />
-                  </div>
-                );
-              }
+              return (
+                <div 
+                  key={etapa}
+                  onClick={() => acessarCategoria(etapa, 'etapa')}
+                >
+                  <CardComponent />
+                </div>
+              );
             })}
           </div>
         </div>
@@ -411,7 +401,13 @@ export default function TACategories() {
                       <span className="text-2xl font-inter font-semibold tracking-tight text-white">
                         {leadsInProfissao.length}
                       </span>
-                      <button className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          acessarCategoria(profissao, 'profissao');
+                        }}
+                        className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
+                      >
                         Acessar
                       </button>
                     </div>
@@ -424,47 +420,14 @@ export default function TACategories() {
                 </div>
               );
 
-              if (conflitos.length > 0) {
-                return (
-                  <AlertDialog key={profissao}>
-                    <AlertDialogTrigger asChild>
-                      <CardComponent />
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-gray-900/95 backdrop-blur-md border border-gray-700">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-white">Conflito Detectado - {profissao}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-300">
-                          Esta categoria contém {conflitos.length} lead{conflitos.length !== 1 ? 's' : ''} que também apare{conflitos.length !== 1 ? 'cem' : 'ce'} em outras categorias.
-                          Deseja marcar esta categoria como exclusiva e remover automaticamente estes leads das outras categorias?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel 
-                          onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
-                          className="bg-gray-800 text-white hover:bg-gray-700"
-                        >
-                          Continuar sem Remover
-                        </AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => marcarCategoriaExclusiva(profissao, 'profissao')}
-                          className="bg-red-600 text-white hover:bg-red-700"
-                        >
-                          Sim, Remover Conflitos
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                );
-              } else {
-                return (
-                  <div 
-                    key={profissao}
-                    onClick={() => navigate(`/dashboard/ta-presentation?profissao=${encodeURIComponent(profissao)}`)}
-                  >
-                    <CardComponent />
-                  </div>
-                );
-              }
+              return (
+                <div 
+                  key={profissao}
+                  onClick={() => acessarCategoria(profissao, 'profissao')}
+                >
+                  <CardComponent />
+                </div>
+              );
             })}
           </div>
         </div>
