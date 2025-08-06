@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -138,33 +139,43 @@ const DraggableLeadCard = ({
       {...(isSelectionMode ? {} : attributes)}
       className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-pointer group ${
         isDragging ? 'opacity-50 z-50' : ''
-      } ${isSelected ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+      } ${isSelected ? 'ring-1 ring-blue-400/50 bg-blue-50/50' : ''}`}
       onClick={handleCardClick}
     >
-      {/* Checkbox for multi-selection */}
+      {/* Checkbox minimalista para multi-seleção */}
       {isSelectionMode && (
         <div className="absolute top-2 right-2 z-10">
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={handleCheckboxChange}
-            className="h-5 w-5 rounded border-2 border-primary"
-          />
+          <div 
+            className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center cursor-pointer ${
+              isSelected 
+                ? 'bg-blue-500 border-blue-500' 
+                : 'border-blue-300 hover:border-blue-400 bg-white'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCheckboxChange(!isSelected);
+            }}
+          >
+            {isSelected && (
+              <Check className="h-3 w-3 text-white" />
+            )}
+          </div>
         </div>
       )}
       
-      {lead.etapa !== "Todos" && (
-        <Badge className="absolute top-2 left-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
-          {lead.dias_na_etapa_atual || 1}d
-        </Badge>
-      )}
-      
-      <div className="flex items-start space-x-2 sm:space-x-3 mt-6">
+      <div className="flex items-start space-x-2 sm:space-x-3">
         <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
           <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="mb-1">
-            <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
+          <div className="mb-1 flex items-start justify-between">
+            <p className="font-medium text-xs sm:text-sm truncate flex-1">{lead.nome}</p>
+            {/* Contagem de dias no canto superior direito */}
+            {lead.etapa !== "Todos" && (
+              <Badge className="ml-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-1.5 py-0.5 shrink-0">
+                {lead.dias_na_etapa_atual || 1}d
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground truncate">
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
@@ -677,32 +688,33 @@ export default function Pipeline() {
           </div>
         </div>
 
-        {/* Action bar for multi-selection */}
+        {/* Action bar minimalista para multi-seleção */}
         {activeSelectionStage && multiSelect.selectedCount > 0 && (
-          <div className="flex-shrink-0 bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckSquare className="w-5 h-5 text-primary" />
-              <span className="font-medium">
-                {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
+          <div className="flex-shrink-0 bg-blue-50/80 border border-blue-200/50 rounded-xl p-3 flex items-center justify-between backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-blue-700 font-medium text-sm">
+                {multiSelect.selectedCount} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
               </span>
             </div>
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => {
                   multiSelect.clearSelections();
                   setActiveSelectionStage(null);
                 }}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100/50 h-8 px-3"
               >
                 Cancelar
               </Button>
               <Button
                 size="sm"
                 onClick={multiSelect.confirmSelection}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 rounded-lg"
               >
-                Incluir no SitPlan
+                Incluir
               </Button>
             </div>
           </div>
@@ -733,27 +745,26 @@ export default function Pipeline() {
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                               
-                              {/* Safari-style Stage Action Buttons */}
+                              {/* Botões minimalistas estilo Safari */}
                               {stageLeads.length > 0 && (
-                                <div className="flex gap-1">
-                                  {/* Green button - Send all leads from stage */}
+                                <div className="flex gap-1.5">
+                                  {/* Botão verde - Enviar todos os leads da etapa */}
                                   <Button
                                     size="sm"
-                                    className="h-6 w-6 p-0 bg-green-500/90 hover:bg-green-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
+                                    className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
                                     onClick={() => setStageToInclude(stage.name)}
                                     title="Enviar toda a etapa para o SitPlan"
                                   >
                                     <Users className="h-3 w-3" />
                                   </Button>
                                   
-                                  {/* Blue button - Activate selection mode */}
+                                  {/* Botão azul - Ativar modo de seleção */}
                                   <Button
                                     size="sm"
-                                    variant={isSelectionActive ? "default" : "ghost"}
-                                    className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 backdrop-blur-sm ${
+                                    className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
                                       isSelectionActive 
-                                        ? "bg-primary text-primary-foreground" 
-                                        : "bg-blue-500/90 hover:bg-blue-600 text-white"
+                                        ? "bg-blue-600 text-white" 
+                                        : "bg-blue-500 hover:bg-blue-600 text-white"
                                     }`}
                                     onClick={() => {
                                       if (isSelectionActive) {
