@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter } from "lucide-react";
+import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +41,8 @@ import {
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
+import { useMultiSelect } from "@/hooks/useMultiSelect";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
@@ -90,9 +92,22 @@ type Lead = {
 };
 
 // Componente para card arrastável otimizado
-const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void }) => {
+const DraggableLeadCard = ({ 
+  lead, 
+  onClick, 
+  isSelectionMode = false, 
+  isSelected = false, 
+  onSelectionToggle 
+}: { 
+  lead: Lead; 
+  onClick: () => void;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onSelectionToggle?: (id: string) => void;
+}) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
+    disabled: isSelectionMode, // Disable drag when in selection mode
   });
 
   const style = transform
@@ -105,20 +120,37 @@ const DraggableLeadCard = ({ lead, onClick }: { lead: Lead; onClick: () => void 
     <div
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
-      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all cursor-grab active:cursor-grabbing relative ${
+      {...(!isSelectionMode ? listeners : {})}
+      {...(!isSelectionMode ? attributes : {})}
+      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative ${
         isDragging ? 'opacity-50 z-50' : ''
+      } ${
+        isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
+      } ${
+        isSelected ? 'ring-2 ring-primary bg-primary/10' : ''
       }`}
       onClick={(e) => {
-        if (!isDragging) {
-          e.preventDefault();
+        e.preventDefault();
+        if (isSelectionMode && onSelectionToggle) {
+          onSelectionToggle(lead.id);
+        } else if (!isDragging) {
           onClick();
         }
       }}
     >
+      {isSelectionMode && (
+        <div className="absolute top-2 left-2 z-10">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onSelectionToggle?.(lead.id)}
+            className="bg-background border-2"
+          />
+        </div>
+      )}
       {lead.etapa !== "Todos" && (
-        <Badge className="absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
+        <Badge className={`absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10 ${
+          isSelectionMode ? 'top-10' : 'top-2'
+        }`}>
           {lead.dias_na_etapa_atual || 1}d
         </Badge>
       )}
@@ -176,6 +208,49 @@ export default function Pipeline() {
   const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
   const [showOnlySitplan, setShowOnlySitplan] = useState(false);
+
+  // Multi-select functionality
+  const multiSelect = useMultiSelect({
+    onSelectionComplete: async (selectedIds: string[]) => {
+      if (selectedIds.length === 0) return;
+      
+      try {
+        console.log(`🎯 Incluindo ${selectedIds.length} leads no SitPlan`);
+        
+        const { error } = await supabase
+          .from('leads')
+          .update({ 
+            incluir_sitplan: true,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', selectedIds);
+
+        if (error) throw error;
+
+        // Update local state
+        setLeads(prevLeads =>
+          prevLeads.map(lead =>
+            selectedIds.includes(lead.id)
+              ? { ...lead, incluir_sitplan: true }
+              : lead
+          )
+        );
+
+        toast({
+          title: "Leads incluídos!",
+          description: `${selectedIds.length} leads adicionados ao SitPlan com sucesso.`,
+        });
+
+      } catch (error) {
+        console.error('Erro ao incluir leads no SitPlan:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível incluir os leads no SitPlan.",
+          variant: "destructive"
+        });
+      }
+    }
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -527,30 +602,81 @@ export default function Pipeline() {
             <p className="text-sm sm:text-base text-muted-foreground">Kanban board for lead management</p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4" />
-            <Label className="text-sm">Mostrar apenas leads do SitPlan</Label>
-            <Switch
-              checked={showOnlySitplan}
-              onCheckedChange={(checked) => {
-                setShowOnlySitplan(checked);
-                if (checked) {
-                  console.log('🔍 Filtro SitPlan ativado - mostrando apenas leads com incluir_sitplan = true');
-                  const sitplanLeads = leads.filter(lead => lead.incluir_sitplan);
-                  console.log(`📊 Total de leads marcados para SitPlan: ${sitplanLeads.length}`, 
-                    sitplanLeads.map(lead => ({ nome: lead.nome, etapa: lead.etapa })));
-                }
-              }}
-            />
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              <Label className="text-sm">Mostrar apenas leads do SitPlan</Label>
+              <Switch
+                checked={showOnlySitplan}
+                onCheckedChange={(checked) => {
+                  setShowOnlySitplan(checked);
+                  if (checked) {
+                    console.log('🔍 Filtro SitPlan ativado - mostrando apenas leads com incluir_sitplan = true');
+                    const sitplanLeads = leads.filter(lead => lead.incluir_sitplan);
+                    console.log(`📊 Total de leads marcados para SitPlan: ${sitplanLeads.length}`, 
+                      sitplanLeads.map(lead => ({ nome: lead.nome, etapa: lead.etapa })));
+                  }
+                }}
+              />
+            </div>
+            
+            <Button
+              variant={multiSelect.isSelectionMode ? "default" : "outline"}
+              size="sm"
+              onClick={multiSelect.toggleSelectionMode}
+              className="flex items-center gap-2"
+            >
+              {multiSelect.isSelectionMode ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Cancelar Seleção
+                </>
+              ) : (
+                <>
+                  <CheckSquare className="w-4 h-4" />
+                  Seleção Múltipla
+                </>
+              )}
+            </Button>
           </div>
         </div>
+
+        {/* Action bar for multi-select */}
+        {multiSelect.isSelectionMode && multiSelect.selectedCount > 0 && (
+          <div className="bg-primary text-primary-foreground p-4 rounded-lg shadow-lg flex items-center justify-between animate-slide-in-right">
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5" />
+              <span className="font-medium">
+                {multiSelect.selectedCount} lead{multiSelect.selectedCount > 1 ? 's' : ''} selecionado{multiSelect.selectedCount > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={multiSelect.clearSelections}
+              >
+                Limpar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={multiSelect.confirmSelection}
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+              >
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Incluir no SitPlan
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-hidden">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            onDragStart={multiSelect.isSelectionMode ? undefined : handleDragStart}
+            onDragEnd={multiSelect.isSelectionMode ? undefined : handleDragEnd}
           >
             {loading ? (
               <div className="text-center py-8">Carregando leads...</div>
@@ -565,7 +691,20 @@ export default function Pipeline() {
                         <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
                           <div className="flex items-center justify-between">
                             <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.name}</CardTitle>
-                            <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                              {multiSelect.isSelectionMode && stageLeads.length > 0 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => multiSelect.selectAll(stageLeads.map(lead => lead.id))}
+                                  className="h-6 px-2 text-xs"
+                                >
+                                  <Users className="w-3 h-3 mr-1" />
+                                  Todos
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
                         </CardHeader>
@@ -575,6 +714,9 @@ export default function Pipeline() {
                               key={lead.id}
                               lead={lead}
                               onClick={() => setSelectedLead(lead)}
+                              isSelectionMode={multiSelect.isSelectionMode}
+                              isSelected={multiSelect.isSelected(lead.id)}
+                              onSelectionToggle={multiSelect.toggleSelection}
                             />
                           ))}
                           {stageLeads.length === 0 && (
