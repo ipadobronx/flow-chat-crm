@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users } from "lucide-react";
+import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
@@ -95,19 +95,19 @@ type Lead = {
 const DraggableLeadCard = ({ 
   lead, 
   onClick, 
-  isSelectionMode = false, 
-  isSelected = false, 
-  onSelectionToggle 
+  onSelectAllStage,
+  onToggleSelection,
+  stageName
 }: { 
   lead: Lead; 
   onClick: () => void;
-  isSelectionMode?: boolean;
-  isSelected?: boolean;
-  onSelectionToggle?: (id: string) => void;
+  onSelectAllStage: (stageName: string) => void;
+  onToggleSelection: (leadId: string) => void;
+  stageName: string;
 }) => {
+  const [showButtons, setShowButtons] = useState(false);
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
-    disabled: isSelectionMode, // Disable drag when in selection mode
   });
 
   const style = transform
@@ -116,49 +116,71 @@ const DraggableLeadCard = ({
       }
     : undefined;
 
+  const handleSelectAllStage = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onSelectAllStage(stageName);
+  };
+
+  const handleToggleSelection = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onToggleSelection(lead.id);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...(!isSelectionMode ? listeners : {})}
-      {...(!isSelectionMode ? attributes : {})}
-      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative ${
+      {...listeners}
+      {...attributes}
+      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-grab active:cursor-grabbing group ${
         isDragging ? 'opacity-50 z-50' : ''
-      } ${
-        isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
-      } ${
-        isSelected ? 'ring-2 ring-primary bg-primary/10' : ''
       }`}
+      onMouseEnter={() => setShowButtons(true)}
+      onMouseLeave={() => setShowButtons(false)}
       onClick={(e) => {
         e.preventDefault();
-        if (isSelectionMode && onSelectionToggle) {
-          onSelectionToggle(lead.id);
-        } else if (!isDragging) {
+        if (!isDragging) {
           onClick();
         }
       }}
     >
-      {isSelectionMode && (
-        <div className="absolute top-2 left-2 z-10">
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={() => onSelectionToggle?.(lead.id)}
-            className="bg-background border-2"
-          />
+      {/* Safari-style Action Buttons */}
+      {showButtons && (
+        <div className="absolute top-1 right-1 flex gap-1 z-20">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 sm:h-7 sm:w-7 bg-green-500/90 hover:bg-green-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
+            onClick={handleSelectAllStage}
+            title="Incluir toda etapa no SitPlan"
+          >
+            <Users className="h-3 w-3" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-6 w-6 sm:h-7 sm:w-7 bg-blue-500/90 hover:bg-blue-600 text-white rounded-full shadow-sm border-0 backdrop-blur-sm"
+            onClick={handleToggleSelection}
+            title="Incluir este lead no SitPlan"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
         </div>
       )}
+      
       {lead.etapa !== "Todos" && (
-        <Badge className={`absolute top-2 right-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10 ${
-          isSelectionMode ? 'top-10' : 'top-2'
-        }`}>
+        <Badge className="absolute top-2 left-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-2 py-1 z-10">
           {lead.dias_na_etapa_atual || 1}d
         </Badge>
       )}
-      <div className="flex items-start space-x-2 sm:space-x-3">
+      
+      <div className="flex items-start space-x-2 sm:space-x-3 mt-6">
         <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
           <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 min-w-0 pr-8">
+        <div className="flex-1 min-w-0">
           <div className="mb-1">
             <p className="font-medium text-xs sm:text-sm truncate">{lead.nome}</p>
           </div>
@@ -209,48 +231,86 @@ export default function Pipeline() {
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
   const [showOnlySitplan, setShowOnlySitplan] = useState(false);
 
-  // Multi-select functionality
-  const multiSelect = useMultiSelect({
-    onSelectionComplete: async (selectedIds: string[]) => {
-      if (selectedIds.length === 0) return;
-      
-      try {
-        console.log(`🎯 Incluindo ${selectedIds.length} leads no SitPlan`);
-        
-        const { error } = await supabase
-          .from('leads')
-          .update({ 
-            incluir_sitplan: true,
-            updated_at: new Date().toISOString()
-          })
-          .in('id', selectedIds);
+  // Individual lead selection
+  const handleToggleSelection = async (leadId: string) => {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          incluir_sitplan: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', leadId);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Update local state
-        setLeads(prevLeads =>
-          prevLeads.map(lead =>
-            selectedIds.includes(lead.id)
-              ? { ...lead, incluir_sitplan: true }
-              : lead
-          )
-        );
+      // Update local state
+      setLeads(prevLeads =>
+        prevLeads.map(lead =>
+          lead.id === leadId
+            ? { ...lead, incluir_sitplan: true }
+            : lead
+        )
+      );
 
-        toast({
-          title: "Leads incluídos!",
-          description: `${selectedIds.length} leads adicionados ao SitPlan com sucesso.`,
-        });
+      toast({
+        title: "Lead incluído!",
+        description: "Lead adicionado ao SitPlan com sucesso.",
+      });
 
-      } catch (error) {
-        console.error('Erro ao incluir leads no SitPlan:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível incluir os leads no SitPlan.",
-          variant: "destructive"
-        });
-      }
+    } catch (error) {
+      console.error('Erro ao incluir lead no SitPlan:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível incluir o lead no SitPlan.",
+        variant: "destructive"
+      });
     }
-  });
+  };
+
+  // Select all leads from a stage
+  const handleSelectAllStage = async (stageName: string) => {
+    const stageLeads = getLeadsByStage(stageName);
+    const leadIds = stageLeads.map(lead => lead.id);
+    
+    if (leadIds.length === 0) return;
+    
+    try {
+      console.log(`🎯 Incluindo todos os ${leadIds.length} leads da etapa ${stageName} no SitPlan`);
+      
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          incluir_sitplan: true,
+          updated_at: new Date().toISOString()
+        })
+        .in('id', leadIds);
+
+      if (error) throw error;
+
+      // Update local state
+      setLeads(prevLeads =>
+        prevLeads.map(lead =>
+          leadIds.includes(lead.id)
+            ? { ...lead, incluir_sitplan: true }
+            : lead
+        )
+      );
+
+      toast({
+        title: "Etapa incluída!",
+        description: `Todos os ${leadIds.length} leads da etapa ${stageName} foram adicionados ao SitPlan.`,
+      });
+
+    } catch (error) {
+      console.error('Erro ao incluir leads da etapa no SitPlan:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível incluir os leads da etapa no SitPlan.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -620,63 +680,15 @@ export default function Pipeline() {
               />
             </div>
             
-            <Button
-              variant={multiSelect.isSelectionMode ? "default" : "outline"}
-              size="sm"
-              onClick={multiSelect.toggleSelectionMode}
-              className="flex items-center gap-2"
-            >
-              {multiSelect.isSelectionMode ? (
-                <>
-                  <X className="w-4 h-4" />
-                  Cancelar Seleção
-                </>
-              ) : (
-                <>
-                  <CheckSquare className="w-4 h-4" />
-                  Seleção Múltipla
-                </>
-              )}
-            </Button>
           </div>
         </div>
-
-        {/* Action bar for multi-select */}
-        {multiSelect.isSelectionMode && multiSelect.selectedCount > 0 && (
-          <div className="bg-primary text-primary-foreground p-4 rounded-lg shadow-lg flex items-center justify-between animate-slide-in-right">
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5" />
-              <span className="font-medium">
-                {multiSelect.selectedCount} lead{multiSelect.selectedCount > 1 ? 's' : ''} selecionado{multiSelect.selectedCount > 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={multiSelect.clearSelections}
-              >
-                Limpar
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={multiSelect.confirmSelection}
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-              >
-                <ArrowRight className="w-4 h-4 mr-2" />
-                Incluir no SitPlan
-              </Button>
-            </div>
-          </div>
-        )}
 
         <div className="flex-1 overflow-hidden">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragStart={multiSelect.isSelectionMode ? undefined : handleDragStart}
-            onDragEnd={multiSelect.isSelectionMode ? undefined : handleDragEnd}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
           >
             {loading ? (
               <div className="text-center py-8">Carregando leads...</div>
@@ -689,21 +701,10 @@ export default function Pipeline() {
                     <DroppableColumn key={stage.name} id={stage.name}>
                       <Card className="w-64 sm:w-72 lg:w-80 flex-shrink-0">
                         <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
-                          <div className="flex items-center justify-between">
+                           <div className="flex items-center justify-between">
                             <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.name}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
-                              {multiSelect.isSelectionMode && stageLeads.length > 0 && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => multiSelect.selectAll(stageLeads.map(lead => lead.id))}
-                                  className="h-6 px-2 text-xs"
-                                >
-                                  <Users className="w-3 h-3 mr-1" />
-                                  Todos
-                                </Button>
-                              )}
                             </div>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
@@ -714,9 +715,9 @@ export default function Pipeline() {
                               key={lead.id}
                               lead={lead}
                               onClick={() => setSelectedLead(lead)}
-                              isSelectionMode={multiSelect.isSelectionMode}
-                              isSelected={multiSelect.isSelected(lead.id)}
-                              onSelectionToggle={multiSelect.toggleSelection}
+                              onSelectAllStage={handleSelectAllStage}
+                              onToggleSelection={handleToggleSelection}
+                              stageName={stage.name}
                             />
                           ))}
                           {stageLeads.length === 0 && (
