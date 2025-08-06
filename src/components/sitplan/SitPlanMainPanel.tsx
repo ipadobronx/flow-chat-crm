@@ -95,6 +95,8 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
       });
 
       refetch();
+      // Trigger refresh of sitplan sidebar immediately
+      window.dispatchEvent(new CustomEvent('sitplan-updated'));
     } catch (error) {
       toast({
         title: "Erro",
@@ -276,8 +278,8 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
       </div>
 
       <div className="p-6">
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <Table>
+        <div className="rounded-xl border border-border bg-card overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent border-border">
                 <TableHead className="font-semibold text-muted-foreground">NOME</TableHead>
@@ -320,9 +322,9 @@ export function SitPlanMainPanel({ selectedLead, onSelectLead }: SitPlanMainPane
                   <TableCell className="text-muted-foreground">
                     {lead.tem_filhos ? `SIM${lead.quantidade_filhos ? ` (${lead.quantidade_filhos})` : ""}` : "NÃO"}
                   </TableCell>
-                  <TableCell className="max-w-xs truncate text-muted-foreground">
-                    {lead.observacoes || "-"}
-                  </TableCell>
+                   <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                     {lead.observacoes || "-"}
+                   </TableCell>
                   <TableCell>
                     {hoveredRow === lead.id && !lead.incluir_sitplan && (
                       <Button

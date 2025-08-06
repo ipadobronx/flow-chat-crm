@@ -19,8 +19,8 @@ export default function SitPlan() {
           </h1>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="flex flex-1 overflow-hidden">
+        {/* Two Column Layout - Responsive */}
+        <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
           <SitPlanSidebar 
             selectedLead={selectedLead}
             onSelectLead={setSelectedLead}

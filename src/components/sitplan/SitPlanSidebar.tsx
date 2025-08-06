@@ -17,7 +17,7 @@ interface SitPlanSidebarProps {
 }
 
 export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarProps) {
-  const { data: sitPlanLeads = [] } = useQuery({
+  const { data: sitPlanLeads = [], refetch } = useQuery({
     queryKey: ["sitplan-selected-leads"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -29,6 +29,7 @@ export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarPro
       if (error) throw error;
       return data;
     },
+    refetchInterval: 1000, // Refetch every second to get immediate updates
   });
 
   const getEtapaColor = (etapa: string) => {
@@ -59,10 +60,12 @@ export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarPro
       .from("leads")
       .update({ incluir_sitplan: false })
       .eq("id", leadId);
+    
+    refetch();
   };
 
   return (
-    <div className="w-80 flex flex-col h-full border-r border-border bg-card">
+    <div className="w-full lg:w-80 flex flex-col h-auto lg:h-full border-r-0 lg:border-r border-b lg:border-b-0 border-border bg-card min-h-[300px] lg:min-h-full">
       <div className="p-6 border-b border-border">
         <h2 className="text-xl font-semibold text-foreground mb-1">
           Leads Selecionados para SitPlan
