@@ -20,15 +20,19 @@ export default function SitPlan() {
         </div>
 
         {/* Two Column Layout - Responsive */}
-        <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
-          <SitPlanSidebar 
-            selectedLead={selectedLead}
-            onSelectLead={setSelectedLead}
-          />
-          <SitPlanMainPanel 
-            selectedLead={selectedLead}
-            onSelectLead={setSelectedLead}
-          />
+        <div className="flex flex-1 overflow-hidden flex-col lg:flex-row h-full">
+          <div className="w-full lg:w-80 flex-shrink-0">
+            <SitPlanSidebar 
+              selectedLead={selectedLead}
+              onSelectLead={setSelectedLead}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <SitPlanMainPanel 
+              selectedLead={selectedLead}
+              onSelectLead={setSelectedLead}
+            />
+          </div>
         </div>
       </div>
     </DashboardLayout>

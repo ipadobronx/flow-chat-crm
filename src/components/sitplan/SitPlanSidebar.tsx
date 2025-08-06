@@ -65,8 +65,8 @@ export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarPro
   };
 
   return (
-    <div className="w-full lg:w-80 flex flex-col h-full border-r-0 lg:border-r border-b lg:border-b-0 border-border bg-card">
-      <div className="p-6 border-b border-border">
+    <div className="h-full flex flex-col border-r-0 lg:border-r border-b lg:border-b-0 border-border bg-card">
+      <div className="flex-shrink-0 p-6 border-b border-border">
         <h2 className="text-xl font-semibold text-foreground mb-1">
           Leads Selecionados para SitPlan
         </h2>
@@ -75,7 +75,7 @@ export function SitPlanSidebar({ selectedLead, onSelectLead }: SitPlanSidebarPro
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
         {sitPlanLeads.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
