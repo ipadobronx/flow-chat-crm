@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TAReports } from "@/components/reports/TAReports";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -149,24 +151,44 @@ export default function Reports() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
               <BarChart3 className="h-8 w-8" />
-              Relatório do TA
+              Relatórios
             </h1>
             <p className="text-muted-foreground mt-1">
-              Histórico completo de mudanças de etapa dos leads no TA
+              Métricas e histórico completo dos seus TAs
             </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {historicoGrouped.length} registro{historicoGrouped.length !== 1 ? 's' : ''}
-            </Badge>
-            <Button variant="outline" size="sm" onClick={fetchHistorico} disabled={loading}>
-              <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
-              Atualizar
-            </Button>
-          </div>
         </div>
+
+        <Tabs defaultValue="metricas" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <TabsTrigger value="metricas">Métricas de TA</TabsTrigger>
+            <TabsTrigger value="historico">Histórico Detalhado</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="metricas" className="space-y-6">
+            <TAReports />
+          </TabsContent>
+
+          <TabsContent value="historico" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Histórico de Mudanças no TA</h2>
+                <p className="text-muted-foreground">
+                  Histórico detalhado de mudanças de etapa dos leads no TA
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {historicoGrouped.length} registro{historicoGrouped.length !== 1 ? 's' : ''}
+                </Badge>
+                <Button variant="outline" size="sm" onClick={fetchHistorico} disabled={loading}>
+                  <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
+                  Atualizar
+                </Button>
+              </div>
+            </div>
 
         {/* Filtros */}
         <Card>
@@ -369,6 +391,8 @@ export default function Reports() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

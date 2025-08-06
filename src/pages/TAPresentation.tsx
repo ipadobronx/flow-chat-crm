@@ -29,6 +29,7 @@ export default function TAPresentation() {
   const [countdown, setCountdown] = useState(5);
   const [transitionStep, setTransitionStep] = useState(0);
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
@@ -116,7 +117,7 @@ export default function TAPresentation() {
   };
 
   const saveAndNext = async () => {
-    if (!selectedEtapa) return;
+    if (!selectedEtapa || !selectedStatus) return;
     
     const currentLead = leads[currentLeadIndex];
     
@@ -129,6 +130,19 @@ export default function TAPresentation() {
           observacoes: observacoes || currentLead.observacoes
         })
         .eq("id", currentLead.id);
+
+      // Registrar no histórico do TA com status
+      await supabase
+        .from("ta_historico")
+        .insert({
+          lead_id: currentLead.id,
+          user_id: currentLead.user_id,
+          etapa_anterior: currentLead.etapa,
+          etapa_nova: selectedEtapa as any,
+          status: selectedStatus,
+          observacoes: observacoes,
+          origem: 'ta'
+        });
 
       // Se for "Ligar Depois" e tem data de agendamento, criar agendamento
       if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
@@ -144,6 +158,7 @@ export default function TAPresentation() {
 
       // Resetar campos para o próximo lead
       setSelectedEtapa("");
+      setSelectedStatus("");
       setObservacoes("");
       setAgendamentoDate(undefined);
 
@@ -159,6 +174,44 @@ export default function TAPresentation() {
 
   const finalizarTA = async () => {
     try {
+      // Buscar todos os registros de TA desta sessão para gerar o relatório
+      const { data: taHistory, error: historyError } = await supabase
+        .from("ta_historico")
+        .select("*")
+        .in("lead_id", leads.map(lead => lead.id))
+        .eq("origem", "ta")
+        .gte("created_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()); // últimas 4 horas
+
+      if (historyError) throw historyError;
+
+      // Calcular métricas do relatório
+      const totalLeads = leads.length;
+      const totalLigacoes = taHistory?.length || 0;
+      const ligacoesAtendidas = taHistory?.filter(h => h.status === "Atendeu").length || 0;
+      const ligacoesNaoAtendidas = taHistory?.filter(h => h.status === "Não Atendeu").length || 0;
+      const ligacoesLigarDepois = taHistory?.filter(h => h.status === "Pediu para Ligar Depois").length || 0;
+      const ligacoesAgendadas = taHistory?.filter(h => h.status === "Agendou").length || 0;
+      const ligacoesMarcadas = taHistory?.filter(h => h.status === "Marcou Reunião").length || 0;
+
+      // Salvar relatório
+      const { error: reportError } = await supabase
+        .from("ta_relatorios")
+        .insert({
+          user_id: leads[0]?.user_id,
+          data_relatorio: new Date().toISOString().split('T')[0],
+          periodo_inicio: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          periodo_fim: new Date().toISOString(),
+          total_leads: totalLeads,
+          total_ligacoes: totalLigacoes,
+          ligacoes_atendidas: ligacoesAtendidas,
+          ligacoes_nao_atendidas: ligacoesNaoAtendidas,
+          ligacoes_ligar_depois: ligacoesLigarDepois,
+          ligacoes_agendadas: ligacoesAgendadas,
+          ligacoes_marcadas: ligacoesMarcadas
+        });
+
+      if (reportError) throw reportError;
+
       // Remover todos os leads do TA (incluir_ta = false)
       const leadIds = leads.map(lead => lead.id);
       
@@ -175,6 +228,7 @@ export default function TAPresentation() {
       setCountdown(5);
       setTransitionStep(0);
       setSelectedEtapa("");
+      setSelectedStatus("");
       setObservacoes("");
       setAgendamentoDate(undefined);
       
@@ -191,15 +245,16 @@ export default function TAPresentation() {
     setCountdown(5);
     setTransitionStep(0);
     setSelectedEtapa("");
+    setSelectedStatus("");
     setObservacoes("");
     setAgendamentoDate(undefined);
   };
 
   
-  const etapasOptions = [
-    "Todos", "Novo", "TA", "Não atendido", "OI", "Delay OI", "PC", "Delay PC", 
-    "N", "Apólice Emitida", "Apólice Entregue", "Delay C2", "Ligar Depois", 
-    "Marcar", "Não", "Proposta Cancelada", "Apólice Cancelada"
+  const etapasOptions = ["Não Atendido", "Ligar Depois", "Marcar", "OI"];
+  
+  const statusOptions = [
+    "Atendeu", "Não Atendeu", "Agendou", "Pediu para Ligar Depois", "Marcou Reunião"
   ];
 
   const getLeadImageUrl = (leadName: string) => {
@@ -363,6 +418,23 @@ export default function TAPresentation() {
                 <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
                 <div className="space-y-4 flex-1">
+                  {/* Seletor de Status */}
+                  <div>
+                    <Label className="text-[#00FFF0] font-medium text-sm">Status da Ligação</Label>
+                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                      <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white h-9">
+                        <SelectValue placeholder="Como foi a ligação?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Seletor de Etapa */}
                   <div>
                     <Label className="text-[#00FFF0] font-medium text-sm">Nova Etapa</Label>
@@ -426,7 +498,7 @@ export default function TAPresentation() {
                 {/* Botão de Salvar */}
                 <Button
                   onClick={saveAndNext}
-                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
+                  disabled={!selectedEtapa || !selectedStatus || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
                   className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                 >
                   <Save className="mr-2 h-5 w-5" />

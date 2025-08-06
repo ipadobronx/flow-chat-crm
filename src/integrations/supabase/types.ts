@@ -440,6 +440,7 @@ export type Database = {
           lead_id: string
           observacoes: string | null
           origem: string | null
+          status: string | null
           ta_order_anterior: number | null
           ta_order_nova: number | null
           user_id: string
@@ -453,6 +454,7 @@ export type Database = {
           lead_id: string
           observacoes?: string | null
           origem?: string | null
+          status?: string | null
           ta_order_anterior?: number | null
           ta_order_nova?: number | null
           user_id: string
@@ -466,8 +468,60 @@ export type Database = {
           lead_id?: string
           observacoes?: string | null
           origem?: string | null
+          status?: string | null
           ta_order_anterior?: number | null
           ta_order_nova?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ta_relatorios: {
+        Row: {
+          created_at: string
+          data_relatorio: string
+          id: string
+          ligacoes_agendadas: number
+          ligacoes_atendidas: number
+          ligacoes_ligar_depois: number
+          ligacoes_marcadas: number
+          ligacoes_nao_atendidas: number
+          periodo_fim: string
+          periodo_inicio: string
+          total_leads: number
+          total_ligacoes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_relatorio: string
+          id?: string
+          ligacoes_agendadas?: number
+          ligacoes_atendidas?: number
+          ligacoes_ligar_depois?: number
+          ligacoes_marcadas?: number
+          ligacoes_nao_atendidas?: number
+          periodo_fim: string
+          periodo_inicio: string
+          total_leads?: number
+          total_ligacoes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_relatorio?: string
+          id?: string
+          ligacoes_agendadas?: number
+          ligacoes_atendidas?: number
+          ligacoes_ligar_depois?: number
+          ligacoes_marcadas?: number
+          ligacoes_nao_atendidas?: number
+          periodo_fim?: string
+          periodo_inicio?: string
+          total_leads?: number
+          total_ligacoes?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
