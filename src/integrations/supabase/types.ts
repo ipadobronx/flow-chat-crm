@@ -733,6 +733,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -751,6 +775,10 @@ export type Database = {
           telefone: string
           idade: number
         }[]
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       get_leads_with_metrics: {
         Args: { p_user_id: string; p_start_date?: string; p_end_date?: string }
@@ -773,6 +801,15 @@ export type Database = {
           lead_id: string
           lead_nome: string
           lead_telefone: string
+        }[]
+      }
+      get_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          has_errors: boolean
+          has_warnings: boolean
+          error_count: number
+          warning_count: number
         }[]
       }
       get_ta_historico: {
@@ -815,6 +852,13 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       move_old_tentativa_leads: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -841,6 +885,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "user"
       etapa_funil:
         | "Todos"
         | "Novo"
@@ -991,6 +1036,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       etapa_funil: [
         "Todos",
         "Novo",
