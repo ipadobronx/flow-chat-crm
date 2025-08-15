@@ -1,19 +1,26 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, subDays, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tables } from "@/integrations/supabase/types";
+import { TADateFilter } from "./TADateFilter";
+import { TAMetricCard } from "./TAMetricCard";
+import { TADynamicChart } from "./TADynamicChart";
+import { Users, MessageCircle, Phone, Target } from "lucide-react";
 
 type TARelatorio = Tables<"ta_relatorios">;
 
 export function TAReports() {
   const { user } = useAuth();
+  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [activeCard, setActiveCard] = useState<string>("leads-contactados");
 
   const { data: relatorios = [], isLoading } = useQuery({
-    queryKey: ["ta-relatorios", user?.id],
+    queryKey: ["ta-relatorios", user?.id, startDate, endDate],
     queryFn: async () => {
       if (!user?.id) return [];
       
@@ -21,246 +28,199 @@ export function TAReports() {
         .from("ta_relatorios")
         .select("*")
         .eq("user_id", user.id)
+        .gte("data_relatorio", format(startDate, "yyyy-MM-dd"))
+        .lte("data_relatorio", format(endDate, "yyyy-MM-dd"))
         .order("data_relatorio", { ascending: false });
       
       if (error) throw error;
       return data as TARelatorio[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!startDate && !!endDate,
   });
 
-  // Calcular totais gerais
-  const totaisGerais = relatorios.reduce((acc, rel) => ({
+  // Filtrar relatórios do período anterior para comparação
+  const getPreviousPeriodData = () => {
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const previousStart = subDays(startDate, daysDiff);
+    const previousEnd = subDays(endDate, daysDiff);
+    
+    return relatorios.filter(rel => {
+      const relDate = new Date(rel.data_relatorio);
+      return isWithinInterval(relDate, { start: previousStart, end: previousEnd });
+    });
+  };
+
+  const previousPeriodData = getPreviousPeriodData();
+
+  // Calcular totais do período atual
+  const totaisAtuais = relatorios.reduce((acc, rel) => ({
     totalLeads: acc.totalLeads + rel.total_leads,
-    totalLigacoes: acc.totalLigacoes + rel.total_ligacoes,
-    ligacoesAtendidas: acc.ligacoesAtendidas + rel.ligacoes_atendidas,
+    contatosEfetuados: acc.contatosEfetuados + rel.ligacoes_atendidas,
     ligacoesNaoAtendidas: acc.ligacoesNaoAtendidas + rel.ligacoes_nao_atendidas,
-    ligacoesLigarDepois: acc.ligacoesLigarDepois + rel.ligacoes_ligar_depois,
-    ligacoesAgendadas: acc.ligacoesAgendadas + rel.ligacoes_agendadas,
-    ligacoesMarcadas: acc.ligacoesMarcadas + rel.ligacoes_marcadas,
+    marcarWhatsapp: acc.marcarWhatsapp + rel.ligacoes_marcadas,
+    ligarDepois: acc.ligarDepois + rel.ligacoes_ligar_depois,
+    oisAgendados: acc.oisAgendados + rel.ligacoes_agendadas,
   }), {
     totalLeads: 0,
-    totalLigacoes: 0,
-    ligacoesAtendidas: 0,
+    contatosEfetuados: 0,
     ligacoesNaoAtendidas: 0,
-    ligacoesLigarDepois: 0,
-    ligacoesAgendadas: 0,
-    ligacoesMarcadas: 0,
+    marcarWhatsapp: 0,
+    ligarDepois: 0,
+    oisAgendados: 0,
   });
 
-  // Calcular métricas específicas do TA
-  const contatosEfetuados = totaisGerais.ligacoesAtendidas;
-  const oisAgendados = totaisGerais.ligacoesAgendadas;
-  const marcarWhatsapp = totaisGerais.ligacoesMarcadas;
-  const naoTemInteresse = Math.max(0, totaisGerais.ligacoesNaoAtendidas - totaisGerais.ligacoesLigarDepois);
+  // Calcular totais do período anterior
+  const totaisAnteriores = previousPeriodData.reduce((acc, rel) => ({
+    totalLeads: acc.totalLeads + rel.total_leads,
+    contatosEfetuados: acc.contatosEfetuados + rel.ligacoes_atendidas,
+    ligacoesNaoAtendidas: acc.ligacoesNaoAtendidas + rel.ligacoes_nao_atendidas,
+    marcarWhatsapp: acc.marcarWhatsapp + rel.ligacoes_marcadas,
+    ligarDepois: acc.ligarDepois + rel.ligacoes_ligar_depois,
+    oisAgendados: acc.oisAgendados + rel.ligacoes_agendadas,
+  }), {
+    totalLeads: 0,
+    contatosEfetuados: 0,
+    ligacoesNaoAtendidas: 0,
+    marcarWhatsapp: 0,
+    ligarDepois: 0,
+    oisAgendados: 0,
+  });
+
+  // Calcular métricas derivadas
+  const naoTemInteresse = Math.max(0, totaisAtuais.ligacoesNaoAtendidas - totaisAtuais.ligarDepois);
+  const naoConseguiuContato = totaisAtuais.ligacoesNaoAtendidas + (totaisAtuais.marcarWhatsapp - totaisAtuais.oisAgendados);
+
+  // Preparar dados para os gráficos
+  const chartData = {
+    leadsContactados: [
+      { name: "Contatos efetuados", atual: totaisAtuais.contatosEfetuados, anterior: totaisAnteriores.contatosEfetuados },
+      { name: "Ligações não atendidas", atual: totaisAtuais.ligacoesNaoAtendidas, anterior: totaisAnteriores.ligacoesNaoAtendidas },
+      { name: "Marcar WhatsApp", atual: totaisAtuais.marcarWhatsapp, anterior: totaisAnteriores.marcarWhatsapp },
+      { name: "Ligar Depois", atual: totaisAtuais.ligarDepois, anterior: totaisAnteriores.ligarDepois },
+      { name: "OIs Agendados", atual: totaisAtuais.oisAgendados, anterior: totaisAnteriores.oisAgendados },
+      { name: "Não tem interesse", atual: naoTemInteresse, anterior: Math.max(0, totaisAnteriores.ligacoesNaoAtendidas - totaisAnteriores.ligarDepois) }
+    ],
+    marcarWhatsapp: [
+      { name: "OIs Agendados", atual: totaisAtuais.oisAgendados, anterior: totaisAnteriores.oisAgendados },
+      { name: "Foi ignorado (continua no Marcar)", atual: Math.max(0, totaisAtuais.marcarWhatsapp - totaisAtuais.oisAgendados), anterior: Math.max(0, totaisAnteriores.marcarWhatsapp - totaisAnteriores.oisAgendados) },
+      { name: "Não tem interesse", atual: naoTemInteresse, anterior: Math.max(0, totaisAnteriores.ligacoesNaoAtendidas - totaisAnteriores.ligarDepois) }
+    ],
+    ligarDepois: [
+      { name: "OIs Agendados", atual: totaisAtuais.oisAgendados, anterior: totaisAnteriores.oisAgendados },
+      { name: "Não atendeu/ignorado (mantém Ligar Depois)", atual: totaisAtuais.ligarDepois, anterior: totaisAnteriores.ligarDepois },
+      { name: "Não teve interesse", atual: naoTemInteresse, anterior: Math.max(0, totaisAnteriores.ligacoesNaoAtendidas - totaisAnteriores.ligarDepois) }
+    ],
+    resultadoGeral: [
+      { name: "Contatos Efetuados", atual: totaisAtuais.contatosEfetuados, anterior: totaisAnteriores.contatosEfetuados },
+      { name: "OIs Agendados (Total)", atual: totaisAtuais.oisAgendados, anterior: totaisAnteriores.oisAgendados },
+      { name: "Não tem interesse (Total)", atual: naoTemInteresse, anterior: Math.max(0, totaisAnteriores.ligacoesNaoAtendidas - totaisAnteriores.ligarDepois) },
+      { name: "Não conseguiu contato", atual: naoConseguiuContato, anterior: totaisAnteriores.ligacoesNaoAtendidas + (totaisAnteriores.marcarWhatsapp - totaisAnteriores.oisAgendados) }
+    ]
+  };
+
+  const handlePresetChange = (preset: string) => {
+    if (preset === "7days") {
+      setStartDate(subDays(new Date(), 7));
+      setEndDate(new Date());
+    }
+  };
+
+  const formatPeriod = (date: Date) => format(date, "dd/MM", { locale: ptBR });
+  const currentPeriod = `${formatPeriod(startDate)} - ${formatPeriod(endDate)}`;
+  const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const previousStart = subDays(startDate, daysDiff);
+  const previousEnd = subDays(endDate, daysDiff);
+  const previousPeriod = `${formatPeriod(previousStart)} - ${formatPeriod(previousEnd)}`;
 
   if (isLoading) {
     return <div className="text-center py-8">Carregando relatórios...</div>;
   }
 
-  if (relatorios.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <h3 className="text-xl font-semibold mb-2">Nenhum relatório de TA encontrado</h3>
-        <p className="text-muted-foreground">
-          Execute um TA completo para gerar relatórios automáticos.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Header com filtro de data */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Relatórios de TA</h2>
-        <Badge variant="outline" className="text-sm">
-          {relatorios.length} relatórios encontrados
-        </Badge>
+        <h2 className="text-2xl font-bold">Dashboard TA Interativo</h2>
+        <div className="flex items-center gap-4">
+          <Badge variant="outline" className="text-sm">
+            {relatorios.length} relatórios no período
+          </Badge>
+          <TADateFilter
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onPresetChange={handlePresetChange}
+          />
+        </div>
       </div>
 
-      {/* Cards específicos do TA - Layout Simples */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* LEADs contatados diretamente no TA */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">LEADs contatados diretamente no TA</p>
-              <p className="text-3xl font-bold">{totaisGerais.totalLeads.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Cards principais em grid 2x2 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TAMetricCard
+          title="Leads Contactados"
+          value={totaisAtuais.totalLeads}
+          icon={<Users className="h-6 w-6" />}
+          isActive={activeCard === "leads-contactados"}
+          onClick={() => setActiveCard("leads-contactados")}
+          gradient="bg-gradient-primary"
+        />
         
-        {/* Contatos efetuados */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Contatos efetuados</p>
-              <p className="text-3xl font-bold">{contatosEfetuados.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <TAMetricCard
+          title="Marcar no WhatsApp"
+          value={totaisAtuais.marcarWhatsapp}
+          icon={<MessageCircle className="h-6 w-6" />}
+          isActive={activeCard === "marcar-whatsapp"}
+          onClick={() => setActiveCard("marcar-whatsapp")}
+          gradient="bg-gradient-success"
+        />
         
-        {/* Ligações não atendidas */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Ligações não atendidas</p>
-              <p className="text-3xl font-bold">{totaisGerais.ligacoesNaoAtendidas.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <TAMetricCard
+          title="Ligar Depois"
+          value={totaisAtuais.ligarDepois}
+          icon={<Phone className="h-6 w-6" />}
+          isActive={activeCard === "ligar-depois"}
+          onClick={() => setActiveCard("ligar-depois")}
+          gradient="bg-gradient-to-br from-warning to-warning/80"
+        />
         
-        {/* Marcar no WhatsApp */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Marcar no WhatsApp</p>
-              <p className="text-3xl font-bold">{marcarWhatsapp.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Ligar depois */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Ligar depois</p>
-              <p className="text-3xl font-bold">{totaisGerais.ligacoesLigarDepois.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* OIs Agendados */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">OIs Agendados</p>
-              <p className="text-3xl font-bold">{oisAgendados.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Não tenho interesse */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Não tenho interesse</p>
-              <p className="text-3xl font-bold">{naoTemInteresse.toLocaleString('pt-BR')}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Meta/Relacionar com datas */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground font-medium">Meta/Relacionar com datas</p>
-              <p className="text-lg font-bold">Período: {relatorios.length} relatórios</p>
-            </div>
-          </CardContent>
-        </Card>
+        <TAMetricCard
+          title="Resultado Geral do TA"
+          value={totaisAtuais.oisAgendados}
+          icon={<Target className="h-6 w-6" />}
+          isActive={activeCard === "resultado-geral"}
+          onClick={() => setActiveCard("resultado-geral")}
+          gradient="bg-gradient-to-br from-chart-4 to-destructive"
+        />
       </div>
 
-      {/* Seções específicas - OIs Agendados e Resultado Geral */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* OIs Agendados - Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">OIs Agendados - Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4">
-              <div className="border rounded-lg p-4">
-                <h4 className="font-medium text-sm mb-2">Foi ignorado, manter no marcar no wapp no pipe</h4>
-                <p className="text-muted-foreground text-xs">Não tem interesse: {naoTemInteresse}</p>
-              </div>
-              <div className="border rounded-lg p-4">
-                <h4 className="font-medium text-sm mb-2">Não atendeu, foi ignorado, manter no ligar depois no pipe</h4>
-                <p className="text-muted-foreground text-xs">Ligar depois: {totaisGerais.ligacoesLigarDepois}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Gráfico dinâmico */}
+      <TADynamicChart
+        activeCard={activeCard}
+        data={chartData}
+        currentPeriod={currentPeriod}
+        previousPeriod={previousPeriod}
+      />
 
-        {/* Resultado Geral do TA */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Resultado Geral do TA</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Contatos efetuados</span>
-                <span className="font-medium">{contatosEfetuados}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">OIs agendados</span>
-                <span className="font-medium">{oisAgendados}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Não conseguiu contato</span>
-                <span className="font-medium">{totaisGerais.ligacoesNaoAtendidas + totaisGerais.ligacoesLigarDepois + marcarWhatsapp}</span>
-              </div>
-              <div className="border-t pt-3">
-                <div className="flex justify-between font-semibold">
-                  <span>Taxa de conversão OI</span>
-                  <span className="text-lg">{contatosEfetuados > 0 ? Math.round((oisAgendados / contatosEfetuados) * 100) : 0}%</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Histórico Detalhado */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico Detalhado</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {relatorios.map((relatorio) => (
-              <div key={relatorio.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">
-                    TA de {format(new Date(relatorio.data_relatorio), "dd/MM/yyyy", { locale: ptBR })}
-                  </h4>
-                  <Badge variant="outline">
-                    {relatorio.total_leads} leads
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground block">Ligações:</span>
-                    <div className="font-medium text-lg">{relatorio.total_ligacoes}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block">Atendeu:</span>
-                    <div className="font-medium text-lg text-green-600">{relatorio.ligacoes_atendidas}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block">Não Atendeu:</span>
-                    <div className="font-medium text-lg text-red-600">{relatorio.ligacoes_nao_atendidas}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block">Ligar Depois:</span>
-                    <div className="font-medium text-lg text-yellow-600">{relatorio.ligacoes_ligar_depois}</div>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block">Agendou:</span>
-                    <div className="font-medium text-lg text-blue-600">{relatorio.ligacoes_agendadas}</div>
-                  </div>
-                </div>
-                
-                <div className="text-xs text-muted-foreground pt-2 border-t">
-                  Período: {format(new Date(relatorio.periodo_inicio), "dd/MM/yyyy HH:mm", { locale: ptBR })} - {format(new Date(relatorio.periodo_fim), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                </div>
-              </div>
-            ))}
+      {/* Resumo rápido do período */}
+      {relatorios.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="bg-card border rounded-lg p-4">
+            <h4 className="text-sm font-medium text-muted-foreground">Taxa de Conversão OI</h4>
+            <p className="text-2xl font-bold text-chart-1">
+              {totaisAtuais.contatosEfetuados > 0 ? Math.round((totaisAtuais.oisAgendados / totaisAtuais.contatosEfetuados) * 100) : 0}%
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="bg-card border rounded-lg p-4">
+            <h4 className="text-sm font-medium text-muted-foreground">Total de Contatos</h4>
+            <p className="text-2xl font-bold text-chart-2">{totaisAtuais.contatosEfetuados}</p>
+          </div>
+          <div className="bg-card border rounded-lg p-4">
+            <h4 className="text-sm font-medium text-muted-foreground">Não Conseguiu Contato</h4>
+            <p className="text-2xl font-bold text-chart-4">{naoConseguiuContato}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

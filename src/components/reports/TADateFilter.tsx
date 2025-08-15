@@ -1,0 +1,107 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CalendarIcon } from "lucide-react";
+import { format, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
+interface TADateFilterProps {
+  startDate?: Date;
+  endDate?: Date;
+  onStartDateChange: (date: Date | undefined) => void;
+  onEndDateChange: (date: Date | undefined) => void;
+  onPresetChange: (preset: string) => void;
+}
+
+export function TADateFilter({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+  onPresetChange,
+}: TADateFilterProps) {
+  const [preset, setPreset] = useState("7days");
+
+  const handlePresetChange = (value: string) => {
+    setPreset(value);
+    onPresetChange(value);
+    
+    if (value === "7days") {
+      const today = new Date();
+      const sevenDaysAgo = subDays(today, 7);
+      onStartDateChange(sevenDaysAgo);
+      onEndDateChange(today);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <Select value={preset} onValueChange={handlePresetChange}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue placeholder="Período" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="7days">7 dias</SelectItem>
+          <SelectItem value="custom">Customizado</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {preset === "custom" && (
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[140px] justify-start text-left font-normal",
+                  !startDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "dd/MM/yyyy") : "Data início"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={onStartDateChange}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          <span className="text-muted-foreground">até</span>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[140px] justify-start text-left font-normal",
+                  !endDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, "dd/MM/yyyy") : "Data fim"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={onEndDateChange}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+    </div>
+  );
+}
