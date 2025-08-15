@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface ChartData {
   name: string;
@@ -64,7 +64,7 @@ export function TADynamicChart({
           <p className="font-medium text-card-foreground">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
-              {entry.dataKey === 'atual' ? currentPeriod : previousPeriod}: {entry.value}
+              {entry.name}: {entry.value}
             </p>
           ))}
         </div>
@@ -84,37 +84,38 @@ export function TADynamicChart({
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={chartInfo.data} 
-              layout="horizontal"
-              margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
+            <LineChart 
+              data={chartInfo.data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
-                type="number"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                type="category"
-                dataKey="name" 
+                dataKey="name"
                 tick={{ fontSize: 11 }}
-                width={110}
+                angle={-45}
+                textAnchor="end"
+                height={60}
               />
+              <YAxis tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Bar 
-                dataKey="atual" 
+              <Line
+                type="monotone"
+                dataKey="atual"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={3}
+                dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 4 }}
                 name={currentPeriod}
-                fill="hsl(var(--chart-1))" 
-                radius={[0, 4, 4, 0]}
               />
-              <Bar 
-                dataKey="anterior" 
+              <Line
+                type="monotone"
+                dataKey="anterior"
+                stroke="hsl(var(--chart-2))"
+                strokeWidth={2}
+                dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 3 }}
                 name={previousPeriod}
-                fill="hsl(var(--chart-2))" 
-                radius={[0, 4, 4, 0]}
               />
-            </BarChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

@@ -155,8 +155,8 @@ export function TAReports() {
         </div>
       </div>
 
-      {/* Cards principais em grid 2x2 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Cards principais em linha 1x4 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <TAMetricCard
           title="Leads Contactados"
           value={totaisAtuais.totalLeads}
