@@ -61,6 +61,14 @@ export function TAReports() {
     ligacoesMarcadas: 0,
   });
 
+  // Calcular métricas específicas do TA
+  const contatosEfetuados = totaisGerais.ligacoesAtendidas;
+  const oisAgendados = totaisGerais.ligacoesAgendadas;
+  const marcarWhatsapp = totaisGerais.ligacoesMarcadas;
+  const naoTemInteresse = totaisGerais.ligacoesNaoAtendidas - totaisGerais.ligacoesLigarDepois;
+  const metaOisSemanais = 20; // Meta sugerida de 20 OIs por semana
+  const leadsParaMeta = Math.max(0, (metaOisSemanais * 7) - oisAgendados); // Estimativa para atingir meta
+
   // Calcular totais do período anterior (últimos 50% dos relatórios)
   const metadeRelatorios = Math.floor(relatorios.length / 2);
   const relatoriosAnteriores = relatorios.slice(metadeRelatorios);
@@ -151,71 +159,135 @@ export function TAReports() {
         </Badge>
       </div>
 
-      {/* Cards de métricas gerais - Estilo Dashboard Financeiro */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total de Leads */}
+      {/* Cards específicos do TA - Baseado no layout fornecido */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* LEADs contatados diretamente no TA */}
         <Card className="border-0 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Total de Leads</p>
-                <p className="text-3xl font-bold">{totaisGerais.totalLeads.toLocaleString('pt-BR')}</p>
-                {renderPercentualChange(percentualLeads)}
-              </div>
-              <div className="p-3 bg-blue-500 rounded-full">
-                <Users className="w-6 h-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">LEADs contatados diretamente no TA</p>
+              <p className="text-2xl font-bold">{totaisGerais.totalLeads.toLocaleString('pt-BR')}</p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Total de Ligações */}
+        {/* Contatos efetuados */}
         <Card className="border-0 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Total de Ligações</p>
-                <p className="text-3xl font-bold">{totaisGerais.totalLigacoes.toLocaleString('pt-BR')}</p>
-                {renderPercentualChange(percentualLigacoes)}
-              </div>
-              <div className="p-3 bg-green-500 rounded-full">
-                <Phone className="w-6 h-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Contatos efetuados</p>
+              <p className="text-2xl font-bold">{contatosEfetuados.toLocaleString('pt-BR')}</p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Taxa de Atendimento */}
+        {/* Ligações não atendidas */}
+        <Card className="border-0 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900">
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Ligações não atendidas</p>
+              <p className="text-2xl font-bold">{totaisGerais.ligacoesNaoAtendidas.toLocaleString('pt-BR')}</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Marcar no WhatsApp */}
+        <Card className="border-0 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Marcar no WhatsApp</p>
+              <p className="text-2xl font-bold">{marcarWhatsapp.toLocaleString('pt-BR')}</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Ligar depois */}
         <Card className="border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Taxa de Atendimento</p>
-                <p className="text-3xl font-bold">
-                  {totaisGerais.totalLigacoes > 0 
-                    ? Math.round((totaisGerais.ligacoesAtendidas / totaisGerais.totalLigacoes) * 100)
-                    : 0}%
-                </p>
-                {renderPercentualChange(percentualAtendimento)}
-              </div>
-              <div className="p-3 bg-orange-500 rounded-full">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Ligar depois</p>
+              <p className="text-2xl font-bold">{totaisGerais.ligacoesLigarDepois.toLocaleString('pt-BR')}</p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Agendamentos */}
+        {/* OIs Agendados */}
         <Card className="border-0 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground font-medium">Agendamentos</p>
-                <p className="text-3xl font-bold">{totaisGerais.ligacoesAgendadas.toLocaleString('pt-BR')}</p>
-                {renderPercentualChange(percentualAgendamentos)}
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">OIs Agendados</p>
+              <p className="text-2xl font-bold">{oisAgendados.toLocaleString('pt-BR')}</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Não tenho interesse */}
+        <Card className="border-0 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900">
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Não tenho interesse</p>
+              <p className="text-2xl font-bold">{Math.max(0, naoTemInteresse).toLocaleString('pt-BR')}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Meta e relacionamento com datas */}
+        <Card className="border-0 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900">
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground font-medium">Relacionar com datas</p>
+              <p className="text-xs text-muted-foreground">Meta: {metaOisSemanais} OIs por semana</p>
+              <p className="text-lg font-bold">Precisa ligar para {leadsParaMeta} leads</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Seção específica de OIs Agendados */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* OIs Agendados - Detalhado */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">OIs Agendados - Status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="border rounded p-3">
+                <h4 className="font-medium text-sm mb-2">Foi ignorado, manter no marcar no wapp no pipe</h4>
+                <p className="text-muted-foreground text-xs">Não tem interesse</p>
               </div>
-              <div className="p-3 bg-purple-500 rounded-full">
-                <Calendar className="w-6 h-6 text-white" />
+              <div className="border rounded p-3">
+                <h4 className="font-medium text-sm mb-2">Não atendeu, foi ignorado, manter no ligar depois no pipe</h4>
+                <p className="text-muted-foreground text-xs">Não tem interesse</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Resultado Geral do TA */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Resultado Geral do TA</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Contatos efetuados</span>
+                <span className="font-medium">{contatosEfetuados}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">OIs agendados</span>
+                <span className="font-medium">{oisAgendados}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">Não conseguiu contato</span>
+                <span className="font-medium">{totaisGerais.ligacoesNaoAtendidas + totaisGerais.ligacoesLigarDepois + marcarWhatsapp}</span>
+              </div>
+              <div className="border-t pt-2">
+                <div className="flex justify-between font-semibold">
+                  <span>Taxa de conversão OI</span>
+                  <span>{contatosEfetuados > 0 ? Math.round((oisAgendados / contatosEfetuados) * 100) : 0}%</span>
+                </div>
               </div>
             </div>
           </CardContent>
