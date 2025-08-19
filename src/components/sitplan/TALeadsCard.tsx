@@ -3,20 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, ArrowUpDown, Users } from "lucide-react";
+import { X, ArrowUpDown, Users, PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { TAHierarchyConfig, HierarchyConfig } from "./TAHierarchyConfig";
 
 type Lead = Tables<"leads">;
 
@@ -139,9 +133,11 @@ export function TALeadsCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Estado para hierarquia TA
-  const [hierarchySort, setHierarchySort] = useState<'profissao' | 'etapa' | 'none'>('none');
-  const [hierarchyOrder, setHierarchyOrder] = useState<string[]>([]);
+  // Estado para configuração de hierarquia avançada
+  const [hierarchyConfig, setHierarchyConfig] = useState<HierarchyConfig>({
+    enabledCategories: [],
+    priorities: { profissoes: [], etapas: [] }
+  });
 
   // Buscar leads que estão marcados para TA
   const { data: leads = [], refetch, isLoading, error } = useQuery({
@@ -160,96 +156,87 @@ export function TALeadsCard() {
         throw error;
       }
       
-      console.log(`✅ TALeadsCard: Encontrados ${data?.length || 0} leads para TA:`, 
-        data?.map(lead => ({ 
-          id: lead.id, 
-          nome: lead.nome, 
-          incluir_ta: lead.incluir_ta, 
-          ta_order: lead.ta_order,
-          ta_categoria_ativa: lead.ta_categoria_ativa,
-          ta_categoria_valor: lead.ta_categoria_valor
-        }))
-      );
-      
-      // Detectar hierarquia automaticamente baseada nos dados
-      if (data && data.length > 0) {
-        const hasCategoria = data.some(lead => lead.ta_categoria_ativa);
-        if (hasCategoria) {
-          const categoriaAtiva = data[0]?.ta_categoria_ativa;
-          if (categoriaAtiva && categoriaAtiva !== hierarchySort) {
-            setHierarchySort(categoriaAtiva as 'profissao' | 'etapa');
-          }
-        }
-      }
-      
+      console.log(`✅ TALeadsCard: Encontrados ${data?.length || 0} leads para TA`);
       return data;
     },
     refetchInterval: 5000,
   });
 
-  // Estado local para reordenação otimista com hierarquia
+  // Estado local para reordenação otimista com hierarquia avançada
   const [localLeads, setLocalLeads] = useState<Lead[]>([]);
+
+  // Extrair dados únicos para configuração de hierarquia
+  const availableProfissoes = [...new Set(leads.map(lead => lead.profissao).filter(Boolean))] as string[];
+  const availableEtapas = [...new Set(leads.map(lead => lead.etapa))] as string[];
 
   useEffect(() => {
     let sortedLeads = [...(leads ?? [])];
     
-    // Aplicar hierarquia de ordenação
-    if (hierarchySort === 'profissao') {
-      // Agrupar por profissão e ordenar grupos
+    // Aplicar hierarquia baseada na configuração avançada
+    if (hierarchyConfig.enabledCategories.length > 0) {
+      // Função para obter chave de agrupamento
+      const getGroupingKey = (lead: Lead) => {
+        const keys = hierarchyConfig.enabledCategories.map(category => {
+          if (category === 'profissao') {
+            return lead.profissao || 'Sem Profissão';
+          } else {
+            return lead.etapa;
+          }
+        });
+        return keys.join(' | ');
+      };
+
+      // Agrupar leads
       const grouped = sortedLeads.reduce((acc, lead) => {
-        const profissao = lead.profissao || 'Sem Profissão';
-        if (!acc[profissao]) acc[profissao] = [];
-        acc[profissao].push(lead);
+        const key = getGroupingKey(lead);
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(lead);
         return acc;
       }, {} as Record<string, Lead[]>);
-      
-      // Se há ordem personalizada, usar ela; senão, ordem alfabética
-      const profissoes = hierarchyOrder.length > 0 
-        ? hierarchyOrder.filter(p => grouped[p]) 
-        : Object.keys(grouped).sort();
-      
-      // Adicionar profissões não listadas na ordem personalizada ao final
-      if (hierarchyOrder.length > 0) {
-        Object.keys(grouped).forEach(p => {
-          if (!hierarchyOrder.includes(p)) profissoes.push(p);
-        });
-      }
-      
-      sortedLeads = profissoes.flatMap(profissao => 
-        grouped[profissao].sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
+
+      // Ordenar grupos baseado nas prioridades configuradas
+      const groupKeys = Object.keys(grouped).sort((a, b) => {
+        // Separar as chaves compostas
+        const aKeys = a.split(' | ');
+        const bKeys = b.split(' | ');
+        
+        // Comparar categoria por categoria baseado na ordem configurada
+        for (let i = 0; i < hierarchyConfig.enabledCategories.length; i++) {
+          const category = hierarchyConfig.enabledCategories[i];
+          const priorityList = category === 'profissao' 
+            ? hierarchyConfig.priorities.profissoes 
+            : hierarchyConfig.priorities.etapas;
+          
+          const aIndex = priorityList.indexOf(aKeys[i]);
+          const bIndex = priorityList.indexOf(bKeys[i]);
+          
+          // Se ambos estão na lista de prioridades, usar essa ordem
+          if (aIndex !== -1 && bIndex !== -1) {
+            if (aIndex !== bIndex) return aIndex - bIndex;
+          }
+          // Se apenas um está na lista, ele vai primeiro
+          else if (aIndex !== -1) return -1;
+          else if (bIndex !== -1) return 1;
+          // Se nenhum está na lista, ordem alfabética
+          else {
+            const comparison = aKeys[i].localeCompare(bKeys[i]);
+            if (comparison !== 0) return comparison;
+          }
+        }
+        return 0;
+      });
+
+      // Reconstruir lista ordenada
+      sortedLeads = groupKeys.flatMap(groupKey => 
+        grouped[groupKey].sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
       );
-      
-    } else if (hierarchySort === 'etapa') {
-      // Agrupar por etapa e ordenar grupos
-      const grouped = sortedLeads.reduce((acc, lead) => {
-        const etapa = lead.etapa;
-        if (!acc[etapa]) acc[etapa] = [];
-        acc[etapa].push(lead);
-        return acc;
-      }, {} as Record<string, Lead[]>);
-      
-      // Usar ordem das etapas ou alfabética
-      const etapas = hierarchyOrder.length > 0 
-        ? hierarchyOrder.filter(e => grouped[e]) 
-        : Object.keys(grouped).sort();
-      
-      if (hierarchyOrder.length > 0) {
-        Object.keys(grouped).forEach(e => {
-          if (!hierarchyOrder.includes(e)) etapas.push(e);
-        });
-      }
-      
-      sortedLeads = etapas.flatMap(etapa => 
-        grouped[etapa].sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
-      );
-      
     } else {
       // Sem hierarquia, ordem normal por ta_order
       sortedLeads.sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0));
     }
     
     setLocalLeads(sortedLeads);
-  }, [leads, hierarchySort, hierarchyOrder]);
+  }, [leads, hierarchyConfig]);
 
   // Configurar drop zone para aceitar leads arrastados
   const { setNodeRef, isOver } = useDroppable({
@@ -286,6 +273,39 @@ export function TALeadsCard() {
       toast({
         title: "Erro",
         description: "Não foi possível remover o lead do TA.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Mover todos os leads para SitPlan
+  const moveAllToSitPlan = async () => {
+    try {
+      const { error } = await supabase
+        .from("leads")
+        .update({ 
+          incluir_ta: false,
+          incluir_sitplan: true,
+          ta_order: null,
+          ta_categoria_ativa: null,
+          ta_categoria_valor: null
+        })
+        .eq("incluir_ta", true);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+      
+      toast({
+        title: "Leads movidos para SitPlan",
+        description: "Todos os leads foram movidos de volta para o SitPlan.",
+      });
+    } catch (error) {
+      console.error("Erro ao mover leads para SitPlan:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover os leads para o SitPlan.",
         variant: "destructive"
       });
     }
@@ -399,20 +419,26 @@ export function TALeadsCard() {
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
-            {/* Controle de Hierarquia */}
-            <Select 
-              value={hierarchySort} 
-              onValueChange={(value: 'profissao' | 'etapa' | 'none') => setHierarchySort(value)}
-            >
-              <SelectTrigger className="h-8 w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem Hierarquia</SelectItem>
-                <SelectItem value="profissao">Por Profissão</SelectItem>
-                <SelectItem value="etapa">Por Etapa</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Configuração Avançada de Hierarquia */}
+            <TAHierarchyConfig
+              config={hierarchyConfig}
+              availableProfissoes={availableProfissoes}
+              availableEtapas={availableEtapas}
+              onConfigChange={setHierarchyConfig}
+            />
+            
+            {/* Botão para mover todos para SitPlan */}
+            {localLeads.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={moveAllToSitPlan}
+                className="h-8 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700"
+              >
+                <PlayCircle className="w-3 h-3 mr-1" />
+                Para SitPlan
+              </Button>
+            )}
             
             {/* Botão para limpar todos os leads do TA */}
             <Button
@@ -455,7 +481,7 @@ export function TALeadsCard() {
               strategy={verticalListSortingStrategy}
             >
               {(() => {
-                if (hierarchySort === 'none') {
+                if (hierarchyConfig.enabledCategories.length === 0) {
                   // Renderização simples sem agrupamento
                   return localLeads.map((lead) => (
                     <TAItem 
@@ -467,38 +493,40 @@ export function TALeadsCard() {
                   ));
                 }
                 
-                // Renderização com agrupamento por hierarquia
+                // Renderização com agrupamento por hierarquia avançada
                 const grouped = localLeads.reduce((acc, lead) => {
-                  const key = hierarchySort === 'profissao' 
-                    ? lead.profissao || 'Sem Profissão' 
-                    : lead.etapa;
+                  const keys = hierarchyConfig.enabledCategories.map(category => {
+                    if (category === 'profissao') {
+                      return lead.profissao || 'Sem Profissão';
+                    } else {
+                      return lead.etapa;
+                    }
+                  });
+                  const key = keys.join(' | ');
                   if (!acc[key]) acc[key] = [];
                   acc[key].push(lead);
                   return acc;
                 }, {} as Record<string, Lead[]>);
                 
-                const groupKeys = hierarchyOrder.length > 0 
-                  ? hierarchyOrder.filter(k => grouped[k])
-                  : Object.keys(grouped).sort();
-                
-                // Adicionar grupos não listados na ordem personalizada
-                if (hierarchyOrder.length > 0) {
-                  Object.keys(grouped).forEach(k => {
-                    if (!hierarchyOrder.includes(k)) groupKeys.push(k);
-                  });
-                }
-                
-                return groupKeys.map((groupKey) => {
-                  const groupLeads = grouped[groupKey] || [];
+                return Object.entries(grouped).map(([groupKey, groupLeads]) => {
+                  const keyParts = groupKey.split(' | ');
                   
                   return (
                     <div key={groupKey} className="space-y-3">
                       <div className="flex items-center gap-2 py-2 border-b border-border/50">
-                        <Badge className={`text-white transition-all duration-200 ${
-                          hierarchySort === 'etapa' ? getEtapaColor(groupKey) : 'bg-purple-600'
-                        }`}>
-                          {hierarchySort === 'profissao' ? '💼' : '🏷️'} {groupKey}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {hierarchyConfig.enabledCategories.map((category, index) => {
+                            const value = keyParts[index];
+                            const icon = category === 'profissao' ? '💼' : '🏷️';
+                            const colorClass = category === 'etapa' ? getEtapaColor(value) : 'bg-purple-600';
+                            
+                            return (
+                              <Badge key={category} className={`text-white ${colorClass}`}>
+                                {icon} {value}
+                              </Badge>
+                            );
+                          })}
+                        </div>
                         <span className="text-sm text-muted-foreground">
                           {groupLeads.length} lead(s)
                         </span>
