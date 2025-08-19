@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Filter, ChevronDown } from "lucide-react";
+import { X, Calendar, Filter, ChevronDown, Users, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
  
 
  
@@ -146,6 +156,7 @@ export function SelecionadosCard() {
   const [sortedLeads, setSortedLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [localLeads, setLocalLeads] = useState<Lead[]>([]);
+  const [showConfirmAll, setShowConfirmAll] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
     profissoes: string[];
     etapas: string[];
@@ -331,19 +342,30 @@ export function SelecionadosCard() {
         return;
       }
 
+      // Determinar a categoria ativa baseada nos filtros aplicados
+      const categoriaAtiva = activeFilters.profissoes.length > 0 ? 'profissao' : 
+                           activeFilters.etapas.length > 0 ? 'etapa' : 'profissao';
+      
       // Usar um valor sequencial simples ao invés de timestamp
-      const baseOrder = Math.floor(Date.now() / 1000); // Timestamp em segundos (menor)
+      const baseOrder = Math.floor(Date.now() / 1000);
       
       // Atualizar todos os leads alvo para aparecerem no topo do TA
       for (let i = 0; i < targetLeads.length; i++) {
+        const lead = targetLeads[i];
+        const categoriaValor = categoriaAtiva === 'profissao' 
+          ? lead.profissao || 'Sem Profissão'
+          : lead.etapa;
+          
         const { error } = await supabase
           .from("leads")
           .update({ 
             incluir_ta: true,
             incluir_sitplan: false,
-            ta_order: baseOrder + i  // Usar timestamp em segundos + índice
+            ta_order: baseOrder + i,
+            ta_categoria_ativa: categoriaAtiva,
+            ta_categoria_valor: categoriaValor
           })
-          .eq("id", targetLeads[i].id);
+          .eq("id", lead.id);
 
         if (error) throw error;
       }
@@ -374,15 +396,28 @@ export function SelecionadosCard() {
     try {
       if (selectedIds.length === 0) return;
 
+      // Determinar a categoria ativa baseada nos filtros aplicados
+      const categoriaAtiva = activeFilters.profissoes.length > 0 ? 'profissao' : 
+                           activeFilters.etapas.length > 0 ? 'etapa' : 'profissao';
+
       const baseOrder = Math.floor(Date.now() / 1000);
       
       for (let i = 0; i < selectedIds.length; i++) {
+        const lead = leads.find(l => l.id === selectedIds[i]);
+        if (!lead) continue;
+
+        const categoriaValor = categoriaAtiva === 'profissao' 
+          ? lead.profissao || 'Sem Profissão'
+          : lead.etapa;
+
         const { error } = await supabase
           .from("leads")
           .update({ 
             incluir_ta: true,
             incluir_sitplan: false,
-            ta_order: baseOrder + i
+            ta_order: baseOrder + i,
+            ta_categoria_ativa: categoriaAtiva,
+            ta_categoria_valor: categoriaValor
           })
           .eq("id", selectedIds[i]);
 
@@ -557,19 +592,25 @@ export function SelecionadosCard() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Botões Verde e Azul */}
+            {/* Botões Verde e Azul - Padrão Pipeline */}
             {leads.length > 0 && (
               <>
-                <Button 
-                  size="sm" 
-                  onClick={moveAllToTA}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 h-8 rounded-full"
+                <Button
+                  size="sm"
+                  className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                  onClick={() => setShowConfirmAll(true)}
                   title="Mover todos os leads filtrados para TA"
                 >
-                  ✓
+                  <Users className="h-3 w-3" />
                 </Button>
-                <Button 
-                  size="sm" 
+                
+                <Button
+                  size="sm"
+                  className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
+                    multiSelect.isSelectionMode 
+                      ? "bg-red-600 hover:bg-red-700 text-white" 
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                  }`}
                   onClick={() => {
                     if (multiSelect.isSelectionMode) {
                       multiSelect.exitSelectionMode();
@@ -577,14 +618,9 @@ export function SelecionadosCard() {
                       multiSelect.toggleSelectionMode();
                     }
                   }}
-                  className={`px-4 py-2 h-8 rounded-full transition-colors ${
-                    multiSelect.isSelectionMode 
-                      ? "bg-red-600 hover:bg-red-700 text-white" 
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
                   title={multiSelect.isSelectionMode ? "Cancelar seleção" : "Selecionar individualmente"}
                 >
-                  {multiSelect.isSelectionMode ? "✕" : "☑"}
+                  {multiSelect.isSelectionMode ? <X className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
                 </Button>
               </>
             )}
@@ -674,6 +710,33 @@ export function SelecionadosCard() {
           </div>
         )}
       </CardContent>
+      
+      {/* Dialog de confirmação para mover todos */}
+      <AlertDialog open={showConfirmAll} onOpenChange={setShowConfirmAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mover todos para TA</AlertDialogTitle>
+            <AlertDialogDescription>
+              {hasActiveFilters 
+                ? `Você está prestes a mover ${filteredLeads.length} lead(s) filtrado(s) para o TA (Selecionados Sexta).`
+                : `Você está prestes a mover ${leads.length} lead(s) para o TA (Selecionados Sexta).`
+              }
+              <br />Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await moveAllToTA();
+                setShowConfirmAll(false);
+              }}
+            >
+              Mover para TA
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
