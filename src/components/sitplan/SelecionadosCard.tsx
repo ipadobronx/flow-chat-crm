@@ -3,29 +3,21 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Clock, GripVertical } from "lucide-react";
+import { X, Calendar, Filter, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import {
-  CSS,
-} from "@dnd-kit/utilities";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+ 
+
+ 
 
 type Lead = Tables<"leads">;
 
@@ -36,53 +28,30 @@ interface SortableLeadItemProps {
   refetch: () => void;
   getEtapaColor: (etapa: string) => string;
   calculateDaysInStage: (etapaChangedAt: string) => number;
+  queryClient: any;
 }
 
-function SortableLeadItem({ 
+function LeadItem({ 
   lead, 
   removeFromSelecionados, 
-  refetch, 
   getEtapaColor, 
-  calculateDaysInStage 
+  queryClient
 }: SortableLeadItemProps) {
   const { toast } = useToast();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: lead.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
+      className="flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-all duration-200"
     >
       <div className="flex items-center gap-3 flex-1">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
-        >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </div>
         
         <div className="flex-1 min-w-0">
-          {/* Nome principal */}
           <div className="mb-2">
-            <h4 className="font-semibold text-base truncate">{lead.nome}</h4>
+            <h4 className="font-semibold text-base truncate">
+              {lead.nome}
+            </h4>
           </div>
           
-          {/* Linha com etapa e informações */}
           <div className="flex items-center gap-3 flex-wrap text-sm">
             <Badge className={`text-white text-xs px-2 py-1 flex-shrink-0 ${getEtapaColor(lead.etapa)}`}>
               {lead.etapa}
@@ -110,7 +79,6 @@ function SortableLeadItem({
             )}
           </div>
           
-          {/* Data do SitPlan se existir */}
           {lead.data_sitplan && (
             <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
               <span className="text-xs">📅</span>
@@ -126,7 +94,7 @@ function SortableLeadItem({
           size="sm"
           onClick={async () => {
              try {
-               const orderValue = Math.floor(Date.now() / 1000); // Timestamp em segundos
+               const orderValue = Math.floor(Date.now() / 1000);
                
                const { error } = await supabase
                  .from("leads")
@@ -139,22 +107,25 @@ function SortableLeadItem({
 
               if (error) throw error;
 
-              await refetch();
+              await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+              await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+              await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
+              await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
               
               toast({
-                title: "Lead movido para TA!",
-                description: `${lead.nome} foi movido para o topo da lista do TA.`,
+                title: "Lead movido para Selecionados Sexta!",
+                description: `${lead.nome} foi movido para Selecionados Sexta.`,
               });
             } catch (error) {
               toast({
                 title: "Erro",
-                description: "Não foi possível mover o lead para TA.",
+                description: "Não foi possível mover o lead para Selecionados Sexta.",
                 variant: "destructive"
               });
             }
           }}
           className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
-          title="Mover para TA"
+          title="Mover para Selecionados Sexta"
         >
           TA
         </Button>
@@ -177,6 +148,16 @@ export function SelecionadosCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [sortedLeads, setSortedLeads] = useState<Lead[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+  const [activeFilters, setActiveFilters] = useState<{
+    profissoes: string[];
+    etapas: string[];
+  }>({
+    profissoes: [],
+    etapas: []
+  });
+
+  
 
   const { data: leads = [], refetch } = useQuery({
     queryKey: ["sitplan-selecionados"],
@@ -196,32 +177,36 @@ export function SelecionadosCard() {
     },
   });
 
-  // Atualizar lista local quando os dados mudam
+  // Atualizar lista local e filtrada quando os dados mudam
   useEffect(() => {
     setSortedLeads(leads);
+    setFilteredLeads(leads);
   }, [leads]);
 
-  // Configurar sensores para drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // Função para lidar com o fim do drag
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      setSortedLeads((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over?.id);
-
-        return arrayMove(items, oldIndex, newIndex);
-      });
+  // Aplicar filtros quando mudarem
+  useEffect(() => {
+    let filtered = [...sortedLeads];
+    
+    // Filtrar por profissões
+    if (activeFilters.profissoes.length > 0) {
+      filtered = filtered.filter(lead => 
+        lead.profissao && activeFilters.profissoes.includes(lead.profissao)
+      );
     }
-  };
+    
+    // Filtrar por etapas
+    if (activeFilters.etapas.length > 0) {
+      filtered = filtered.filter(lead => 
+        activeFilters.etapas.includes(lead.etapa)
+      );
+    }
+    
+    setFilteredLeads(filtered);
+  }, [sortedLeads, activeFilters]);
+
+  
+
+  
 
   // Configurar realtime para sincronização automática
   useEffect(() => {
@@ -256,7 +241,13 @@ export function SelecionadosCard() {
 
       if (error) throw error;
 
-      await refetch();
+      // Invalidar queries para atualizar ambas as listas
+      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+      await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      
+      // Forçar refetch das queries para garantir sincronização
+      await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
+      await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
       
       toast({
         title: "Lead removido",
@@ -271,37 +262,24 @@ export function SelecionadosCard() {
     }
   };
 
-  const clearAll = async () => {
-    try {
-      const { error } = await supabase
-        .from("leads")
-        .update({ incluir_sitplan: false })
-        .in("id", leads.map(lead => lead.id));
-
-      if (error) throw error;
-
-      await refetch();
-      
-      toast({
-        title: "Lista limpa",
-        description: "Todos os leads foram removidos dos selecionados.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível limpar a lista.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const moveAllToTA = async () => {
     try {
+      // Quando houver filtros ativos, mover apenas os filtrados; caso contrário, mover todos
+      const targetLeads = hasActiveFilters ? filteredLeads : leads;
+
+      if (!targetLeads || targetLeads.length === 0) {
+        toast({
+          title: "Nada a mover",
+          description: hasActiveFilters ? "Nenhum lead corresponde aos filtros atuais." : "Não há leads para mover.",
+        });
+        return;
+      }
+
       // Usar um valor sequencial simples ao invés de timestamp
       const baseOrder = Math.floor(Date.now() / 1000); // Timestamp em segundos (menor)
       
-      // Atualizar todos os leads para aparecerem no topo do TA
-      for (let i = 0; i < leads.length; i++) {
+      // Atualizar todos os leads alvo para aparecerem no topo do TA
+      for (let i = 0; i < targetLeads.length; i++) {
         const { error } = await supabase
           .from("leads")
           .update({ 
@@ -309,22 +287,28 @@ export function SelecionadosCard() {
             incluir_sitplan: false,
             ta_order: baseOrder + i  // Usar timestamp em segundos + índice
           })
-          .eq("id", leads[i].id);
+          .eq("id", targetLeads[i].id);
 
         if (error) throw error;
       }
 
-      await refetch();
+      // Invalidar queries para atualizar ambas as listas
+      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+      await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      
+      // Forçar refetch das queries para garantir sincronização
+      await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
+      await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
       
       toast({
-        title: "Leads movidos para TA",
-        description: `${leads.length} lead(s) foram movidos para o topo da lista do TA.`,
+        title: "Leads movidos para Selecionados Sexta",
+        description: `${targetLeads.length} lead(s) foram movidos para Selecionados Sexta.`,
       });
     } catch (error) {
       console.error("Erro ao mover leads para TA:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível mover os leads para TA.",
+        description: hasActiveFilters ? "Não foi possível mover os leads filtrados." : "Não foi possível mover os leads.",
         variant: "destructive"
       });
     }
@@ -364,6 +348,47 @@ export function SelecionadosCard() {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
+  // Obter profissões únicas dos leads
+  const uniqueProfissoes = Array.from(new Set(
+    leads
+      .map(lead => lead.profissao)
+      .filter(Boolean) as string[]
+  )).sort();
+
+  // Obter etapas únicas dos leads
+  const uniqueEtapas = Array.from(new Set(
+    leads.map(lead => lead.etapa)
+  )).sort();
+
+  const toggleProfissaoFilter = (profissao: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      profissoes: prev.profissoes.includes(profissao)
+        ? prev.profissoes.filter(p => p !== profissao)
+        : [...prev.profissoes, profissao]
+    }));
+  };
+
+  const toggleEtapaFilter = (etapa: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      etapas: prev.etapas.includes(etapa)
+        ? prev.etapas.filter(e => e !== etapa)
+        : [...prev.etapas, etapa]
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({
+      profissoes: [],
+      etapas: []
+    });
+  };
+
+  const hasActiveFilters = activeFilters.profissoes.length > 0 || activeFilters.etapas.length > 0;
+
+  
+
   return (
     <Card>
       <CardHeader>
@@ -374,22 +399,111 @@ export function SelecionadosCard() {
               <Badge variant="secondary">{leads.length}</Badge>
             )}
           </CardTitle>
-          {leads.length > 0 && (
-            <div className="flex gap-2">
+          <div className="flex gap-2">
+            {/* Botão de Filtro */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className={`flex items-center gap-2 ${
+                    hasActiveFilters ? 'border-blue-500 bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filtros
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-1">
+                      {activeFilters.profissoes.length + activeFilters.etapas.length}
+                    </Badge>
+                  )}
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>Filtrar por Profissão</DropdownMenuLabel>
+                {uniqueProfissoes.length > 0 ? (
+                  uniqueProfissoes.map(profissao => (
+                    <DropdownMenuCheckboxItem
+                      key={profissao}
+                      checked={activeFilters.profissoes.includes(profissao)}
+                      onCheckedChange={() => toggleProfissaoFilter(profissao)}
+                    >
+                      {profissao}
+                    </DropdownMenuCheckboxItem>
+                  ))
+                ) : (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">
+                    Nenhuma profissão disponível
+                  </div>
+                )}
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuLabel>Filtrar por Etapa</DropdownMenuLabel>
+                {uniqueEtapas.map(etapa => (
+                  <DropdownMenuCheckboxItem
+                    key={etapa}
+                    checked={activeFilters.etapas.includes(etapa)}
+                    onCheckedChange={() => toggleEtapaFilter(etapa)}
+                  >
+                    {etapa}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                
+                {hasActiveFilters && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      onCheckedChange={clearAllFilters}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      Limpar todos os filtros
+                    </DropdownMenuCheckboxItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Botão TA existente */}
+            {leads.length > 0 && (
               <Button 
-                variant="default" 
                 size="sm" 
                 onClick={moveAllToTA}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                title="Mover todos os leads para TA"
               >
                 TA
               </Button>
-              <Button variant="outline" size="sm" onClick={clearAll}>
-                Limpar Todos
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+        
+        {/* Indicador de filtros ativos */}
+        {hasActiveFilters && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Filter className="w-4 h-4" />
+            <span>Filtros ativos:</span>
+            {activeFilters.profissoes.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {activeFilters.profissoes.length} profissão(ões)
+              </Badge>
+            )}
+            {activeFilters.etapas.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {activeFilters.etapas.length} etapa(s)
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+            >
+              Limpar
+            </Button>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent>
@@ -399,30 +513,26 @@ export function SelecionadosCard() {
             <p>Nenhum lead selecionado para o próximo SitPlan</p>
             <p className="text-sm mt-2">Use o botão "✅ Sim" em "Incluir no SitPlan" no Pipeline para adicionar leads aqui</p>
           </div>
+        ) : filteredLeads.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Filter className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>Nenhum lead encontrado com os filtros aplicados</p>
+            <p className="text-sm mt-2">Tente ajustar ou limpar os filtros</p>
+          </div>
         ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={sortedLeads.map(lead => lead.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-3">
-                {sortedLeads.map((lead) => (
-                  <SortableLeadItem
-                    key={lead.id}
-                    lead={lead}
-                    removeFromSelecionados={removeFromSelecionados}
-                    refetch={refetch}
-                    getEtapaColor={getEtapaColor}
-                    calculateDaysInStage={calculateDaysInStage}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <div className="space-y-3">
+            {filteredLeads.map((lead) => (
+              <LeadItem
+                key={lead.id}
+                lead={lead}
+                removeFromSelecionados={removeFromSelecionados}
+                refetch={refetch}
+                getEtapaColor={getEtapaColor}
+                calculateDaysInStage={calculateDaysInStage}
+                queryClient={queryClient}
+              />
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
