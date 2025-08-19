@@ -10,7 +10,15 @@ import { useDroppable, useDndMonitor } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, ArrowUp, ArrowDown, Filter, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Lead = Tables<"leads">;
 
@@ -125,6 +133,10 @@ function TAItem({ lead, etapa, listId, onRemove }: TAItemProps) {
 export function TALeadsCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Estado para hierarquia TA
+  const [hierarchySort, setHierarchySort] = useState<'profissao' | 'etapa' | 'none'>('none');
+  const [hierarchyOrder, setHierarchyOrder] = useState<string[]>([]);
 
   // Buscar leads que estão marcados para TA
   const { data: leads = [], refetch, isLoading, error } = useQuery({
@@ -148,40 +160,111 @@ export function TALeadsCard() {
       );
       return data;
     },
-    refetchInterval: 5000, // Refetch a cada 5 segundos para garantir sincronização
+    refetchInterval: 5000,
   });
 
-  // Log quando os leads mudam
-  useEffect(() => {
-    console.log('🔄 TALeadsCard: Leads atualizados:', leads.length, 'leads');
-    console.log('📊 TALeadsCard: Leads detalhados:', leads.map(lead => ({
-      id: lead.id,
-      nome: lead.nome,
-      etapa: lead.etapa,
-      incluir_ta: lead.incluir_ta,
-      ta_order: lead.ta_order
-    })));
-    
-    // Log do groupedLeads para debug
-    const debugGrouped = leads.reduce((acc, lead) => {
-      if (!acc[lead.etapa]) {
-        acc[lead.etapa] = [];
-      }
-      acc[lead.etapa].push(lead);
-      return acc;
-    }, {} as Record<string, Lead[]>);
-    
-    console.log('🏷️ TALeadsCard: Grouped leads por etapa:', debugGrouped);
-  }, [leads]);
-
-  // Estado local para reordenação otimista
+  // Estado local para reordenação otimista com hierarquia
   const [localLeads, setLocalLeads] = useState<Lead[]>([]);
 
   useEffect(() => {
-    setLocalLeads(leads ?? []);
-  }, [leads]);
+    let sortedLeads = [...(leads ?? [])];
+    
+    // Aplicar hierarquia de ordenação
+    if (hierarchySort === 'profissao') {
+      // Agrupar por profissão e ordenar grupos
+      const grouped = sortedLeads.reduce((acc, lead) => {
+        const profissao = lead.profissao || 'Sem Profissão';
+        if (!acc[profissao]) acc[profissao] = [];
+        acc[profissao].push(lead);
+        return acc;
+      }, {} as Record<string, Lead[]>);
+      
+      // Se há ordem personalizada, usar ela; senão, ordem alfabética
+      const profissoes = hierarchyOrder.length > 0 
+        ? hierarchyOrder.filter(p => grouped[p]) 
+        : Object.keys(grouped).sort();
+      
+      // Adicionar profissões não listadas na ordem personalizada ao final
+      if (hierarchyOrder.length > 0) {
+        Object.keys(grouped).forEach(p => {
+          if (!hierarchyOrder.includes(p)) profissoes.push(p);
+        });
+      }
+      
+      sortedLeads = profissoes.flatMap(profissao => 
+        grouped[profissao].sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
+      );
+      
+    } else if (hierarchySort === 'etapa') {
+      // Agrupar por etapa e ordenar grupos
+      const grouped = sortedLeads.reduce((acc, lead) => {
+        if (!acc[lead.etapa]) acc[lead.etapa] = [];
+        acc[lead.etapa].push(lead);
+        return acc;
+      }, {} as Record<string, Lead[]>);
+      
+      const etapas = hierarchyOrder.length > 0 
+        ? hierarchyOrder.filter(e => grouped[e])
+        : Object.keys(grouped).sort();
+      
+      if (hierarchyOrder.length > 0) {
+        Object.keys(grouped).forEach(e => {
+          if (!hierarchyOrder.includes(e)) etapas.push(e);
+        });
+      }
+      
+      sortedLeads = etapas.flatMap(etapa => 
+        grouped[etapa].sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
+      );
+    } else {
+      // Ordem padrão por ta_order
+      sortedLeads.sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0));
+    }
+    
+    setLocalLeads(sortedLeads);
+  }, [leads, hierarchySort, hierarchyOrder]);
 
-  // Configurar drop zone para aceitar leads arrastados
+  // Obter listas únicas para a hierarquia
+  const uniqueProfissoes = Array.from(new Set(
+    leads.map(lead => lead.profissao || 'Sem Profissão')
+  )).sort();
+
+  const uniqueEtapas = Array.from(new Set(
+    leads.map(lead => lead.etapa)
+  )).sort();
+
+  // Função para definir ordem personalizada da hierarquia
+  const setCustomHierarchyOrder = () => {
+    const items = hierarchySort === 'profissao' ? uniqueProfissoes : uniqueEtapas;
+    
+    // Exemplo de ordem personalizada baseada na preferência do usuário
+    if (hierarchySort === 'profissao') {
+      // Priorizar certas profissões
+      const priorityOrder = ['Médico', 'Dentista', 'Advogado', 'Engenheiro'];
+      const customOrder = [
+        ...items.filter(item => priorityOrder.includes(item)),
+        ...items.filter(item => !priorityOrder.includes(item))
+      ];
+      setHierarchyOrder(customOrder);
+    } else if (hierarchySort === 'etapa') {
+      // Priorizar certas etapas
+      const priorityOrder = ['Não atendido', 'Marcar', 'TA', 'Novo'];
+      const customOrder = [
+        ...items.filter(item => priorityOrder.includes(item)),
+        ...items.filter(item => !priorityOrder.includes(item))
+      ];
+      setHierarchyOrder(customOrder);
+    }
+  };
+
+  // Aplicar ordem personalizada quando mudar o tipo de hierarquia
+  useEffect(() => {
+    if (hierarchySort !== 'none') {
+      setCustomHierarchyOrder();
+    } else {
+      setHierarchyOrder([]);
+    }
+  }, [hierarchySort, leads]);
   const { setNodeRef, isOver } = useDroppable({
     id: "ta-leads",
     data: {
@@ -190,7 +273,7 @@ export function TALeadsCard() {
     }
   });
 
-  // Log para debug da drop zone
+  // Configurar drop zone para aceitar leads arrastados
   useEffect(() => {
     console.log('🎯 TALeadsCard: Drop zone configurada com ID:', "ta-leads");
     console.log('🎯 TALeadsCard: isOver:', isOver);
@@ -479,27 +562,54 @@ export function TALeadsCard() {
               <Badge variant="secondary">{leads.length}</Badge>
             )}
           </CardTitle>
-          <div className="flex gap-2">
-            {leads.length > 0 && (
-              <>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  onClick={moveAllToTA}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  TA
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={clearSelectedLeads}
-                >
-                  Limpar
-                </Button>
-              </>
-            )}
-          </div>
+            <div className="flex gap-2">
+              {/* Botão de Hierarquia TA */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className={`flex items-center gap-2 ${
+                      hierarchySort !== 'none' ? 'border-green-500 bg-green-50 text-green-700' : ''
+                    }`}
+                  >
+                    {hierarchySort === 'profissao' ? <ArrowUp className="w-4 h-4" /> : 
+                     hierarchySort === 'etapa' ? <ArrowDown className="w-4 h-4" /> : 
+                     <Filter className="w-4 h-4" />}
+                    Hierarquia TA
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Ordenar TA por:</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={hierarchySort} onValueChange={(value) => setHierarchySort(value as typeof hierarchySort)}>
+                    <DropdownMenuRadioItem value="none">Padrão (ta_order)</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="profissao">Profissão</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="etapa">Etapa do funil</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {leads.length > 0 && (
+                <>
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={moveAllToTA}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    TA
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={clearSelectedLeads}
+                  >
+                    Limpar
+                  </Button>
+                </>
+              )}
+            </div>
         </div>
       </CardHeader>
 
@@ -524,83 +634,73 @@ export function TALeadsCard() {
             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {(() => {
-              console.log('🎨 TALeadsCard: Renderizando leads, total:', leads.length);
-              console.log('🎨 TALeadsCard: Grouped leads:', groupedLeads);
-              console.log('🎨 TALeadsCard: DEFAULT_ETAPAS_ORDER:', DEFAULT_ETAPAS_ORDER);
-              
-              // Encontrar leads que não estão nas etapas padrão
-              const etapasPadrao = new Set(DEFAULT_ETAPAS_ORDER);
-              const leadsOutrasEtapas = localLeads.filter(lead => !etapasPadrao.has(lead.etapa));
-              
-              console.log('🎨 TALeadsCard: Leads em outras etapas:', leadsOutrasEtapas);
-              
-              return (
-                <>
-                  {/* Renderizar etapas padrão */}
-                  {DEFAULT_ETAPAS_ORDER.map((etapa) => {
-                    const etapaLeads = groupedLeads[etapa] || [];
-                    console.log(`🎨 TALeadsCard: Etapa ${etapa} tem ${etapaLeads.length} leads`);
-                    
-                    if (etapaLeads.length === 0) return null;
-
-                    return (
-                      <div key={etapa} className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-white transition-all duration-200 ${getEtapaColor(etapa)}`}>
-                            {etapa}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {etapaLeads.length} lead(s)
-                          </span>
-                        </div>
-                        <div className="space-y-3 ml-4">
-                          <SortableContext
-                            items={etapaLeads
-                              .slice()
-                              .sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
-                              .map(l => l.id)}
-                            strategy={verticalListSortingStrategy}
-                          >
-                            {etapaLeads
-                              .slice()
-                              .sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
-                              .map((lead) => (
-                                <TAItem key={lead.id} lead={lead} etapa={etapa} listId={`etapa:${etapa}`} onRemove={removeFromTA} />
-                              ))}
-                          </SortableContext>
-                         </div>
-                       </div>
-                     );
-                   })}
-                   
-                   {/* Renderizar leads em outras etapas */}
-                   {leadsOutrasEtapas.length > 0 && (
-                     <div className="space-y-3">
-                       <div className="space-y-3 ml-4">
-                         <SortableContext
-                           items={leadsOutrasEtapas
-                             .slice()
-                             .sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
-                             .map(l => l.id)}
-                           strategy={verticalListSortingStrategy}
-                         >
-                           {leadsOutrasEtapas
-                             .slice()
-                             .sort((a, b) => (a.ta_order ?? 0) - (b.ta_order ?? 0))
-                             .map((lead) => (
-                               <TAItem key={lead.id} lead={lead} etapa={lead.etapa} listId={`outras`} onRemove={removeFromTA} />
-                             ))}
-                         </SortableContext>
-                       </div>
-                     </div>
-                   )}
-                 </>
-               );
-             })()}
-           </div>
-         )}
+          <div className="space-y-4">
+            <SortableContext
+              items={localLeads.map(l => l.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {(() => {
+                if (hierarchySort === 'none') {
+                  // Renderização simples sem agrupamento
+                  return localLeads.map((lead) => (
+                    <TAItem key={lead.id} lead={lead} etapa={lead.etapa} listId="ta-main" onRemove={removeFromTA} />
+                  ));
+                }
+                
+                // Renderização com agrupamento por hierarquia
+                const grouped = localLeads.reduce((acc, lead) => {
+                  const key = hierarchySort === 'profissao' 
+                    ? lead.profissao || 'Sem Profissão' 
+                    : lead.etapa;
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(lead);
+                  return acc;
+                }, {} as Record<string, Lead[]>);
+                
+                const groupKeys = hierarchyOrder.length > 0 
+                  ? hierarchyOrder.filter(k => grouped[k])
+                  : Object.keys(grouped).sort();
+                
+                // Adicionar grupos não listados na ordem personalizada
+                if (hierarchyOrder.length > 0) {
+                  Object.keys(grouped).forEach(k => {
+                    if (!hierarchyOrder.includes(k)) groupKeys.push(k);
+                  });
+                }
+                
+                return groupKeys.map((groupKey) => {
+                  const groupLeads = grouped[groupKey] || [];
+                  
+                  return (
+                    <div key={groupKey} className="space-y-3">
+                      <div className="flex items-center gap-2 py-2 border-b border-border/50">
+                        <Badge className={`text-white transition-all duration-200 ${
+                          hierarchySort === 'etapa' ? getEtapaColor(groupKey) : 'bg-blue-600'
+                        }`}>
+                          {hierarchySort === 'profissao' ? '💼' : '🏷️'} {groupKey}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {groupLeads.length} lead(s)
+                        </span>
+                      </div>
+                      <div className="ml-4 space-y-3">
+                        {groupLeads.map((lead) => (
+                          <TAItem 
+                            key={lead.id} 
+                            lead={lead} 
+                            etapa={lead.etapa} 
+                            listId={`hierarchy:${groupKey}`} 
+                            onRemove={removeFromTA} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </SortableContext>
+          </div>
+        )}
          
          {/* Indicador visual quando um lead está sendo arrastado sobre a área */}
          {isOver && (

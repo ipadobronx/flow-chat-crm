@@ -3,10 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Filter, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Calendar, Filter, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { useSortable } from "@dnd-kit/sortable";
+import { useDndMonitor } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +18,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
  
 
@@ -23,30 +25,46 @@ import {
 
 type Lead = Tables<"leads">;
 
-// Componente para item arrastável
-interface SortableLeadItemProps {
+// Componente para item arrastável do SitPlan
+interface SortableSitPlanLeadItemProps {
   lead: Lead;
   removeFromSelecionados: (leadId: string) => void;
-  refetch: () => void;
   getEtapaColor: (etapa: string) => string;
-  calculateDaysInStage: (etapaChangedAt: string) => number;
   queryClient: any;
 }
 
-function LeadItem({ 
+function SortableSitPlanLeadItem({ 
   lead, 
   removeFromSelecionados, 
   getEtapaColor, 
   queryClient
-}: SortableLeadItemProps) {
+}: SortableSitPlanLeadItemProps) {
   const { toast } = useToast();
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: lead.id,
+    data: {
+      type: "sitplan-lead",
+      lead: lead
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    cursor: isDragging ? "grabbing" : "grab",
+  };
 
   return (
     <div
-      className="flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-all duration-200"
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-green-200 ${
+        isDragging ? "opacity-80 ring-2 ring-green-300 shadow-2xl" : ""
+      }`}
     >
       <div className="flex items-center gap-3 flex-1">
-        
         <div className="flex-1 min-w-0">
           <div className="mb-2">
             <h4 className="font-semibold text-base truncate">
@@ -90,41 +108,42 @@ function LeadItem({
         </div>
       </div>
       
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
         <Button
           variant="secondary"
           size="sm"
-          onClick={async () => {
-             try {
-               const orderValue = Math.floor(Date.now() / 1000);
-               
-               const { error } = await supabase
-                 .from("leads")
-                 .update({ 
-                   incluir_ta: true,
-                   incluir_sitplan: false,
-                   ta_order: orderValue
-                 })
-                 .eq("id", lead.id);
-
-              if (error) throw error;
-
-              await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
-              await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
-              await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
-              await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
+          onClick={async (e) => {
+            e.stopPropagation();
+            try {
+              const orderValue = Math.floor(Date.now() / 1000);
               
-              toast({
-                title: "Lead movido para TA!",
-                description: `${lead.nome} foi movido para o TA (Selecionados Sexta).`,
-              });
-            } catch (error) {
-              toast({
-                title: "Erro",
-                description: "Não foi possível mover o lead para o TA.",
-                variant: "destructive"
-              });
-            }
+              const { error } = await supabase
+                .from("leads")
+                .update({ 
+                  incluir_ta: true,
+                  incluir_sitplan: false,
+                  ta_order: orderValue
+                })
+                .eq("id", lead.id);
+
+             if (error) throw error;
+
+             await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+             await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+             await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
+             await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
+             
+             toast({
+               title: "Lead movido para TA!",
+               description: `${lead.nome} foi movido para o TA (Selecionados Sexta).`,
+             });
+           } catch (error) {
+             toast({
+               title: "Erro",
+               description: "Não foi possível mover o lead para o TA.",
+               variant: "destructive"
+             });
+           }
           }}
           className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
           title="Mover para TA (Selecionados Sexta)"
@@ -135,7 +154,10 @@ function LeadItem({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => removeFromSelecionados(lead.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            removeFromSelecionados(lead.id);
+          }}
           className="text-muted-foreground hover:text-destructive"
           title="Remover do SitPlan"
         >
@@ -151,6 +173,7 @@ export function SelecionadosCard() {
   const queryClient = useQueryClient();
   const [sortedLeads, setSortedLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
+  const [localLeads, setLocalLeads] = useState<Lead[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
     profissoes: string[];
     etapas: string[];
@@ -158,10 +181,6 @@ export function SelecionadosCard() {
     profissoes: [],
     etapas: []
   });
-  
-  const [hierarchySort, setHierarchySort] = useState<'profissao' | 'etapa' | 'none'>('none');
-
-  
 
   const { data: leads = [], refetch } = useQuery({
     queryKey: ["sitplan-selecionados"],
@@ -171,7 +190,7 @@ export function SelecionadosCard() {
         .from("leads")
         .select("*")
         .eq("incluir_sitplan", true)
-        .order("created_at", { ascending: true }); // Ordem padrão por criação
+        .order("created_at", { ascending: true }); 
       
       if (error) throw error;
       console.log(`✅ SitPlan encontrou ${data?.length || 0} leads selecionados:`, 
@@ -181,29 +200,16 @@ export function SelecionadosCard() {
     },
   });
 
-  // Atualizar lista local e filtrada quando os dados mudam
+  // Atualizar lista local quando os dados mudam
   useEffect(() => {
-    let sorted = [...leads];
-    
-    // Aplicar hierarquia de ordenação
-    if (hierarchySort === 'profissao') {
-      sorted.sort((a, b) => {
-        if (!a.profissao && !b.profissao) return 0;
-        if (!a.profissao) return 1;
-        if (!b.profissao) return -1;
-        return a.profissao.localeCompare(b.profissao);
-      });
-    } else if (hierarchySort === 'etapa') {
-      sorted.sort((a, b) => a.etapa.localeCompare(b.etapa));
-    }
-    
-    setSortedLeads(sorted);
-    setFilteredLeads(sorted);
-  }, [leads, hierarchySort]);
+    setSortedLeads(leads);
+    setFilteredLeads(leads);
+    setLocalLeads(leads);
+  }, [leads]);
 
   // Aplicar filtros quando mudarem
   useEffect(() => {
-    let filtered = [...sortedLeads];
+    let filtered = [...localLeads];
     
     // Filtrar por profissões
     if (activeFilters.profissoes.length > 0) {
@@ -220,7 +226,60 @@ export function SelecionadosCard() {
     }
     
     setFilteredLeads(filtered);
-  }, [sortedLeads, activeFilters]);
+  }, [localLeads, activeFilters]);
+
+  // Monitorar drag and drop para reordenação
+  useDndMonitor({
+    async onDragEnd(event) {
+      const { active, over } = event;
+      if (!active || !over) return;
+
+      const activeData = active.data.current as any;
+      const overData = over.data.current as any;
+
+      // Reordenação dentro do SelecionadosCard
+      if (activeData?.type === "sitplan-lead" && overData?.type === "sitplan-lead") {
+        const oldIndex = localLeads.findIndex(l => l.id === active.id);
+        const newIndex = localLeads.findIndex(l => l.id === over.id);
+        
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+        // Reordenar otimisticamente
+        const reordered = [...localLeads];
+        const [moved] = reordered.splice(oldIndex, 1);
+        reordered.splice(newIndex, 0, moved);
+        
+        setLocalLeads(reordered);
+        
+        try {
+          // Persistir nova ordem no banco usando created_at para ordenação simples
+          const baseTime = new Date();
+          const updates = reordered.map((lead, index) => {
+            const newCreatedAt = new Date(baseTime.getTime() + index * 1000).toISOString();
+            return supabase
+              .from("leads")
+              .update({ created_at: newCreatedAt })
+              .eq("id", lead.id);
+          });
+          
+          const results = await Promise.all(updates);
+          const hasError = results.some(r => (r as any).error);
+          if (hasError) throw new Error("Erro ao atualizar ordem no banco");
+          
+          await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+        } catch (err) {
+          console.error("Erro ao persistir nova ordem:", err);
+          toast({
+            title: "Erro ao reordenar",
+            description: "Não foi possível salvar a nova ordem. Atualize a página.",
+            variant: "destructive",
+          });
+          // Reverter mudança otimística
+          setLocalLeads(leads);
+        }
+      }
+    }
+  });
 
   
 
@@ -418,33 +477,6 @@ export function SelecionadosCard() {
             )}
           </CardTitle>
           <div className="flex gap-2">
-            {/* Botão de Hierarquia */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className={`flex items-center gap-2 ${
-                    hierarchySort !== 'none' ? 'border-green-500 bg-green-50 text-green-700' : ''
-                  }`}
-                >
-                  {hierarchySort === 'profissao' ? <ArrowUp className="w-4 h-4" /> : 
-                   hierarchySort === 'etapa' ? <ArrowDown className="w-4 h-4" /> : 
-                   <Filter className="w-4 h-4" />}
-                  Hierarquia TA
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Ordenar para TA por:</DropdownMenuLabel>
-                <DropdownMenuRadioGroup value={hierarchySort} onValueChange={(value) => setHierarchySort(value as typeof hierarchySort)}>
-                  <DropdownMenuRadioItem value="none">Padrão (criação)</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="profissao">Profissão</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="etapa">Etapa do funil</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {/* Botão de Filtro */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -566,17 +598,20 @@ export function SelecionadosCard() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredLeads.map((lead) => (
-              <LeadItem
-                key={lead.id}
-                lead={lead}
-                removeFromSelecionados={removeFromSelecionados}
-                refetch={refetch}
-                getEtapaColor={getEtapaColor}
-                calculateDaysInStage={calculateDaysInStage}
-                queryClient={queryClient}
-              />
-            ))}
+            <SortableContext
+              items={filteredLeads.map(l => l.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {filteredLeads.map((lead) => (
+                <SortableSitPlanLeadItem
+                  key={lead.id}
+                  lead={lead}
+                  removeFromSelecionados={removeFromSelecionados}
+                  getEtapaColor={getEtapaColor}
+                  queryClient={queryClient}
+                />
+              ))}
+            </SortableContext>
           </div>
         )}
       </CardContent>
