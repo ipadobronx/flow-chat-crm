@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Filter, ChevronDown } from "lucide-react";
+import { X, Calendar, Filter, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
  
 
@@ -113,19 +115,19 @@ function LeadItem({
               await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
               
               toast({
-                title: "Lead movido para Selecionados Sexta!",
-                description: `${lead.nome} foi movido para Selecionados Sexta.`,
+                title: "Lead movido para TA!",
+                description: `${lead.nome} foi movido para o TA (Selecionados Sexta).`,
               });
             } catch (error) {
               toast({
                 title: "Erro",
-                description: "Não foi possível mover o lead para Selecionados Sexta.",
+                description: "Não foi possível mover o lead para o TA.",
                 variant: "destructive"
               });
             }
           }}
           className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
-          title="Mover para Selecionados Sexta"
+          title="Mover para TA (Selecionados Sexta)"
         >
           TA
         </Button>
@@ -156,6 +158,8 @@ export function SelecionadosCard() {
     profissoes: [],
     etapas: []
   });
+  
+  const [hierarchySort, setHierarchySort] = useState<'profissao' | 'etapa' | 'none'>('none');
 
   
 
@@ -179,9 +183,23 @@ export function SelecionadosCard() {
 
   // Atualizar lista local e filtrada quando os dados mudam
   useEffect(() => {
-    setSortedLeads(leads);
-    setFilteredLeads(leads);
-  }, [leads]);
+    let sorted = [...leads];
+    
+    // Aplicar hierarquia de ordenação
+    if (hierarchySort === 'profissao') {
+      sorted.sort((a, b) => {
+        if (!a.profissao && !b.profissao) return 0;
+        if (!a.profissao) return 1;
+        if (!b.profissao) return -1;
+        return a.profissao.localeCompare(b.profissao);
+      });
+    } else if (hierarchySort === 'etapa') {
+      sorted.sort((a, b) => a.etapa.localeCompare(b.etapa));
+    }
+    
+    setSortedLeads(sorted);
+    setFilteredLeads(sorted);
+  }, [leads, hierarchySort]);
 
   // Aplicar filtros quando mudarem
   useEffect(() => {
@@ -301,8 +319,8 @@ export function SelecionadosCard() {
       await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
       
       toast({
-        title: "Leads movidos para Selecionados Sexta",
-        description: `${targetLeads.length} lead(s) foram movidos para Selecionados Sexta.`,
+        title: "Leads movidos para TA",
+        description: `${targetLeads.length} lead(s) foram movidos para o TA (Selecionados Sexta).`,
       });
     } catch (error) {
       console.error("Erro ao mover leads para TA:", error);
@@ -400,6 +418,33 @@ export function SelecionadosCard() {
             )}
           </CardTitle>
           <div className="flex gap-2">
+            {/* Botão de Hierarquia */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className={`flex items-center gap-2 ${
+                    hierarchySort !== 'none' ? 'border-green-500 bg-green-50 text-green-700' : ''
+                  }`}
+                >
+                  {hierarchySort === 'profissao' ? <ArrowUp className="w-4 h-4" /> : 
+                   hierarchySort === 'etapa' ? <ArrowDown className="w-4 h-4" /> : 
+                   <Filter className="w-4 h-4" />}
+                  Hierarquia TA
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Ordenar para TA por:</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={hierarchySort} onValueChange={(value) => setHierarchySort(value as typeof hierarchySort)}>
+                  <DropdownMenuRadioItem value="none">Padrão (criação)</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="profissao">Profissão</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="etapa">Etapa do funil</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Botão de Filtro */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -470,7 +515,7 @@ export function SelecionadosCard() {
               <Button 
                 size="sm" 
                 onClick={moveAllToTA}
-                className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
                 title="Mover todos os leads para TA"
               >
                 TA
