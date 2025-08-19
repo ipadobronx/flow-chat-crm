@@ -31,9 +31,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
- 
-
- 
 
 type Lead = Tables<"leads">;
 
