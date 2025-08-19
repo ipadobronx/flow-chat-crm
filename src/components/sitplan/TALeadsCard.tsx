@@ -69,8 +69,8 @@ function TAItem({ lead, etapa, listId, onRemove }: TAItemProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    cursor: "grab",
+    transition: transition || "transform 150ms ease",
+    cursor: isDragging ? "grabbing" : "grab",
   };
 
   return (
@@ -79,8 +79,8 @@ function TAItem({ lead, etapa, listId, onRemove }: TAItemProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-blue-200 ${
-        isDragging ? "opacity-80 ring-2 ring-blue-300" : ""
+      className={`flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-all duration-150 ${
+        isDragging ? "opacity-70 shadow-md scale-[0.98]" : "hover:shadow-sm"
       }`}
    >
       <div className="flex items-center gap-3 flex-1">
@@ -613,23 +613,23 @@ export function TALeadsCard() {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {leads.length === 0 ? (
-          <div className={`text-center py-8 transition-all duration-300 ${
+          <div className={`text-center py-6 transition-all duration-200 ${
             isOver 
-              ? 'text-blue-600 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-dashed border-blue-400 scale-105' 
+              ? 'text-blue-600 bg-blue-50/50 rounded-lg border-2 border-dashed border-blue-300' 
               : 'text-muted-foreground'
           }`}>
             {isOver ? (
               <>
-                <div className="text-lg font-medium mb-2 animate-pulse">🎯 Solte aqui para mover para TA</div>
+                <div className="text-base font-medium mb-1">🎯 Solte aqui para mover para TA</div>
                 <div className="text-sm">Arraste leads do SitPlan para esta área</div>
               </>
             ) : (
               <>
                 Nenhum lead selecionado para TA.
                 <br />
-                <span className="text-sm">Arraste leads do SitPlan para esta área ou use o botão "Editar" na tabela acima.</span>
+                <span className="text-sm">Arraste leads do SitPlan para esta área.</span>
               </>
             )}
           </div>
@@ -702,16 +702,6 @@ export function TALeadsCard() {
           </div>
         )}
          
-         {/* Indicador visual quando um lead está sendo arrastado sobre a área */}
-         {isOver && (
-           <div className="fixed inset-0 pointer-events-none z-50">
-             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 border-4 border-dashed border-blue-500 rounded-lg m-4 flex items-center justify-center animate-pulse">
-               <div className="text-center text-blue-700 font-bold text-xl bg-white/90 px-6 py-4 rounded-lg shadow-2xl">
-                 🎯 Solte aqui para mover para TA
-               </div>
-             </div>
-           </div>
-         )}
        </CardContent>
      </Card>
    );

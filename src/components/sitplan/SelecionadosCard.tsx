@@ -50,7 +50,7 @@ function SortableSitPlanLeadItem({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || "transform 150ms ease",
     cursor: isDragging ? "grabbing" : "grab",
   };
 
@@ -60,8 +60,8 @@ function SortableSitPlanLeadItem({
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex items-center justify-between p-4 border rounded-lg bg-background hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-green-200 ${
-        isDragging ? "opacity-80 ring-2 ring-green-300 shadow-2xl" : ""
+      className={`flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-all duration-150 ${
+        isDragging ? "opacity-70 shadow-md scale-[0.98]" : "hover:shadow-sm"
       }`}
     >
       <div className="flex items-center gap-3 flex-1">
@@ -110,58 +110,16 @@ function SortableSitPlanLeadItem({
       
       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
         <Button
-          variant="secondary"
-          size="sm"
-          onClick={async (e) => {
-            e.stopPropagation();
-            try {
-              const orderValue = Math.floor(Date.now() / 1000);
-              
-              const { error } = await supabase
-                .from("leads")
-                .update({ 
-                  incluir_ta: true,
-                  incluir_sitplan: false,
-                  ta_order: orderValue
-                })
-                .eq("id", lead.id);
-
-             if (error) throw error;
-
-             await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
-             await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
-             await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
-             await queryClient.refetchQueries({ queryKey: ["ta-leads"] });
-             
-             toast({
-               title: "Lead movido para TA!",
-               description: `${lead.nome} foi movido para o TA (Selecionados Sexta).`,
-             });
-           } catch (error) {
-             toast({
-               title: "Erro",
-               description: "Não foi possível mover o lead para o TA.",
-               variant: "destructive"
-             });
-           }
-          }}
-          className="text-xs px-2 py-1 h-8 bg-blue-100 hover:bg-blue-200 text-blue-700 border border-blue-300"
-          title="Mover para TA (Selecionados Sexta)"
-        >
-          TA
-        </Button>
-        
-        <Button
           variant="ghost"
           size="sm"
           onClick={(e) => {
             e.stopPropagation();
             removeFromSelecionados(lead.id);
           }}
-          className="text-muted-foreground hover:text-destructive"
+          className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
           title="Remover do SitPlan"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3 h-3" />
         </Button>
       </div>
     </div>
@@ -542,16 +500,84 @@ export function SelecionadosCard() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Botão TA existente */}
+            {/* Botões do Pipeline */}
             {leads.length > 0 && (
-              <Button 
-                size="sm" 
-                onClick={moveAllToTA}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
-                title="Mover todos os leads para TA"
-              >
-                TA
-              </Button>
+              <>
+                <Button 
+                  size="sm" 
+                  onClick={async () => {
+                    try {
+                      const targetLeads = hasActiveFilters ? filteredLeads : leads;
+                      
+                      for (const lead of targetLeads) {
+                        const { error } = await supabase
+                          .from("leads")
+                          .update({ etapa: 'OI' })
+                          .eq("id", lead.id);
+                        if (error) throw error;
+                      }
+                      
+                      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+                      
+                      toast({
+                        title: "Leads movidos para OI",
+                        description: `${targetLeads.length} lead(s) movidos para a etapa OI.`,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Erro",
+                        description: "Não foi possível mover os leads.",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 h-8"
+                  title="Mover leads para OI"
+                >
+                  OI
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={async () => {
+                    try {
+                      const targetLeads = hasActiveFilters ? filteredLeads : leads;
+                      
+                      for (const lead of targetLeads) {
+                        const { error } = await supabase
+                          .from("leads")
+                          .update({ etapa: 'PC' })
+                          .eq("id", lead.id);
+                        if (error) throw error;
+                      }
+                      
+                      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+                      
+                      toast({
+                        title: "Leads movidos para PC",
+                        description: `${targetLeads.length} lead(s) movidos para a etapa PC.`,
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Erro",
+                        description: "Não foi possível mover os leads.",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
+                  title="Mover leads para PC"
+                >
+                  PC
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={moveAllToTA}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 h-8"
+                  title="Mover todos os leads para TA"
+                >
+                  TA
+                </Button>
+              </>
             )}
           </div>
         </div>
