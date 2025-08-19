@@ -11,6 +11,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { useDndMonitor } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useMultiSelect } from "@/hooks/useMultiSelect";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,13 +33,19 @@ interface SortableSitPlanLeadItemProps {
   removeFromSelecionados: (leadId: string) => void;
   getEtapaColor: (etapa: string) => string;
   queryClient: any;
+  isSelectionMode?: boolean;
+  isSelected?: boolean;
+  onSelectionToggle?: (id: string) => void;
 }
 
 function SortableSitPlanLeadItem({ 
   lead, 
   removeFromSelecionados, 
   getEtapaColor, 
-  queryClient
+  queryClient,
+  isSelectionMode = false,
+  isSelected = false,
+  onSelectionToggle
 }: SortableSitPlanLeadItemProps) {
   const { toast } = useToast();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -58,14 +66,20 @@ function SortableSitPlanLeadItem({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(isSelectionMode ? {} : { ...attributes, ...listeners })}
       className={`flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-all duration-150 ${
         isDragging ? "opacity-70 shadow-md scale-[0.98]" : "hover:shadow-sm"
-      }`}
+      } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}
     >
       <div className="flex items-center gap-3 flex-1">
-        <div className="flex-1 min-w-0">
+        {isSelectionMode && (
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onSelectionToggle?.(lead.id)}
+            className="flex-shrink-0"
+          />
+        )}
+        <div className="flex-1 min-w-0" {...(isSelectionMode ? {} : { ...attributes, ...listeners })}>
           <div className="mb-2">
             <h4 className="font-semibold text-base truncate">
               {lead.nome}
@@ -138,6 +152,13 @@ export function SelecionadosCard() {
   }>({
     profissoes: [],
     etapas: []
+  });
+
+  // Hook para seleção múltipla
+  const multiSelect = useMultiSelect({
+    onSelectionComplete: async (selectedIds) => {
+      await moveSelectedToTA(selectedIds);
+    }
   });
 
   const { data: leads = [], refetch } = useQuery({
@@ -349,6 +370,42 @@ export function SelecionadosCard() {
     }
   };
 
+  const moveSelectedToTA = async (selectedIds: string[]) => {
+    try {
+      if (selectedIds.length === 0) return;
+
+      const baseOrder = Math.floor(Date.now() / 1000);
+      
+      for (let i = 0; i < selectedIds.length; i++) {
+        const { error } = await supabase
+          .from("leads")
+          .update({ 
+            incluir_ta: true,
+            incluir_sitplan: false,
+            ta_order: baseOrder + i
+          })
+          .eq("id", selectedIds[i]);
+
+        if (error) throw error;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
+      await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      
+      toast({
+        title: "Leads selecionados movidos para TA",
+        description: `${selectedIds.length} lead(s) foram movidos para o TA.`,
+      });
+    } catch (error) {
+      console.error("Erro ao mover leads selecionados para TA:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível mover os leads selecionados.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getEtapaColor = (etapa: string) => {
     switch (etapa) {
       case "Todos": return "bg-blue-500";
@@ -500,84 +557,57 @@ export function SelecionadosCard() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Botões do Pipeline */}
+            {/* Botões Verde e Azul */}
             {leads.length > 0 && (
               <>
                 <Button 
                   size="sm" 
-                  onClick={async () => {
-                    try {
-                      const targetLeads = hasActiveFilters ? filteredLeads : leads;
-                      
-                      for (const lead of targetLeads) {
-                        const { error } = await supabase
-                          .from("leads")
-                          .update({ etapa: 'OI' })
-                          .eq("id", lead.id);
-                        if (error) throw error;
-                      }
-                      
-                      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
-                      
-                      toast({
-                        title: "Leads movidos para OI",
-                        description: `${targetLeads.length} lead(s) movidos para a etapa OI.`,
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "Erro",
-                        description: "Não foi possível mover os leads.",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 h-8"
-                  title="Mover leads para OI"
-                >
-                  OI
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={async () => {
-                    try {
-                      const targetLeads = hasActiveFilters ? filteredLeads : leads;
-                      
-                      for (const lead of targetLeads) {
-                        const { error } = await supabase
-                          .from("leads")
-                          .update({ etapa: 'PC' })
-                          .eq("id", lead.id);
-                        if (error) throw error;
-                      }
-                      
-                      await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
-                      
-                      toast({
-                        title: "Leads movidos para PC",
-                        description: `${targetLeads.length} lead(s) movidos para a etapa PC.`,
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "Erro",
-                        description: "Não foi possível mover os leads.",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
-                  title="Mover leads para PC"
-                >
-                  PC
-                </Button>
-                <Button 
-                  size="sm" 
                   onClick={moveAllToTA}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 h-8"
-                  title="Mover todos os leads para TA"
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 h-8 rounded-full"
+                  title="Mover todos os leads filtrados para TA"
                 >
-                  TA
+                  ✓
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    if (multiSelect.isSelectionMode) {
+                      multiSelect.exitSelectionMode();
+                    } else {
+                      multiSelect.toggleSelectionMode();
+                    }
+                  }}
+                  className={`px-4 py-2 h-8 rounded-full transition-colors ${
+                    multiSelect.isSelectionMode 
+                      ? "bg-red-600 hover:bg-red-700 text-white" 
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
+                  title={multiSelect.isSelectionMode ? "Cancelar seleção" : "Selecionar individualmente"}
+                >
+                  {multiSelect.isSelectionMode ? "✕" : "☑"}
                 </Button>
               </>
+            )}
+
+            {/* Botões de ação da seleção múltipla */}
+            {multiSelect.isSelectionMode && multiSelect.selectedCount > 0 && (
+              <div className="flex gap-2 ml-2">
+                <Button 
+                  size="sm" 
+                  onClick={multiSelect.confirmSelection}
+                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 h-7 text-xs"
+                >
+                  Mover {multiSelect.selectedCount} para TA
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={multiSelect.clearSelections}
+                  className="px-3 py-1 h-7 text-xs"
+                >
+                  Limpar
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -635,6 +665,9 @@ export function SelecionadosCard() {
                   removeFromSelecionados={removeFromSelecionados}
                   getEtapaColor={getEtapaColor}
                   queryClient={queryClient}
+                  isSelectionMode={multiSelect.isSelectionMode}
+                  isSelected={multiSelect.isSelected(lead.id)}
+                  onSelectionToggle={multiSelect.toggleSelection}
                 />
               ))}
             </SortableContext>
