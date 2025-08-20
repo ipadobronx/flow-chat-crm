@@ -427,16 +427,16 @@ export function TALeadsCard() {
               onConfigChange={setHierarchyConfig}
             />
             
-            {/* Botão para mover todos para SitPlan */}
+            {/* Botão para ir para o menu TA */}
             {localLeads.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={moveAllToSitPlan}
+                onClick={() => window.location.href = '/dashboard/ta-categories'}
                 className="h-8 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700"
               >
                 <PlayCircle className="w-3 h-3 mr-1" />
-                Para SitPlan
+                TA
               </Button>
             )}
             
