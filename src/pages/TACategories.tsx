@@ -143,7 +143,7 @@ export default function TACategories() {
     }
   };
 
-  // Agrupar leads por etapa (apenas os que não são exclusivos de profissão)
+  // Agrupar leads por etapa (inclui leads sem exclusividade e exclusivos de etapa)
   const leadsByEtapa = leads
     .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'etapa')
     .reduce((acc, lead) => {
@@ -151,11 +151,14 @@ export default function TACategories() {
       if (!acc[etapa]) {
         acc[etapa] = [];
       }
-      acc[etapa].push(lead);
+      // Evitar duplicatas
+      if (!acc[etapa].find(existingLead => existingLead.id === lead.id)) {
+        acc[etapa].push(lead);
+      }
       return acc;
     }, {} as Record<string, Lead[]>);
 
-  // Agrupar leads por profissão (apenas os que não são exclusivos de etapa)
+  // Agrupar leads por profissão (inclui leads sem exclusividade e exclusivos de profissão)
   const leadsByProfissao = leads
     .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'profissao')
     .reduce((acc, lead) => {
@@ -163,7 +166,10 @@ export default function TACategories() {
       if (!acc[profissao]) {
         acc[profissao] = [];
       }
-      acc[profissao].push(lead);
+      // Evitar duplicatas
+      if (!acc[profissao].find(existingLead => existingLead.id === lead.id)) {
+        acc[profissao].push(lead);
+      }
       return acc;
     }, {} as Record<string, Lead[]>);
 
