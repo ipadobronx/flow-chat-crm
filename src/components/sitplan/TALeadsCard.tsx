@@ -432,7 +432,7 @@ export function TALeadsCard() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.location.href = '/dashboard/ta-categories'}
+                onClick={() => window.location.href = '/dashboard/ta'}
                 className="h-8 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700"
               >
                 <PlayCircle className="w-3 h-3 mr-1" />
