@@ -346,42 +346,20 @@ export function SelecionadosCard() {
       for (let i = 0; i < targetLeads.length; i++) {
         const lead = targetLeads[i];
         
-        // Quando há filtros ativos, aplicar exclusividade
-        if (hasActiveFilters) {
-          const categoriaAtiva = activeFilters.profissoes.length > 0 ? 'profissao' : 'etapa';
-          const categoriaValor = categoriaAtiva === 'profissao' 
-            ? lead.profissao || 'Sem Profissão'
-            : lead.etapa;
-            
-          const { error } = await supabase
-            .from("leads")
-            .update({ 
-              incluir_ta: true,
-              incluir_sitplan: false,
-              ta_order: baseOrder + i,
-              ta_categoria_ativa: categoriaAtiva,
-              ta_categoria_valor: categoriaValor,
-              ta_exclusividade: true // Aplicar exclusividade quando há filtros
-            })
-            .eq("id", lead.id);
+        // Sem filtros: permitir que apareçam em ambas as categorias
+        const { error } = await supabase
+          .from("leads")
+          .update({ 
+            incluir_ta: true,
+            incluir_sitplan: false,
+            ta_order: baseOrder + i,
+            ta_categoria_ativa: null, // Sem categoria específica
+            ta_categoria_valor: null,
+            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+          })
+          .eq("id", lead.id);
 
-          if (error) throw error;
-        } else {
-          // Sem filtros: permitir que apareçam em ambas as categorias
-          const { error } = await supabase
-            .from("leads")
-            .update({ 
-              incluir_ta: true,
-              incluir_sitplan: false,
-              ta_order: baseOrder + i,
-              ta_categoria_ativa: null, // Sem categoria específica
-              ta_categoria_valor: null,
-              ta_exclusividade: false // Sem exclusividade
-            })
-            .eq("id", lead.id);
-
-          if (error) throw error;
-        }
+        if (error) throw error;
       }
 
       // Invalidar queries para atualizar ambas as listas
@@ -416,42 +394,20 @@ export function SelecionadosCard() {
         const lead = leads.find(l => l.id === selectedIds[i]);
         if (!lead) continue;
 
-        // Quando há filtros ativos, aplicar exclusividade
-        if (hasActiveFilters) {
-          const categoriaAtiva = activeFilters.profissoes.length > 0 ? 'profissao' : 'etapa';
-          const categoriaValor = categoriaAtiva === 'profissao' 
-            ? lead.profissao || 'Sem Profissão'
-            : lead.etapa;
+        // Sem filtros: permitir que apareçam em ambas as categorias  
+        const { error } = await supabase
+          .from("leads")
+          .update({ 
+            incluir_ta: true,
+            incluir_sitplan: false,
+            ta_order: baseOrder + i,
+            ta_categoria_ativa: null, // Sem categoria específica
+            ta_categoria_valor: null,
+            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+          })
+          .eq("id", selectedIds[i]);
 
-          const { error } = await supabase
-            .from("leads")
-            .update({ 
-              incluir_ta: true,
-              incluir_sitplan: false,
-              ta_order: baseOrder + i,
-              ta_categoria_ativa: categoriaAtiva,
-              ta_categoria_valor: categoriaValor,
-              ta_exclusividade: true // Aplicar exclusividade quando há filtros
-            })
-            .eq("id", selectedIds[i]);
-
-          if (error) throw error;
-        } else {
-          // Sem filtros: permitir que apareçam em ambas as categorias
-          const { error } = await supabase
-            .from("leads")
-            .update({ 
-              incluir_ta: true,
-              incluir_sitplan: false,
-              ta_order: baseOrder + i,
-              ta_categoria_ativa: null, // Sem categoria específica
-              ta_categoria_valor: null,
-              ta_exclusividade: false // Sem exclusividade
-            })
-            .eq("id", selectedIds[i]);
-
-          if (error) throw error;
-        }
+        if (error) throw error;
       }
 
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
