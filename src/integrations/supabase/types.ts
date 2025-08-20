@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -767,13 +767,13 @@ export type Database = {
         Returns: number
       }
       get_birthday_leads: {
-        Args: { p_user_id: string; p_data?: string }
+        Args: { p_data?: string; p_user_id: string }
         Returns: {
-          id: string
-          nome: string
           data_nascimento: string
-          telefone: string
+          id: string
           idade: number
+          nome: string
+          telefone: string
         }[]
       }
       get_current_user_role: {
@@ -781,52 +781,52 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_leads_with_metrics: {
-        Args: { p_user_id: string; p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string; p_user_id: string }
         Returns: {
-          total_leads: number
           leads_atendidos: number
           oi_marcados: number
-          virou_pc: number
-          virou_n: number
           recomendacoes: number
+          total_leads: number
+          virou_n: number
+          virou_pc: number
         }[]
       }
       get_scheduled_calls: {
-        Args: { p_user_id: string; p_data?: string }
+        Args: { p_data?: string; p_user_id: string }
         Returns: {
-          id: string
           data_agendamento: string
-          observacoes: string
-          status: string
+          id: string
           lead_id: string
           lead_nome: string
           lead_telefone: string
+          observacoes: string
+          status: string
         }[]
       }
       get_security_status: {
         Args: Record<PropertyKey, never>
         Returns: {
+          error_count: number
           has_errors: boolean
           has_warnings: boolean
-          error_count: number
           warning_count: number
         }[]
       }
       get_ta_historico: {
         Args: {
-          p_user_id: string
-          p_lead_id?: string
-          p_start_date?: string
           p_end_date?: string
+          p_lead_id?: string
           p_limit?: number
+          p_start_date?: string
+          p_user_id: string
         }
         Returns: {
+          data_mudanca: string
+          etapa_anterior: Database["public"]["Enums"]["etapa_funil"]
+          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
           id: string
           lead_id: string
           lead_nome: string
-          etapa_anterior: Database["public"]["Enums"]["etapa_funil"]
-          etapa_nova: Database["public"]["Enums"]["etapa_funil"]
-          data_mudanca: string
           observacoes: string
           ta_order_anterior: number
           ta_order_nova: number
@@ -854,8 +854,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -878,8 +878,8 @@ export type Database = {
       update_security_compliance: {
         Args: {
           p_config_key: string
-          p_is_compliant: boolean
           p_config_value?: string
+          p_is_compliant: boolean
         }
         Returns: undefined
       }
