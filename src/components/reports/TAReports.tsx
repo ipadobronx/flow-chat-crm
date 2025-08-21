@@ -8,7 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { Tables } from "@/integrations/supabase/types";
 import { TADateFilter } from "./TADateFilter";
 import { TAMetricCard } from "./TAMetricCard";
-import { TADynamicChart } from "./TADynamicChart";
+import TADynamicChart from "./TADynamicChart";
 import { Users, MessageCircle, Phone, Target } from "lucide-react";
 
 type TARelatorio = Tables<"ta_relatorios">;
@@ -18,6 +18,7 @@ export function TAReports() {
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [activeCard, setActiveCard] = useState<string>("leads-contactados");
+  const [preset, setPreset] = useState<string>("7days");
 
   const { data: relatorios = [], isLoading } = useQuery({
     queryKey: ["ta-relatorios", user?.id, startDate, endDate],
@@ -118,11 +119,38 @@ export function TAReports() {
     ]
   };
 
-  const handlePresetChange = (preset: string) => {
-    if (preset === "7days") {
+  const [periodFilter, setPeriodFilter] = useState<number>(7);
+  const [chartLoading, setChartLoading] = useState<boolean>(false);
+
+  const handlePresetChange = (presetValue: string) => {
+    setPreset(presetValue);
+    setChartLoading(true);
+    
+    if (presetValue === "7days") {
       setStartDate(subDays(new Date(), 7));
       setEndDate(new Date());
+      setPeriodFilter(7);
+    } else if (presetValue === "30days") {
+      setStartDate(subDays(new Date(), 30));
+      setEndDate(new Date());
+      setPeriodFilter(30);
+    } else if (presetValue === "90days") {
+      setStartDate(subDays(new Date(), 90));
+      setEndDate(new Date());
+      setPeriodFilter(90);
     }
+    
+    // Simular loading para demonstrar a funcionalidade
+    setTimeout(() => setChartLoading(false), 500);
+  };
+
+  const handlePeriodChange = (period: number) => {
+    setChartLoading(true);
+    setPeriodFilter(period);
+    setStartDate(subDays(new Date(), period));
+    setEndDate(new Date());
+    
+    setTimeout(() => setChartLoading(false), 500);
   };
 
   const formatPeriod = (date: Date) => format(date, "dd/MM", { locale: ptBR });
@@ -148,6 +176,7 @@ export function TAReports() {
           <TADateFilter
             startDate={startDate}
             endDate={endDate}
+            preset={preset}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
             onPresetChange={handlePresetChange}
@@ -200,6 +229,9 @@ export function TAReports() {
         data={chartData}
         currentPeriod={currentPeriod}
         previousPeriod={previousPeriod}
+        periodFilter={periodFilter}
+        isLoading={chartLoading}
+        onPeriodChange={handlePeriodChange}
       />
 
       {/* Resumo rápido do período */}

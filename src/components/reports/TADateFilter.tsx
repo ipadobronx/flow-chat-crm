@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -11,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface TADateFilterProps {
   startDate?: Date;
   endDate?: Date;
+  preset?: string;
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onPresetChange: (preset: string) => void;
@@ -19,20 +19,28 @@ interface TADateFilterProps {
 export function TADateFilter({
   startDate,
   endDate,
+  preset = "7days",
   onStartDateChange,
   onEndDateChange,
   onPresetChange,
 }: TADateFilterProps) {
-  const [preset, setPreset] = useState("7days");
 
   const handlePresetChange = (value: string) => {
-    setPreset(value);
     onPresetChange(value);
     
+    const today = new Date();
+    
     if (value === "7days") {
-      const today = new Date();
       const sevenDaysAgo = subDays(today, 7);
       onStartDateChange(sevenDaysAgo);
+      onEndDateChange(today);
+    } else if (value === "30days") {
+      const thirtyDaysAgo = subDays(today, 30);
+      onStartDateChange(thirtyDaysAgo);
+      onEndDateChange(today);
+    } else if (value === "90days") {
+      const ninetyDaysAgo = subDays(today, 90);
+      onStartDateChange(ninetyDaysAgo);
       onEndDateChange(today);
     }
   };
@@ -45,6 +53,8 @@ export function TADateFilter({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="7days">7 dias</SelectItem>
+          <SelectItem value="30days">30 dias</SelectItem>
+          <SelectItem value="90days">90 dias</SelectItem>
           <SelectItem value="custom">Customizado</SelectItem>
         </SelectContent>
       </Select>
