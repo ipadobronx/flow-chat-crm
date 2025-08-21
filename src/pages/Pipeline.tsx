@@ -970,7 +970,7 @@ export default function Pipeline() {
           setSelectedLead(null);
           setEditingLead(null);
         }}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 z-40">
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader className="space-y-2 sm:space-y-3">
               <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <Avatar className="w-8 h-8 sm:w-10 sm:h-10 mx-auto sm:mx-0">
@@ -1655,7 +1655,7 @@ export default function Pipeline() {
 
         {/* Dialog para agendar "Ligar Depois" */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md border-0 shadow-2xl z-50">
+          <DialogContent className="max-w-sm sm:max-w-md border-0 shadow-xl">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
                 Agendar Ligação
@@ -1685,10 +1685,7 @@ export default function Pipeline() {
                         ? "text-muted-foreground border-border hover:border-primary/50" 
                         : "text-foreground border-primary/30 bg-primary/5"
                     }`}
-                    onClick={() => {
-                      console.log("Calendar button clicked");
-                      setShowCalendar(true);
-                    }}
+                    onClick={() => setShowCalendar(true)}
                   >
                     <CalendarIcon className="mr-2 sm:mr-3 h-4 w-4 flex-shrink-0" />
                     <span className="truncate">
@@ -1698,7 +1695,7 @@ export default function Pipeline() {
                     </span>
                   </Button>
                 ) : (
-                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-card p-4 relative z-50">
+                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-background p-4">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-medium">Selecione uma data</span>
                       <Button
@@ -1714,7 +1711,6 @@ export default function Pipeline() {
                       mode="single"
                       selected={dataAgendamento}
                       onSelect={(date) => {
-                        console.log("Calendar onSelect called with:", date);
                         setDataAgendamento(date);
                         if (date) {
                           setShowCalendar(false);
@@ -1723,32 +1719,10 @@ export default function Pipeline() {
                       disabled={(date) => {
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
-                        const isDisabled = date < today;
-                        console.log("Date disabled check:", date, isDisabled);
-                        return isDisabled;
+                        return date < today;
                       }}
                       initialFocus
-                      className="w-full pointer-events-auto"
-                      classNames={{
-                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                        month: "space-y-4",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-sm font-medium",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 cursor-pointer",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        table: "w-full border-collapse space-y-1",
-                        head_row: "flex",
-                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                        row: "flex w-full mt-2",
-                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors rounded-md",
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground",
-                        day_outside: "text-muted-foreground opacity-50",
-                        day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-                      }}
+                      className="w-full"
                     />
                   </div>
                 )}
