@@ -579,7 +579,7 @@ export default function Pipeline() {
 
       if (leadError) throw leadError;
 
-      // 2. Criar o agendamento na tabela agendamentos_ligacoes
+      // 2. Criar o agendamento na tabela agendamentos_ligacoes (Ligações de hoje)
       const { error: agendamentoError } = await supabase
         .from('agendamentos_ligacoes')
         .insert({
@@ -600,15 +600,18 @@ export default function Pipeline() {
       ));
 
       toast({
-        title: "Agendado com sucesso!",
-        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString()}.`,
+        title: "✅ Agendado com sucesso!",
+        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString('pt-BR')}. Você pode ver na seção "Ligações de hoje".`,
       });
 
-      // Reset do estado
-      setShowLigarDepoisDialog(false);
-      setLeadParaLigarDepois(null);
-      setDataAgendamento(undefined);
-      setObservacoesAgendamento("");
+      // 4. Manter as informações no popup (não resetar)
+      // Apenas fechar o popup após um pequeno delay para o usuário ver o sucesso
+      setTimeout(() => {
+        setShowLigarDepoisDialog(false);
+        setLeadParaLigarDepois(null);
+        setDataAgendamento(undefined);
+        setObservacoesAgendamento("");
+      }, 1500);
 
     } catch (error) {
       console.error('Erro ao processar "Ligar Depois":', error);
@@ -1627,56 +1630,91 @@ export default function Pipeline() {
 
         {/* Dialog para agendar "Ligar Depois" */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Agendar Ligação</DialogTitle>
+          <DialogContent className="max-w-md border-0 shadow-2xl">
+            <DialogHeader className="text-center pb-4">
+              <DialogTitle className="text-xl font-semibold text-foreground">
+                Agendar Ligação
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {leadParaLigarDepois && (
-                <div className="text-sm text-muted-foreground">
-                  Lead: <strong>{leadParaLigarDepois.nome}</strong>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Lead:</p>
+                  <p className="font-medium text-lg">{leadParaLigarDepois.nome}</p>
                 </div>
               )}
               
-              <div className="space-y-2">
-                <Label>Data para ligar *</Label>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Data para ligar *
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
-                      variant={"outline"}
-                      className={`w-full justify-start text-left font-normal ${
-                        !dataAgendamento && "text-muted-foreground"
+                      variant="outline"
+                      className={`w-full h-12 justify-start text-left font-normal border-2 rounded-xl transition-all duration-200 ${
+                        !dataAgendamento 
+                          ? "text-muted-foreground border-border hover:border-primary/50" 
+                          : "text-foreground border-primary/30 bg-primary/5"
                       }`}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataAgendamento ? format(dataAgendamento, "dd/MM/yyyy") : "Selecione uma data"}
+                      <CalendarIcon className="mr-3 h-4 w-4" />
+                      {dataAgendamento 
+                        ? format(dataAgendamento, "dd/MM/yyyy") 
+                        : "Selecione uma data"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 border-0 shadow-2xl" align="center">
                     <Calendar
                       mode="single"
                       selected={dataAgendamento}
                       onSelect={setDataAgendamento}
                       disabled={(date) => date < new Date()}
                       initialFocus
-                      className="pointer-events-auto"
+                      className="pointer-events-auto rounded-2xl bg-card/95 backdrop-blur-xl border-0 p-4"
+                      classNames={{
+                        months: "space-y-4",
+                        month: "space-y-4",
+                        caption: "flex justify-center pt-1 relative items-center text-sm font-medium",
+                        caption_label: "text-sm font-medium",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: "h-7 w-7 bg-transparent p-0 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex",
+                        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem] flex items-center justify-center",
+                        row: "flex w-full mt-2",
+                        cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+                        day: "h-8 w-8 p-0 font-normal text-sm hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors rounded-lg flex items-center justify-center",
+                        day_range_end: "day-range-end",
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-lg",
+                        day_today: "bg-accent text-accent-foreground font-semibold",
+                        day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                        day_disabled: "text-muted-foreground opacity-50",
+                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                        day_hidden: "invisible",
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="observacoes-agendamento">Observações</Label>
+              <div className="space-y-3">
+                <Label htmlFor="observacoes-agendamento" className="text-sm font-medium text-muted-foreground">
+                  Observações
+                </Label>
                 <Textarea
                   id="observacoes-agendamento"
-                  placeholder="Observações sobre o agendamento (opcional)"
+                  placeholder="Adicione observações sobre o agendamento..."
                   value={observacoesAgendamento}
                   onChange={(e) => setObservacoesAgendamento(e.target.value)}
                   rows={3}
+                  className="border-2 rounded-xl resize-none focus:border-primary/50 transition-colors"
                 />
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1685,14 +1723,14 @@ export default function Pipeline() {
                     setDataAgendamento(undefined);
                     setObservacoesAgendamento("");
                   }}
-                  className="flex-1"
+                  className="flex-1 h-12 rounded-xl border-2 hover:bg-muted/50 transition-all duration-200"
                 >
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleConfirmarLigarDepois}
                   disabled={!dataAgendamento}
-                  className="flex-1"
+                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg disabled:opacity-50"
                 >
                   Agendar
                 </Button>
