@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -234,7 +233,6 @@ export default function Pipeline() {
   const [leadParaLigarDepois, setLeadParaLigarDepois] = useState<Lead | null>(null);
   const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
   const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
-  const [showCalendar, setShowCalendar] = useState(false);
 
   // Multi-select functionality
   const multiSelect = useMultiSelect({
@@ -635,7 +633,6 @@ export default function Pipeline() {
         setLeadParaLigarDepois(null);
         setDataAgendamento(undefined);
         setObservacoesAgendamento("");
-        setShowCalendar(false);
       }, 1500);
 
     } catch (error) {
@@ -1081,7 +1078,7 @@ export default function Pipeline() {
                     Incluir no Próximo Sit Plan
                   </Button>
                   <Button size="sm" variant="outline" className="w-full sm:w-auto">
-                    <Calendar className="w-4 h-4 mr-2" />
+                    <CalendarIcon className="w-4 h-4 mr-2" />
                     Agendamento
                   </Button>
                 </div>
@@ -1677,55 +1674,19 @@ export default function Pipeline() {
                   Ligar Depois *
                 </Label>
                 
-                {!showCalendar ? (
-                  <Button
-                    variant="outline"
-                    className={`w-full h-10 sm:h-12 justify-start text-left font-normal border-2 rounded-lg sm:rounded-xl transition-all duration-200 ${
-                      !dataAgendamento 
-                        ? "text-muted-foreground border-border hover:border-primary/50" 
-                        : "text-foreground border-primary/30 bg-primary/5"
-                    }`}
-                    onClick={() => setShowCalendar(true)}
-                  >
-                    <CalendarIcon className="mr-2 sm:mr-3 h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">
-                      {dataAgendamento 
-                        ? format(dataAgendamento, "dd/MM/yyyy") 
-                        : "Selecione uma data"}
-                    </span>
-                  </Button>
-                ) : (
-                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-background p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-medium">Selecione uma data</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowCalendar(false)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Calendar
-                      mode="single"
-                      selected={dataAgendamento}
-                      onSelect={(date) => {
-                        setDataAgendamento(date);
-                        if (date) {
-                          setShowCalendar(false);
-                        }
-                      }}
-                      disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return date < today;
-                      }}
-                      initialFocus
-                      className="w-full"
-                    />
-                  </div>
-                )}
+                <Input
+                  type="date"
+                  value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setDataAgendamento(new Date(e.target.value));
+                    } else {
+                      setDataAgendamento(undefined);
+                    }
+                  }}
+                  min={format(new Date(), "yyyy-MM-dd")}
+                  className="w-full h-10 sm:h-12 border-2 rounded-lg sm:rounded-xl transition-all duration-200 focus:border-primary/50"
+                />
               </div>
 
               <div className="space-y-2 sm:space-y-3">
@@ -1750,7 +1711,6 @@ export default function Pipeline() {
                     setLeadParaLigarDepois(null);
                     setDataAgendamento(undefined);
                     setObservacoesAgendamento("");
-                    setShowCalendar(false);
                   }}
                   className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 hover:bg-muted/50 transition-all duration-200"
                 >
