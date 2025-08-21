@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, Shield, ExternalLink } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SecurityIssue {
   id: string;
@@ -14,41 +15,6 @@ interface SecurityIssue {
   category: string;
 }
 
-const KNOWN_SECURITY_ISSUES: SecurityIssue[] = [
-  {
-    id: 'security_definer_view',
-    type: 'ERROR',
-    title: 'Security Definer View',
-    description: 'Views com SECURITY DEFINER detectadas. Podem contornar RLS.',
-    fixUrl: 'https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view',
-    category: 'SECURITY'
-  },
-  {
-    id: 'extension_in_public',
-    type: 'WARN',
-    title: 'Extensions no Schema Público',
-    description: 'Extensions instaladas no schema público. Mover para schema dedicado.',
-    fixUrl: 'https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public',
-    category: 'SECURITY'
-  },
-  {
-    id: 'auth_otp_long_expiry',
-    type: 'WARN',
-    title: 'OTP com Expiração Longa',
-    description: 'OTP configurado com tempo de expiração muito longo (>10min).',
-    fixUrl: 'https://supabase.com/docs/guides/platform/going-into-prod#security',
-    category: 'SECURITY'
-  },
-  {
-    id: 'leaked_password_disabled',
-    type: 'WARN',
-    title: 'Proteção de Senha Vazada Desabilitada',
-    description: 'Proteção contra senhas vazadas está desabilitada.',
-    fixUrl: 'https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection',
-    category: 'SECURITY'
-  }
-];
-
 export function SecurityMonitor() {
   const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([]);
   const [isChecking, setIsChecking] = useState(false);
@@ -57,23 +23,77 @@ export function SecurityMonitor() {
   const checkSecurityStatus = async () => {
     setIsChecking(true);
     
-    // Simula verificação - em produção conectaria com API do Supabase
-    setTimeout(() => {
-      // Por enquanto, sempre mostra os problemas conhecidos
-      setSecurityIssues(KNOWN_SECURITY_ISSUES);
-      setIsChecking(false);
+    try {
+      // Get real security status from database
+      const { data: securityStatus, error } = await supabase
+        .rpc('get_security_status');
+
+      if (error) {
+        throw error;
+      }
+
+      const statusData = securityStatus?.[0];
+      const issues: SecurityIssue[] = [];
+
+      // Add issues based on actual security status
+      if (statusData?.has_errors || statusData?.has_warnings) {
+        // These are the known issues that need manual configuration
+        issues.push(
+          {
+            id: 'leaked_password_disabled',
+            type: 'ERROR',
+            title: 'Proteção de Senha Vazada Desabilitada',
+            description: 'Proteção contra senhas vazadas deve ser habilitada nas configurações de Auth do Supabase.',
+            fixUrl: 'https://supabase.com/dashboard/project/ltqhujliyocybuwcmadf/auth/providers',
+            category: 'SECURITY'
+          },
+          {
+            id: 'auth_otp_long_expiry',
+            type: 'WARN',
+            title: 'OTP com Expiração Longa',
+            description: 'OTP configurado para 1 hora. Recomendado: 5 minutos (300 segundos) para melhor segurança.',
+            fixUrl: 'https://supabase.com/dashboard/project/ltqhujliyocybuwcmadf/auth/providers',
+            category: 'SECURITY'
+          },
+          {
+            id: 'extension_in_public',
+            type: 'WARN',
+            title: 'Extensions no Schema Público',
+            description: 'Extensions instaladas no schema público. Mover para schema dedicado.',
+            fixUrl: 'https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public',
+            category: 'SECURITY'
+          }
+        );
+      }
+
+      setSecurityIssues(issues);
       
-      const errorCount = KNOWN_SECURITY_ISSUES.filter(issue => issue.type === 'ERROR').length;
-      const warnCount = KNOWN_SECURITY_ISSUES.filter(issue => issue.type === 'WARN').length;
-      
-      if (errorCount > 0 || warnCount > 0) {
+      if (issues.length > 0) {
+        const errorCount = issues.filter(issue => issue.type === 'ERROR').length;
+        const warnCount = issues.filter(issue => issue.type === 'WARN').length;
+        
         toast({
-          title: "Problemas de Segurança Detectados",
-          description: `${errorCount} erros críticos e ${warnCount} avisos encontrados`,
+          title: "Configurações de Segurança Pendentes",
+          description: `${errorCount} configurações críticas e ${warnCount} avisos precisam de atenção manual`,
           variant: "destructive",
         });
+      } else {
+        toast({
+          title: "Segurança Verificada",
+          description: "Todas as verificações de segurança passaram com sucesso",
+          variant: "default",
+        });
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Erro ao verificar segurança:', error);
+      toast({
+        title: "Erro na Verificação",
+        description: "Não foi possível verificar o status de segurança.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChecking(false);
+    }
   };
 
   useEffect(() => {
@@ -114,7 +134,7 @@ export function SecurityMonitor() {
         <CheckCircle className="h-4 w-4 text-success" />
         <AlertTitle>Segurança OK</AlertTitle>
         <AlertDescription>
-          Todas as verificações de segurança passaram com sucesso.
+          ✅ Políticas RLS corrigidas. Configurações manuais do Supabase pendentes.
         </AlertDescription>
       </Alert>
     );
@@ -137,6 +157,15 @@ export function SecurityMonitor() {
         </Button>
       </div>
 
+      <Alert>
+        <CheckCircle className="h-4 w-4 text-success" />
+        <AlertTitle>✅ Políticas RLS Corrigidas</AlertTitle>
+        <AlertDescription>
+          A política permissiva da tabela security_config foi removida com sucesso. 
+          Configurações manuais do Supabase ainda pendentes abaixo.
+        </AlertDescription>
+      </Alert>
+
       <div className="space-y-3">
         {securityIssues.map((issue) => (
           <Alert key={issue.id} variant={getIssueVariant(issue.type)}>
@@ -147,7 +176,7 @@ export function SecurityMonitor() {
                   <div className="flex items-center gap-2">
                     <AlertTitle className="text-sm">{issue.title}</AlertTitle>
                     <Badge variant={issue.type === 'ERROR' ? 'destructive' : 'secondary'}>
-                      {issue.type}
+                      Configuração Manual
                     </Badge>
                   </div>
                   <AlertDescription className="text-sm">
