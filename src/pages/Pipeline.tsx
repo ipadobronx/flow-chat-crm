@@ -19,7 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, MessageSquare, Calendar, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
@@ -27,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
+import { format } from "date-fns";
 import { 
   DndContext, 
   closestCenter, 
@@ -225,6 +228,12 @@ export default function Pipeline() {
   const [showOnlySitplan, setShowOnlySitplan] = useState(false);
   const [activeSelectionStage, setActiveSelectionStage] = useState<string | null>(null);
   const [stageToInclude, setStageToInclude] = useState<string | null>(null);
+  
+  // Estados para o popup de "Ligar Depois"
+  const [showLigarDepoisDialog, setShowLigarDepoisDialog] = useState(false);
+  const [leadParaLigarDepois, setLeadParaLigarDepois] = useState<Lead | null>(null);
+  const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
+  const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
 
   // Multi-select functionality
   const multiSelect = useMultiSelect({
@@ -459,6 +468,14 @@ export default function Pipeline() {
       return;
     }
 
+    // Se for arrastado para "Ligar Depois", mostrar popup obrigatório
+    if (overId === "Ligar Depois") {
+      setLeadParaLigarDepois(draggedLead);
+      setShowLigarDepoisDialog(true);
+      setActiveId(null);
+      return;
+    }
+
     // Atualizar estado local imediatamente para UI responsiva
     setLeads(prev => prev.map(lead => 
       lead.id === activeId 
@@ -541,6 +558,67 @@ export default function Pipeline() {
       setSaving(false);
     }
   }, [editingLead]);
+
+  // Função para processar agendamento "Ligar Depois"
+  const handleConfirmarLigarDepois = async () => {
+    if (!leadParaLigarDepois || !dataAgendamento || !user) {
+      toast({
+        title: "Data obrigatória",
+        description: "Por favor, selecione uma data para ligar depois.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // 1. Atualizar a etapa do lead para "Ligar Depois"
+      const { error: leadError } = await supabase
+        .from('leads')
+        .update({ etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"] })
+        .eq('id', leadParaLigarDepois.id);
+
+      if (leadError) throw leadError;
+
+      // 2. Criar o agendamento na tabela agendamentos_ligacoes
+      const { error: agendamentoError } = await supabase
+        .from('agendamentos_ligacoes')
+        .insert({
+          user_id: user.id,
+          lead_id: leadParaLigarDepois.id,
+          data_agendamento: dataAgendamento.toISOString(),
+          observacoes: observacoesAgendamento || null,
+          status: 'pendente'
+        });
+
+      if (agendamentoError) throw agendamentoError;
+
+      // 3. Atualizar estado local
+      setLeads(prev => prev.map(lead => 
+        lead.id === leadParaLigarDepois.id 
+          ? { ...lead, etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"] }
+          : lead
+      ));
+
+      toast({
+        title: "Agendado com sucesso!",
+        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString()}.`,
+      });
+
+      // Reset do estado
+      setShowLigarDepoisDialog(false);
+      setLeadParaLigarDepois(null);
+      setDataAgendamento(undefined);
+      setObservacoesAgendamento("");
+
+    } catch (error) {
+      console.error('Erro ao processar "Ligar Depois":', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível agendar a ligação. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Buscar histórico de ligações quando um lead é selecionado
   useEffect(() => {
@@ -1544,6 +1622,82 @@ export default function Pipeline() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para agendar "Ligar Depois" */}
+        <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Agendar Ligação</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {leadParaLigarDepois && (
+                <div className="text-sm text-muted-foreground">
+                  Lead: <strong>{leadParaLigarDepois.nome}</strong>
+                </div>
+              )}
+              
+              <div className="space-y-2">
+                <Label>Data para ligar *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className={`w-full justify-start text-left font-normal ${
+                        !dataAgendamento && "text-muted-foreground"
+                      }`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataAgendamento ? format(dataAgendamento, "dd/MM/yyyy") : "Selecione uma data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dataAgendamento}
+                      onSelect={setDataAgendamento}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="observacoes-agendamento">Observações</Label>
+                <Textarea
+                  id="observacoes-agendamento"
+                  placeholder="Observações sobre o agendamento (opcional)"
+                  value={observacoesAgendamento}
+                  onChange={(e) => setObservacoesAgendamento(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowLigarDepoisDialog(false);
+                    setLeadParaLigarDepois(null);
+                    setDataAgendamento(undefined);
+                    setObservacoesAgendamento("");
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleConfirmarLigarDepois}
+                  disabled={!dataAgendamento}
+                  className="flex-1"
+                >
+                  Agendar
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
