@@ -472,6 +472,20 @@ export default function Pipeline() {
     // Se for arrastado para "Ligar Depois", mostrar popup obrigatório
     if (overId === "Ligar Depois") {
       setLeadParaLigarDepois(draggedLead);
+      
+      // Pré-popular com dados da etapa anterior
+      if (draggedLead.data_callback) {
+        setDataAgendamento(new Date(draggedLead.data_callback));
+      } else {
+        setDataAgendamento(undefined);
+      }
+      
+      if (draggedLead.observacoes) {
+        setObservacoesAgendamento(draggedLead.observacoes);
+      } else {
+        setObservacoesAgendamento("");
+      }
+      
       setShowLigarDepoisDialog(true);
       setActiveId(null);
       return;
@@ -572,10 +586,14 @@ export default function Pipeline() {
     }
 
     try {
-      // 1. Atualizar a etapa do lead para "Ligar Depois"
+      // 1. Atualizar a etapa do lead para "Ligar Depois" e salvar data_callback e observações
       const { error: leadError } = await supabase
         .from('leads')
-        .update({ etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"] })
+        .update({ 
+          etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"],
+          data_callback: dataAgendamento.toISOString().split('T')[0], // Salva apenas a data
+          observacoes: observacoesAgendamento || leadParaLigarDepois.observacoes // Mantém observações existentes se não houver novas
+        })
         .eq('id', leadParaLigarDepois.id);
 
       if (leadError) throw leadError;
@@ -596,7 +614,12 @@ export default function Pipeline() {
       // 3. Atualizar estado local
       setLeads(prev => prev.map(lead => 
         lead.id === leadParaLigarDepois.id 
-          ? { ...lead, etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"] }
+          ? { 
+              ...lead, 
+              etapa: "Ligar Depois" as Database["public"]["Enums"]["etapa_funil"],
+              data_callback: dataAgendamento.toISOString().split('T')[0],
+              observacoes: observacoesAgendamento || lead.observacoes
+            }
           : lead
       ));
 
@@ -612,6 +635,7 @@ export default function Pipeline() {
         setLeadParaLigarDepois(null);
         setDataAgendamento(undefined);
         setObservacoesAgendamento("");
+        setShowCalendar(false);
       }, 1500);
 
     } catch (error) {
@@ -946,7 +970,7 @@ export default function Pipeline() {
           setSelectedLead(null);
           setEditingLead(null);
         }}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 z-40">
             <DialogHeader className="space-y-2 sm:space-y-3">
               <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <Avatar className="w-8 h-8 sm:w-10 sm:h-10 mx-auto sm:mx-0">
@@ -1631,7 +1655,7 @@ export default function Pipeline() {
 
         {/* Dialog para agendar "Ligar Depois" */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md border-0 shadow-2xl">
+          <DialogContent className="max-w-sm sm:max-w-md border-0 shadow-2xl z-50">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
                 Agendar Ligação
@@ -1650,7 +1674,7 @@ export default function Pipeline() {
               
               <div className="space-y-2 sm:space-y-3">
                 <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Data para ligar *
+                  Ligar Depois *
                 </Label>
                 
                 {!showCalendar ? (
@@ -1674,7 +1698,7 @@ export default function Pipeline() {
                     </span>
                   </Button>
                 ) : (
-                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-card p-4">
+                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-card p-4 relative z-50">
                     <div className="flex justify-between items-center mb-3">
                       <span className="text-sm font-medium">Selecione uma data</span>
                       <Button
@@ -1704,7 +1728,7 @@ export default function Pipeline() {
                         return isDisabled;
                       }}
                       initialFocus
-                      className="w-full"
+                      className="w-full pointer-events-auto"
                       classNames={{
                         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                         month: "space-y-4",
@@ -1752,6 +1776,7 @@ export default function Pipeline() {
                     setLeadParaLigarDepois(null);
                     setDataAgendamento(undefined);
                     setObservacoesAgendamento("");
+                    setShowCalendar(false);
                   }}
                   className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 hover:bg-muted/50 transition-all duration-200"
                 >
