@@ -234,6 +234,7 @@ export default function Pipeline() {
   const [leadParaLigarDepois, setLeadParaLigarDepois] = useState<Lead | null>(null);
   const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
   const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // Multi-select functionality
   const multiSelect = useMultiSelect({
@@ -1651,40 +1652,82 @@ export default function Pipeline() {
                 <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Data para ligar *
                 </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={`w-full h-10 sm:h-12 justify-start text-left font-normal border-2 rounded-lg sm:rounded-xl transition-all duration-200 ${
-                        !dataAgendamento 
-                          ? "text-muted-foreground border-border hover:border-primary/50" 
-                          : "text-foreground border-primary/30 bg-primary/5"
-                      }`}
-                    >
-                      <CalendarIcon className="mr-2 sm:mr-3 h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">
-                        {dataAgendamento 
-                          ? format(dataAgendamento, "dd/MM/yyyy") 
-                          : "Selecione uma data"}
-                      </span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-auto p-0 border shadow-lg bg-popover z-50" 
-                    align="center"
-                    side="bottom"
-                    sideOffset={4}
+                
+                {!showCalendar ? (
+                  <Button
+                    variant="outline"
+                    className={`w-full h-10 sm:h-12 justify-start text-left font-normal border-2 rounded-lg sm:rounded-xl transition-all duration-200 ${
+                      !dataAgendamento 
+                        ? "text-muted-foreground border-border hover:border-primary/50" 
+                        : "text-foreground border-primary/30 bg-primary/5"
+                    }`}
+                    onClick={() => {
+                      console.log("Calendar button clicked");
+                      setShowCalendar(true);
+                    }}
                   >
+                    <CalendarIcon className="mr-2 sm:mr-3 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">
+                      {dataAgendamento 
+                        ? format(dataAgendamento, "dd/MM/yyyy") 
+                        : "Selecione uma data"}
+                    </span>
+                  </Button>
+                ) : (
+                  <div className="border-2 border-primary/30 rounded-lg sm:rounded-xl bg-card p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-medium">Selecione uma data</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowCalendar(false)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <Calendar
                       mode="single"
                       selected={dataAgendamento}
-                      onSelect={setDataAgendamento}
-                      disabled={(date) => date < new Date()}
+                      onSelect={(date) => {
+                        console.log("Calendar onSelect called with:", date);
+                        setDataAgendamento(date);
+                        if (date) {
+                          setShowCalendar(false);
+                        }
+                      }}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const isDisabled = date < today;
+                        console.log("Date disabled check:", date, isDisabled);
+                        return isDisabled;
+                      }}
                       initialFocus
-                      className="p-3 pointer-events-auto"
+                      className="w-full"
+                      classNames={{
+                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                        month: "space-y-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-sm font-medium",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 cursor-pointer",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex",
+                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                        row: "flex w-full mt-2",
+                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors rounded-md",
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground",
+                        day_outside: "text-muted-foreground opacity-50",
+                        day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
+                      }}
                     />
-                  </PopoverContent>
-                </Popover>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2 sm:space-y-3">
