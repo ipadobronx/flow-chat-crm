@@ -2,16 +2,12 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { KPIGrid } from "@/components/dashboard/KPIGrid";
 import { DateFilter } from "@/components/dashboard/DateFilter";
-import { LeadsChart } from "@/components/dashboard/charts/LeadsChart";
-import { ConversionChart } from "@/components/dashboard/charts/ConversionChart";
-
-import { StagePerformanceChart } from "@/components/dashboard/charts/StagePerformanceChart";
-import { DailyActivityChart } from "@/components/dashboard/charts/DailyActivityChart";
-import { SalesPipelineChart } from "@/components/dashboard/charts/SalesPipelineChart";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { SalesFunnelChart } from "@/components/dashboard/SalesFunnelChart";
+import { RecsPerWeekChart } from "@/components/dashboard/RecsPerWeekChart";
+import { DailySalesActivities } from "@/components/dashboard/DailySalesActivities";
+import { FollowUpActivities } from "@/components/dashboard/FollowUpActivities";
+import { CriticalAlerts } from "@/components/dashboard/CriticalAlerts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BirthdayCard } from "@/components/dashboard/BirthdayCard";
-import { LigacoesHoje } from "@/components/dashboard/LigacoesHoje";
 
 const Index = () => {
   // Definir o dia atual como padrão
@@ -37,28 +33,20 @@ const Index = () => {
         
         <KPIGrid startDate={startDate} endDate={endDate} />
         
+        {/* Gráficos principais do funil de vendas */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-          <LeadsChart startDate={startDate} endDate={endDate} />
-          <ConversionChart startDate={startDate} endDate={endDate} />
+          <SalesFunnelChart startDate={startDate} endDate={endDate} />
+          <RecsPerWeekChart startDate={startDate} endDate={endDate} />
         </div>
         
-        {/* Novos Gráficos com dados reais */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-          <StagePerformanceChart startDate={startDate} endDate={endDate} />
-          <DailyActivityChart startDate={startDate} endDate={endDate} />
-          <SalesPipelineChart startDate={startDate} endDate={endDate} />
+        {/* Seções de atividades */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <DailySalesActivities />
+          <FollowUpActivities />
         </div>
         
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            <ActivityFeed />
-          </div>
-          <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-            <BirthdayCard />
-            <LigacoesHoje />
-          </div>
-        </div>
+        {/* Alertas críticos no rodapé */}
+        <CriticalAlerts />
       </div>
     </DashboardLayout>
   );

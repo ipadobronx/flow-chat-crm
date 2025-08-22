@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Phone, PhoneCall, Calendar, Target, TrendingUp, Users } from "lucide-react";
+import { Users, Phone, Calendar, FileText, CheckCircle, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -13,23 +13,23 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState([
     {
-      title: "Ligações Efetuadas",
+      title: "Nº de rec",
+      value: "0",
+      change: "0%",
+      trend: "up" as const,
+      icon: Users,
+      color: "primary" as const
+    },
+    {
+      title: "Ligações",
       value: "0",
       change: "0%",
       trend: "up" as const,
       icon: Phone,
-      color: "primary" as const
-    },
-    {
-      title: "Foram Atendidas",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
-      icon: PhoneCall,
       color: "success" as const
     },
     {
-      title: "OI Marcados",
+      title: "OIs Agendados",
       value: "0",
       change: "0%",
       trend: "up" as const,
@@ -37,27 +37,27 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       color: "warning" as const
     },
     {
-      title: "Virou PC",
+      title: "Proposta apresentada",
       value: "0",
       change: "0%",
       trend: "up" as const,
-      icon: Target,
+      icon: FileText,
       color: "chart-1" as const
     },
     {
-      title: "Virou N",
+      title: "N Realizado",
       value: "0",
       change: "0%",
       trend: "up" as const,
-      icon: TrendingUp,
+      icon: CheckCircle,
       color: "chart-2" as const
     },
     {
-      title: "Recomendações Feitas",
+      title: "Apólice Emitida",
       value: "0",
       change: "0%",
       trend: "up" as const,
-      icon: Users,
+      icon: Award,
       color: "chart-3" as const
     }
   ]);
@@ -68,84 +68,92 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
 
   const fetchMetrics = async () => {
     try {
-      // Usar função otimizada do banco para buscar métricas
-      const { data: metrics, error } = await supabase
-        .rpc('get_leads_with_metrics', {
-          p_user_id: user?.id,
-          p_start_date: startDate?.toISOString(),
-          p_end_date: endDate?.toISOString()
-        });
+      // Buscar métricas do funil de vendas
+      const { data: salesFunnelData, error } = await supabase
+        .from('leads')
+        .select('etapa_funil, created_at')
+        .gte('created_at', startDate?.toISOString() || new Date().toISOString())
+        .lte('created_at', endDate?.toISOString() || new Date().toISOString());
 
       if (error) throw error;
-      
-      const metricsData = metrics?.[0] || {
-        total_leads: 0,
-        leads_atendidos: 0,
-        oi_marcados: 0,
-        virou_pc: 0,
-        virou_n: 0,
-        recomendacoes: 0
-      };
 
-      // Calcular percentuais (mudança fictícia para demonstração)
-      const calcularMudanca = (atual: number, total: number) => {
-        if (total === 0) return "0%";
-        const percentual = ((atual / total) * 100).toFixed(1);
-        return `${percentual}%`;
+      // Contar métricas por etapa do funil
+      const totalRecs = salesFunnelData?.length || 0;
+      const ligacoes = salesFunnelData?.filter(lead => 
+        ['ligacao_feita', 'oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+      ).length || 0;
+      const oisAgendados = salesFunnelData?.filter(lead => 
+        ['oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+      ).length || 0;
+      const propostasApresentadas = salesFunnelData?.filter(lead => 
+        ['proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+      ).length || 0;
+      const negociosRealizados = salesFunnelData?.filter(lead => 
+        ['negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+      ).length || 0;
+      const apolicesEmitidas = salesFunnelData?.filter(lead => 
+        lead.etapa_funil === 'apolice_emitida'
+      ).length || 0;
+
+      // Calcular taxas de conversão
+      const calcularTaxaConversao = (atual: number, anterior: number) => {
+        if (anterior === 0) return "0%";
+        const taxa = ((atual / anterior) * 100).toFixed(1);
+        return `${taxa}%`;
       };
 
       setMetrics([
         {
-          title: "Ligações Efetuadas",
-          value: metricsData.total_leads.toString(),
+          title: "Nº de rec",
+          value: totalRecs.toString(),
           change: "+100%",
           trend: "up" as const,
-          icon: Phone,
+          icon: Users,
           color: "primary" as const
         },
         {
-          title: "Foram Atendidas",
-          value: metricsData.leads_atendidos.toString(),
-          change: calcularMudanca(Number(metricsData.leads_atendidos), Number(metricsData.total_leads)),
+          title: "Ligações",
+          value: ligacoes.toString(),
+          change: calcularTaxaConversao(ligacoes, totalRecs),
           trend: "up" as const,
-          icon: PhoneCall,
+          icon: Phone,
           color: "success" as const
         },
         {
-          title: "OI Marcados",
-          value: metricsData.oi_marcados.toString(),
-          change: calcularMudanca(Number(metricsData.oi_marcados), Number(metricsData.leads_atendidos)),
+          title: "OIs Agendados",
+          value: oisAgendados.toString(),
+          change: calcularTaxaConversao(oisAgendados, ligacoes),
           trend: "up" as const,
           icon: Calendar,
           color: "warning" as const
         },
         {
-          title: "Virou PC",
-          value: metricsData.virou_pc.toString(),
-          change: calcularMudanca(Number(metricsData.virou_pc), Number(metricsData.leads_atendidos)),
+          title: "Proposta apresentada",
+          value: propostasApresentadas.toString(),
+          change: calcularTaxaConversao(propostasApresentadas, oisAgendados),
           trend: "up" as const,
-          icon: Target,
+          icon: FileText,
           color: "chart-1" as const
         },
         {
-          title: "Virou N",
-          value: metricsData.virou_n.toString(),
-          change: calcularMudanca(Number(metricsData.virou_n), Number(metricsData.leads_atendidos)),
+          title: "N Realizado",
+          value: negociosRealizados.toString(),
+          change: calcularTaxaConversao(negociosRealizados, propostasApresentadas),
           trend: "up" as const,
-          icon: TrendingUp,
+          icon: CheckCircle,
           color: "chart-2" as const
         },
         {
-          title: "Recomendações Feitas",
-          value: metricsData.recomendacoes.toString(),
-          change: calcularMudanca(Number(metricsData.recomendacoes), Number(metricsData.total_leads)),
+          title: "Apólice Emitida",
+          value: apolicesEmitidas.toString(),
+          change: calcularTaxaConversao(apolicesEmitidas, negociosRealizados),
           trend: "up" as const,
-          icon: Users,
+          icon: Award,
           color: "chart-3" as const
         }
       ]);
     } catch (error) {
-      console.error('Erro ao buscar métricas:', error);
+      console.error('Erro ao buscar métricas do funil de vendas:', error);
     }
   };
   return (
@@ -196,7 +204,7 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
             <div className="space-y-1">
               <h3 className="text-2xl font-bold tracking-tight">{metric.value}</h3>
               <p className="text-sm text-muted-foreground">{metric.title}</p>
-              <p className="text-xs text-muted-foreground">vs. last month</p>
+              <p className="text-xs text-muted-foreground">taxa de conversão</p>
             </div>
           </div>
 
