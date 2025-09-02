@@ -57,8 +57,8 @@ export function FollowUpActivities() {
       // Buscar clientes para gerar atividades de follow-up
       const { data: clientsData, error } = await supabase
         .from('leads')
-        .select('id, nome, created_at, etapa_funil')
-        .in('etapa_funil', ['apolice_emitida', 'negocio_realizado'])
+        .select('id, nome, created_at, etapa')
+        .in('etapa', ['Apólice Emitida', 'N'])
         .limit(15);
 
       if (error) throw error;

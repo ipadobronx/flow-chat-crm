@@ -168,6 +168,14 @@ export function TAReportsUpdated() {
     setEndDate(end);
   };
 
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (date) setEndDate(date);
+  };
+
   const isLoading = isDashboardLoading || isTemporalLoading;
 
   if (isLoading) {
@@ -203,6 +211,8 @@ export function TAReportsUpdated() {
       <TADateFilter
         startDate={startDate}
         endDate={endDate}
+        onStartDateChange={handleStartDateChange}
+        onEndDateChange={handleEndDateChange}
         onPresetChange={handlePresetChange}
       />
 
@@ -210,29 +220,25 @@ export function TAReportsUpdated() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <TAMetricCard
           title="Leads Contactados"
-          valor={dashboardData?.total_contactados || 0}
-          valorAnterior={0}
+          value={dashboardData?.total_contactados || 0}
           isActive={activeCard === 'leadsContactados'}
           onClick={() => setActiveCard('leadsContactados')}
         />
         <TAMetricCard
           title="Marcar no WhatsApp"
-          valor={dashboardData?.marcar_whatsapp || 0}
-          valorAnterior={0}
+          value={dashboardData?.marcar_whatsapp || 0}
           isActive={activeCard === 'marcarWhatsapp'}
           onClick={() => setActiveCard('marcarWhatsapp')}
         />
         <TAMetricCard
           title="Ligar Depois"
-          valor={dashboardData?.ligar_depois || 0}
-          valorAnterior={0}
+          value={dashboardData?.ligar_depois || 0}
           isActive={activeCard === 'ligarDepois'}
           onClick={() => setActiveCard('ligarDepois')}
         />
         <TAMetricCard
           title="Agendados (OI)"
-          valor={dashboardData?.agendados || 0}
-          valorAnterior={0}
+          value={dashboardData?.agendados || 0}
           isActive={activeCard === 'resultadoGeral'}
           onClick={() => setActiveCard('resultadoGeral')}
         />
