@@ -43,7 +43,7 @@ export function SalesFunnelChart({ startDate, endDate }: SalesFunnelChartProps) 
       // Buscar dados do funil de vendas
       const { data: salesData, error } = await supabase
         .from('leads')
-        .select('etapa_funil, created_at')
+        .select('etapa, created_at')
         .gte('created_at', startDate?.toISOString() || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
         .lte('created_at', endDate?.toISOString() || new Date().toISOString());
 
@@ -52,19 +52,19 @@ export function SalesFunnelChart({ startDate, endDate }: SalesFunnelChartProps) 
       // Contar leads por etapa do funil
       const totalRecs = salesData?.length || 0;
       const ligacoes = salesData?.filter(lead => 
-        ['ligacao_feita', 'oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['Ligar Depois', 'OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const oisAgendados = salesData?.filter(lead => 
-        ['oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const propostasApresentadas = salesData?.filter(lead => 
-        ['proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const negociosRealizados = salesData?.filter(lead => 
-        ['negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const apolicesEmitidas = salesData?.filter(lead => 
-        lead.etapa_funil === 'apolice_emitida'
+        lead.etapa === 'Apólice Emitida'
       ).length || 0;
 
       // Calcular percentuais de conversão

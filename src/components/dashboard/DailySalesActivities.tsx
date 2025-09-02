@@ -75,8 +75,8 @@ export function DailySalesActivities() {
       // Buscar leads que precisam de ação hoje
       const { data: leadsData, error } = await supabase
         .from('leads')
-        .select('id, nome, etapa_funil, ultimo_contato, created_at')
-        .in('etapa_funil', ['novo', 'ligacao_feita', 'oi_agendado', 'proposta_apresentada'])
+        .select('id, nome, etapa, created_at')
+        .in('etapa', ['Novo', 'Ligar Depois', 'OI', 'PC'])
         .limit(20);
 
       if (error) throw error;
@@ -85,8 +85,8 @@ export function DailySalesActivities() {
       const generatedActivities: Activity[] = [];
       
       leadsData?.forEach((lead, index) => {
-        switch (lead.etapa_funil) {
-          case 'novo':
+        switch (lead.etapa) {
+          case 'Novo':
             generatedActivities.push({
               id: `call-${lead.id}`,
               type: 'call',
@@ -100,7 +100,7 @@ export function DailySalesActivities() {
             });
             break;
             
-          case 'ligacao_feita':
+          case 'Ligar Depois':
             generatedActivities.push({
               id: `whatsapp-${lead.id}`,
               type: 'whatsapp',
@@ -114,7 +114,7 @@ export function DailySalesActivities() {
             });
             break;
             
-          case 'oi_agendado':
+          case 'OI':
             generatedActivities.push({
               id: `meeting-${lead.id}`,
               type: 'meeting',
@@ -128,7 +128,7 @@ export function DailySalesActivities() {
             });
             break;
             
-          case 'proposta_apresentada':
+          case 'PC':
             generatedActivities.push({
               id: `followup-${lead.id}`,
               type: 'proposal_followup',

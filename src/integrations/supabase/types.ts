@@ -439,6 +439,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ta_actions: {
+        Row: {
+          created_at: string
+          etapa: string
+          id: string
+          lead_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          etapa: string
+          id?: string
+          lead_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          etapa?: string
+          id?: string
+          lead_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ta_historico: {
         Row: {
           created_at: string
@@ -812,6 +839,26 @@ export type Database = {
           warning_count: number
         }[]
       }
+      get_ta_dashboard: {
+        Args: { p_period?: string; p_user_id: string }
+        Returns: {
+          agendados: number
+          ligar_depois: number
+          marcar_whatsapp: number
+          nao_atendeu: number
+          total_contactados: number
+        }[]
+      }
+      get_ta_efficiency_metrics: {
+        Args: { p_period?: string; p_user_id: string }
+        Returns: {
+          agendados: number
+          leads_por_agendamento: number
+          taxa_conversao_geral: number
+          taxa_conversao_marcar_oi: number
+          total_contactados: number
+        }[]
+      }
       get_ta_historico: {
         Args: {
           p_end_date?: string
@@ -830,6 +877,14 @@ export type Database = {
           observacoes: string
           ta_order_anterior: number
           ta_order_nova: number
+        }[]
+      }
+      get_ta_temporal_data: {
+        Args: { p_period?: string; p_user_id: string }
+        Returns: {
+          date: string
+          etapa: string
+          total: number
         }[]
       }
       gtrgm_compress: {

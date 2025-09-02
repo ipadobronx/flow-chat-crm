@@ -71,7 +71,7 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       // Buscar métricas do funil de vendas
       const { data: salesFunnelData, error } = await supabase
         .from('leads')
-        .select('etapa_funil, created_at')
+        .select('etapa, created_at')
         .gte('created_at', startDate?.toISOString() || new Date().toISOString())
         .lte('created_at', endDate?.toISOString() || new Date().toISOString());
 
@@ -80,19 +80,19 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
       // Contar métricas por etapa do funil
       const totalRecs = salesFunnelData?.length || 0;
       const ligacoes = salesFunnelData?.filter(lead => 
-        ['ligacao_feita', 'oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['Ligar Depois', 'OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const oisAgendados = salesFunnelData?.filter(lead => 
-        ['oi_agendado', 'proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const propostasApresentadas = salesFunnelData?.filter(lead => 
-        ['proposta_apresentada', 'negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const negociosRealizados = salesFunnelData?.filter(lead => 
-        ['negocio_realizado', 'apolice_emitida'].includes(lead.etapa_funil)
+        ['N', 'Apólice Emitida'].includes(lead.etapa)
       ).length || 0;
       const apolicesEmitidas = salesFunnelData?.filter(lead => 
-        lead.etapa_funil === 'apolice_emitida'
+        lead.etapa === 'Apólice Emitida'
       ).length || 0;
 
       // Calcular taxas de conversão
