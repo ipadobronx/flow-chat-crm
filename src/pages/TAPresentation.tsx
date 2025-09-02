@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { useTAActions, TAActionType } from "@/hooks/useTAActions";
 import { Play, Save, ArrowLeft, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,8 @@ export default function TAPresentation() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
+
+  const { recordTAAction } = useTAActions();
 
   // Carregar leads selecionados para TA do banco de dados
   const { data: allLeads = [], isLoading, refetch } = useQuery({
@@ -139,6 +142,21 @@ export default function TAPresentation() {
     const currentLead = leads[currentLeadIndex];
     
     try {
+      // Mapear etapa para TAActionType
+      const etapaMapping: { [key: string]: TAActionType } = {
+        "Não Atendido": "NAO_ATENDIDO",
+        "Ligar Depois": "LIGAR_DEPOIS",
+        "Marcar": "MARCAR",
+        "OI": "OI"
+      };
+      
+      const taAction = etapaMapping[selectedEtapa];
+      
+      // Gravar ação individual na tabela ta_actions
+      if (taAction) {
+        await recordTAAction(currentLead.id, taAction);
+      }
+
       // Atualizar etapa do lead
       await supabase
         .from("leads")
