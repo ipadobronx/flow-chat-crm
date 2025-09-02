@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TAReports } from "@/components/reports/TAReports";
+import { TAReportsUpdated } from "@/components/reports/TAReportsUpdated";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -166,7 +166,7 @@ export default function Reports() {
           </TabsList>
 
           <TabsContent value="metricas" className="space-y-6">
-            <TAReports />
+            <TAReportsUpdated />
           </TabsContent>
 
           <TabsContent value="historico" className="space-y-6">
