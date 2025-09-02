@@ -35,57 +35,17 @@ export default function TADynamicChart({
   isLoading = false,
   onPeriodChange
 }: TADynamicChartProps) {
-  // Função para gerar dados dinâmicos baseados no período
-  const generateDynamicData = (rawData: any[], period: number) => {
-    const dateData: ChartData[] = [];
-    const today = new Date();
-    
-    // Gerar dados para o período selecionado
-    for (let i = period - 1; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      
-      const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      
-      // Simular dados baseados na data - em produção, isso viria da API filtrada
-      const dayData: ChartData = {
-        date: formattedDate,
-        contatosEfetuados: Math.floor(Math.random() * 5) + 1,
-        ligacoesNaoAtendidas: Math.floor(Math.random() * 3),
-        marcarWhatsapp: Math.floor(Math.random() * 2),
-        ligarDepois: Math.floor(Math.random() * 2)
-      };
-      
-      dateData.push(dayData);
+  // Função para processar dados reais vindos do backend
+  const processRealData = (rawData: ChartData[]): ChartData[] => {
+    if (!rawData || rawData.length === 0) {
+      return [];
     }
     
-    return dateData;
-  };
-
-  // Função para gerar dados de comparação do período anterior
-  const generateComparisonData = (period: number) => {
-    const comparisonData: ChartData[] = [];
-    const today = new Date();
-    
-    // Gerar dados para o período anterior (mesmo número de dias, mas anteriores)
-    for (let i = (period * 2) - 1; i >= period; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      
-      const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      
-      const dayData: ChartData = {
-        date: formattedDate,
-        contatosEfetuados: Math.floor(Math.random() * 4) + 1,
-        ligacoesNaoAtendidas: Math.floor(Math.random() * 2),
-        marcarWhatsapp: Math.floor(Math.random() * 2),
-        ligarDepois: Math.floor(Math.random() * 3)
-      };
-      
-      comparisonData.push(dayData);
-    }
-    
-    return comparisonData;
+    // Retornar os dados reais, apenas formatando as datas se necessário
+    return rawData.map(item => ({
+      ...item,
+      date: item.date // Manter o formato da data como está vindo do backend
+    }));
   };
 
   const getChartInfo = () => {
@@ -116,8 +76,8 @@ export default function TADynamicChart({
     
     return {
       title,
-      data: generateDynamicData(rawData, periodFilter),
-      comparisonData: generateComparisonData(periodFilter)
+      data: processRealData(rawData || []),
+      comparisonData: [] // Para agora, não precisamos dos dados de comparação
     };
   };
 
