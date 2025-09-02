@@ -1,24 +1,28 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useTACache } from "@/hooks/useTACache";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format, subDays, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tables } from "@/integrations/supabase/types";
 import { TADateFilter } from "./TADateFilter";
 import { TAMetricCard } from "./TAMetricCard";
 import TADynamicChart from "./TADynamicChart";
-import { Users, MessageCircle, Phone, Target } from "lucide-react";
+import { Users, MessageCircle, Phone, Target, RefreshCw } from "lucide-react";
 
 type TARelatorio = Tables<"ta_relatorios">;
 
 export function TAReports() {
   const { user } = useAuth();
+  const { invalidateTAData } = useTACache();
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [activeCard, setActiveCard] = useState<string>("leads-contactados");
   const [preset, setPreset] = useState<string>("7days");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: relatorios = [], isLoading } = useQuery({
     queryKey: ["ta-relatorios", user?.id, startDate, endDate],
@@ -164,6 +168,12 @@ export function TAReports() {
   const previousEnd = subDays(endDate, daysDiff);
   const previousPeriod = `${formatPeriod(previousStart)} - ${formatPeriod(previousEnd)}`;
 
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    await invalidateTAData();
+    setIsRefreshing(false);
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Carregando relatórios...</div>;
   }
@@ -174,6 +184,16 @@ export function TAReports() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Dashboard TA Interativo</h2>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
+          </Button>
           <Badge variant="outline" className="text-sm">
             {relatorios.length} relatórios no período
           </Badge>

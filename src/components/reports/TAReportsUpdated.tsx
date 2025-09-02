@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTACache } from "@/hooks/useTACache";
 import { TADateFilter } from "./TADateFilter";
 import { TAMetricCard } from "./TAMetricCard";
 import TADynamicChart from "./TADynamicChart";
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { RefreshCw } from "lucide-react";
 
 interface TAMetrics {
   total_contactados: number;
@@ -35,9 +38,11 @@ interface ChartDataPoint {
 
 export function TAReportsUpdated() {
   const { user } = useAuth();
+  const { invalidateTAData } = useTACache();
   const [startDate, setStartDate] = useState(subDays(new Date(), 6));
   const [endDate, setEndDate] = useState(new Date());
   const [activeCard, setActiveCard] = useState<string>('leadsContactados');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch TA dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
@@ -176,6 +181,12 @@ export function TAReportsUpdated() {
     if (date) setEndDate(date);
   };
 
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    await invalidateTAData();
+    setIsRefreshing(false);
+  };
+
   const isLoading = isDashboardLoading || isTemporalLoading;
 
   if (isLoading) {
@@ -202,9 +213,21 @@ export function TAReportsUpdated() {
             Análise detalhada das atividades de telemarketing e atendimento
           </p>
         </div>
-        <Badge variant="secondary" className="text-sm">
-          {dashboardData?.total_contactados || 0} contatos no período
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
+          </Button>
+          <Badge variant="secondary" className="text-sm">
+            {dashboardData?.total_contactados || 0} contatos no período
+          </Badge>
+        </div>
       </div>
 
       {/* Date Filter */}

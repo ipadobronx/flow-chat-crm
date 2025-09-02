@@ -1,11 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useTACache } from "./useTACache";
 import { toast } from "sonner";
 
 export type TAActionType = 'NAO_ATENDIDO' | 'LIGAR_DEPOIS' | 'MARCAR' | 'OI';
 
 export const useTAActions = () => {
   const { user } = useAuth();
+  const { invalidateTAData } = useTACache();
 
   const recordTAAction = async (leadId: string, etapa: TAActionType) => {
     if (!user?.id) {
@@ -23,6 +25,9 @@ export const useTAActions = () => {
         });
 
       if (error) throw error;
+
+      // Invalidar cache automaticamente após inserir nova ação
+      await invalidateTAData();
 
       toast.success(`Ação TA registrada: ${getActionLabel(etapa)}`);
       return true;
