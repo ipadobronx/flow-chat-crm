@@ -31,7 +31,6 @@ export default function TAPresentation() {
   const [countdown, setCountdown] = useState(5);
   const [transitionStep, setTransitionStep] = useState(0);
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
 
@@ -137,14 +136,14 @@ export default function TAPresentation() {
   };
 
   const saveAndNext = async () => {
-    if (!selectedEtapa || !selectedStatus) return;
+    if (!selectedEtapa) return;
     
     const currentLead = leads[currentLeadIndex];
     
     try {
       // Mapear etapa para TAActionType
       const etapaMapping: { [key: string]: TAActionType } = {
-        "Não Atendido": "NAO_ATENDIDO",
+        "Não atendido": "NAO_ATENDIDO",
         "Ligar Depois": "LIGAR_DEPOIS",
         "Marcar": "MARCAR",
         "OI": "OI"
@@ -166,7 +165,7 @@ export default function TAPresentation() {
         })
         .eq("id", currentLead.id);
 
-      // Registrar no histórico do TA com status
+      // Registrar no histórico do TA
       await supabase
         .from("ta_historico")
         .insert({
@@ -174,7 +173,6 @@ export default function TAPresentation() {
           user_id: currentLead.user_id,
           etapa_anterior: currentLead.etapa,
           etapa_nova: selectedEtapa as any,
-          status: selectedStatus,
           observacoes: observacoes,
           origem: 'ta'
         });
@@ -193,7 +191,6 @@ export default function TAPresentation() {
 
       // Resetar campos para o próximo lead
       setSelectedEtapa("");
-      setSelectedStatus("");
       setObservacoes("");
       setAgendamentoDate(undefined);
 
@@ -222,11 +219,11 @@ export default function TAPresentation() {
       // Calcular métricas do relatório
       const totalLeads = leads.length;
       const totalLigacoes = taHistory?.length || 0;
-      const ligacoesAtendidas = taHistory?.filter(h => h.status === "Atendeu").length || 0;
-      const ligacoesNaoAtendidas = taHistory?.filter(h => h.status === "Não Atendeu").length || 0;
-      const ligacoesLigarDepois = taHistory?.filter(h => h.status === "Pediu para Ligar Depois").length || 0;
-      const ligacoesAgendadas = taHistory?.filter(h => h.status === "Agendou").length || 0;
-      const ligacoesMarcadas = taHistory?.filter(h => h.status === "Marcou Reunião").length || 0;
+      const ligacoesAtendidas = taHistory?.filter(h => h.etapa_nova === "OI").length || 0;
+      const ligacoesNaoAtendidas = taHistory?.filter(h => h.etapa_nova === "Não atendido").length || 0;
+      const ligacoesLigarDepois = taHistory?.filter(h => h.etapa_nova === "Ligar Depois").length || 0;
+      const ligacoesAgendadas = taHistory?.filter(h => h.etapa_nova === "OI").length || 0;
+      const ligacoesMarcadas = taHistory?.filter(h => h.etapa_nova === "Marcar").length || 0;
 
       // Salvar relatório
       const { error: reportError } = await supabase
@@ -263,7 +260,6 @@ export default function TAPresentation() {
       setCountdown(5);
       setTransitionStep(0);
       setSelectedEtapa("");
-      setSelectedStatus("");
       setObservacoes("");
       setAgendamentoDate(undefined);
       
@@ -280,17 +276,12 @@ export default function TAPresentation() {
     setCountdown(5);
     setTransitionStep(0);
     setSelectedEtapa("");
-    setSelectedStatus("");
     setObservacoes("");
     setAgendamentoDate(undefined);
   };
 
   
-  const etapasOptions = ["Não Atendido", "Ligar Depois", "Marcar", "OI"];
-  
-  const statusOptions = [
-    "Atendeu", "Não Atendeu", "Agendou", "Pediu para Ligar Depois", "Marcou Reunião"
-  ];
+  const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar", "OI"];
 
   const getLeadImageUrl = (leadName: string) => {
     // Generate different Unsplash images based on lead name
@@ -453,23 +444,6 @@ export default function TAPresentation() {
                 <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
                 <div className="space-y-4 flex-1">
-                  {/* Seletor de Status */}
-                  <div>
-                    <Label className="text-[#00FFF0] font-medium text-sm">Status da Ligação</Label>
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white h-9">
-                        <SelectValue placeholder="Como foi a ligação?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {/* Seletor de Etapa */}
                   <div>
                     <Label className="text-[#00FFF0] font-medium text-sm">Nova Etapa</Label>
@@ -533,7 +507,7 @@ export default function TAPresentation() {
                 {/* Botão de Salvar */}
                 <Button
                   onClick={saveAndNext}
-                  disabled={!selectedEtapa || !selectedStatus || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
+                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
                   className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                 >
                   <Save className="mr-2 h-5 w-5" />
