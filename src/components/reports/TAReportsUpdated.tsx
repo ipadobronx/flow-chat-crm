@@ -249,28 +249,28 @@ export function TAReportsUpdated() {
           value={dashboardData?.total_contactados || 0}
           isActive={activeCard === 'leadsContactados'}
           onClick={() => setActiveCard('leadsContactados')}
-          gradient="from-blue-500 to-blue-600"
+          gradient="bg-gradient-to-r from-blue-500 to-blue-600"
         />
         <TAMetricCard
           title="Marcar no WhatsApp"
           value={dashboardData?.marcar_whatsapp || 0}
           isActive={activeCard === 'marcarWhatsapp'}
           onClick={() => setActiveCard('marcarWhatsapp')}
-          gradient="from-orange-500 to-orange-600"
+          gradient="bg-gradient-to-r from-orange-500 to-orange-600"
         />
         <TAMetricCard
           title="Ligar Depois"
           value={dashboardData?.ligar_depois || 0}
           isActive={activeCard === 'ligarDepois'}
           onClick={() => setActiveCard('ligarDepois')}
-          gradient="from-red-500 to-red-600"
+          gradient="bg-gradient-to-r from-red-500 to-red-600"
         />
         <TAMetricCard
           title="Resultado Geral"
           value={dashboardData?.agendados || 0}
           isActive={activeCard === 'resultadoGeral'}
           onClick={() => setActiveCard('resultadoGeral')}
-          gradient="from-green-500 to-green-600"
+          gradient="bg-gradient-to-r from-green-500 to-green-600"
         />
       </div>
 
