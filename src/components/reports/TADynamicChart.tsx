@@ -8,6 +8,7 @@ interface ChartData {
   ligacoesNaoAtendidas: number;
   marcarWhatsapp: number;
   ligarDepois: number;
+  oi: number;
   outros?: number;
 }
 
@@ -86,9 +87,10 @@ export default function TADynamicChart({
   // Configuração do gráfico
   const chartConfig = {
     contatosEfetuados: { label: "Contatos Efetuados", color: "hsl(var(--chart-1))" },
-    ligacoesNaoAtendidas: { label: "Ligações Não Atendidas", color: "hsl(var(--chart-2))" },
+    ligacoesNaoAtendidas: { label: "Ligações Não Atendidas", color: "hsl(var(--chart-4))" },
     marcarWhatsapp: { label: "Marcar WhatsApp", color: "hsl(var(--chart-3))" },
     ligarDepois: { label: "Ligar Depois", color: "hsl(var(--chart-4))" },
+    oi: { label: "OI (Agendados)", color: "hsl(var(--chart-2))" },
     outros: { label: "Outros", color: "hsl(var(--chart-5))" }
   };
 
@@ -160,6 +162,12 @@ export default function TADynamicChart({
                 dataKey="ligarDepois" 
                 stackId="a" 
                 fill="var(--color-ligarDepois)" 
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar 
+                dataKey="oi" 
+                stackId="a" 
+                fill="var(--color-oi)" 
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>
