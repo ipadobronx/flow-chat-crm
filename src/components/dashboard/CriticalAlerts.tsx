@@ -71,8 +71,8 @@ export function CriticalAlerts() {
       // Buscar dados que podem gerar alertas críticos
       const { data: leadsData, error } = await supabase
         .from('leads')
-        .select('id, nome, etapa_funil, created_at')
-        .in('etapa_funil', ['apolice_emitida', 'negocio_realizado', 'proposta_apresentada'])
+        .select('id, nome, etapa, created_at')
+        .in('etapa', ['Apólice Emitida', 'PC', 'OI'])
         .limit(10);
 
       if (error) throw error;
