@@ -60,10 +60,10 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const period = `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days`;
-      const { data, error } = await supabase.rpc('get_ta_dashboard', {
+      const { data, error } = await supabase.rpc('get_ta_dashboard_by_date_range', {
         p_user_id: user.id,
-        p_period: period
+        p_start_date: format(startDate, 'yyyy-MM-dd'),
+        p_end_date: format(endDate, 'yyyy-MM-dd')
       });
       
       if (error) throw error;
@@ -78,10 +78,10 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const period = `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days`;
-      const { data, error } = await supabase.rpc('get_ta_temporal_data', {
+      const { data, error } = await supabase.rpc('get_ta_temporal_data_by_date_range', {
         p_user_id: user.id,
-        p_period: period
+        p_start_date: format(startDate, 'yyyy-MM-dd'),
+        p_end_date: format(endDate, 'yyyy-MM-dd')
       });
       
       if (error) throw error;
@@ -96,10 +96,10 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const period = `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days`;
-      const { data, error } = await supabase.rpc('get_ta_efficiency_metrics', {
+      const { data, error } = await supabase.rpc('get_ta_efficiency_metrics_by_date_range', {
         p_user_id: user.id,
-        p_period: period
+        p_start_date: format(startDate, 'yyyy-MM-dd'),
+        p_end_date: format(endDate, 'yyyy-MM-dd')
       });
       
       if (error) throw error;
