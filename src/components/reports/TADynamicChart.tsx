@@ -91,11 +91,11 @@ export default function TADynamicChart({
 
   // Configuração do gráfico
   const chartConfig = {
-    contatosEfetuados: { label: "Contatos Efetuados", color: "hsl(var(--chart-1))" },
+    contatosEfetuados: { label: "Contatos Efetuados", color: "hsl(217 91% 60%)" },
     ligacoesNaoAtendidas: { label: "Ligações Não Atendidas", color: "hsl(220 9% 46%)" },
-    marcarWhatsapp: { label: "Marcar WhatsApp", color: "hsl(var(--chart-3))" },
     ligarDepois: { label: "Ligar Depois", color: "hsl(0 84% 60%)" },
-    oi: { label: "OI (Agendados)", color: "hsl(var(--chart-2))" },
+    marcarWhatsapp: { label: "Marcar WhatsApp", color: "hsl(25 95% 53%)" },
+    oi: { label: "OI (Agendados)", color: "hsl(142 71% 45%)" },
     outros: { label: "Outros", color: "hsl(var(--chart-4))" }
   };
 

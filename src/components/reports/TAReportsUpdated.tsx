@@ -259,18 +259,18 @@ export function TAReportsUpdated() {
           gradient="bg-gradient-to-r from-gray-500 to-gray-600"
         />
         <TAMetricCard
-          title="Marcar no WhatsApp"
-          value={dashboardData?.marcar_whatsapp || 0}
-          isActive={activeCard === 'marcarWhatsapp'}
-          onClick={() => setActiveCard('marcarWhatsapp')}
-          gradient="bg-gradient-to-r from-orange-500 to-orange-600"
-        />
-        <TAMetricCard
           title="Ligar Depois"
           value={dashboardData?.ligar_depois || 0}
           isActive={activeCard === 'ligarDepois'}
           onClick={() => setActiveCard('ligarDepois')}
           gradient="bg-gradient-to-r from-red-500 to-red-600"
+        />
+        <TAMetricCard
+          title="Marcar no WhatsApp"
+          value={dashboardData?.marcar_whatsapp || 0}
+          isActive={activeCard === 'marcarWhatsapp'}
+          onClick={() => setActiveCard('marcarWhatsapp')}
+          gradient="bg-gradient-to-r from-orange-500 to-orange-600"
         />
         <TAMetricCard
           title="OI Agendado"
