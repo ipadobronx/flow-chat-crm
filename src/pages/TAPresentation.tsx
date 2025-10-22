@@ -157,26 +157,37 @@ export default function TAPresentation() {
         await recordTAAction(currentLead.id, taAction);
       }
 
-      // Atualizar etapa do lead
-      await supabase
-        .from("leads")
-        .update({ 
-          etapa: selectedEtapa as any,
-          observacoes: observacoes || currentLead.observacoes
-        })
-        .eq("id", currentLead.id);
+      // Não atualizar etapa do lead se for "Não Tem Interesse" (não existe no enum)
+      if (selectedEtapa !== "Não Tem Interesse") {
+        // Atualizar etapa do lead
+        await supabase
+          .from("leads")
+          .update({ 
+            etapa: selectedEtapa as any,
+            observacoes: observacoes || currentLead.observacoes
+          })
+          .eq("id", currentLead.id);
 
-      // Registrar no histórico do TA
-      await supabase
-        .from("ta_historico")
-        .insert({
-          lead_id: currentLead.id,
-          user_id: currentLead.user_id,
-          etapa_anterior: currentLead.etapa,
-          etapa_nova: selectedEtapa as any,
-          observacoes: observacoes,
-          origem: 'ta'
-        });
+        // Registrar no histórico do TA
+        await supabase
+          .from("ta_historico")
+          .insert({
+            lead_id: currentLead.id,
+            user_id: currentLead.user_id,
+            etapa_anterior: currentLead.etapa,
+            etapa_nova: selectedEtapa as any,
+            observacoes: observacoes,
+            origem: 'ta'
+          });
+      } else {
+        // Para "Não Tem Interesse", apenas atualizar observações
+        await supabase
+          .from("leads")
+          .update({ 
+            observacoes: observacoes || currentLead.observacoes
+          })
+          .eq("id", currentLead.id);
+      }
 
       // Se for "Ligar Depois" e tem data de agendamento, criar agendamento
       if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
@@ -207,25 +218,24 @@ export default function TAPresentation() {
 
   const finalizarTA = async () => {
     try {
-      // Buscar todos os registros de TA desta sessão para gerar o relatório
-      const { data: taHistory, error: historyError } = await supabase
-        .from("ta_historico")
+      // Buscar registros de ta_actions para calcular as métricas
+      const { data: taActions, error: actionsError } = await supabase
+        .from("ta_actions")
         .select("*")
         .in("lead_id", leads.map(lead => lead.id))
-        .eq("origem", "ta")
         .gte("created_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()); // últimas 4 horas
 
-      if (historyError) throw historyError;
+      if (actionsError) throw actionsError;
 
       // Calcular métricas do relatório
       const totalLeads = leads.length;
-      const totalLigacoes = taHistory?.length || 0;
-      const ligacoesAtendidas = taHistory?.filter(h => h.etapa_nova === "OI").length || 0;
-      const ligacoesNaoAtendidas = taHistory?.filter(h => h.etapa_nova === "Não atendido").length || 0;
-      const ligacoesLigarDepois = taHistory?.filter(h => h.etapa_nova === "Ligar Depois").length || 0;
-      const ligacoesAgendadas = taHistory?.filter(h => h.etapa_nova === "OI").length || 0;
-      const ligacoesMarcadas = taHistory?.filter(h => h.etapa_nova === "Marcar").length || 0;
-      const ligacoesNaoTemInteresse = taHistory?.filter(h => h.etapa_nova === "Não Tem Interesse").length || 0;
+      const totalLigacoes = taActions?.length || 0;
+      const ligacoesAtendidas = taActions?.filter(a => a.etapa === "OI").length || 0;
+      const ligacoesNaoAtendidas = taActions?.filter(a => a.etapa === "NAO_ATENDIDO").length || 0;
+      const ligacoesLigarDepois = taActions?.filter(a => a.etapa === "LIGAR_DEPOIS").length || 0;
+      const ligacoesAgendadas = taActions?.filter(a => a.etapa === "OI").length || 0;
+      const ligacoesMarcadas = taActions?.filter(a => a.etapa === "MARCAR").length || 0;
+      const ligacoesNaoTemInteresse = taActions?.filter(a => a.etapa === "NAO_TEM_INTERESSE").length || 0;
 
       // Salvar relatório
       const { error: reportError } = await supabase
