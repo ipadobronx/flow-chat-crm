@@ -70,7 +70,7 @@ export const useGoogleCalendar = () => {
     },
     onError: (error) => {
       console.error('Error connecting Google Calendar:', error);
-      toast.error('Erro ao conectar com Google Calendar');
+      toast.error('Google Calendar não está disponível no ambiente de preview. Faça o deploy do app para testar a integração.');
     },
   });
 
