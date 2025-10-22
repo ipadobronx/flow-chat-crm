@@ -60,14 +60,29 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase.rpc('get_ta_dashboard_by_date_range', {
-        p_user_id: user.id,
-        p_start_date: format(startDate, 'yyyy-MM-dd'),
-        p_end_date: format(endDate, 'yyyy-MM-dd')
-      });
+      const startOfDayDate = startOfDay(startDate);
+      const endOfDayDate = endOfDay(endDate);
+      
+      const { data, error } = await supabase
+        .from('ta_actions')
+        .select('etapa')
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDayDate.toISOString())
+        .lte('created_at', endOfDayDate.toISOString());
       
       if (error) throw error;
-      return data?.[0] as TAMetrics;
+      
+      // Process data to match TAMetrics interface
+      const metrics: TAMetrics = {
+        total_contactados: data?.length || 0,
+        nao_atendeu: data?.filter(item => item.etapa === 'NAO_ATENDIDO').length || 0,
+        ligar_depois: data?.filter(item => item.etapa === 'LIGAR_DEPOIS').length || 0,
+        marcar_whatsapp: data?.filter(item => item.etapa === 'MARCAR').length || 0,
+        agendados: data?.filter(item => item.etapa === 'OI').length || 0,
+        nao_tem_interesse: data?.filter(item => item.etapa === 'NAO_TEM_INTERESSE').length || 0,
+      };
+      
+      return metrics;
     },
     enabled: !!user?.id,
   });
@@ -78,14 +93,34 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase.rpc('get_ta_temporal_data_by_date_range', {
-        p_user_id: user.id,
-        p_start_date: format(startDate, 'yyyy-MM-dd'),
-        p_end_date: format(endDate, 'yyyy-MM-dd')
-      });
+      const startOfDayDate = startOfDay(startDate);
+      const endOfDayDate = endOfDay(endDate);
+      
+      const { data, error } = await supabase
+        .from('ta_actions')
+        .select('created_at, etapa')
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDayDate.toISOString())
+        .lte('created_at', endOfDayDate.toISOString())
+        .order('created_at', { ascending: true });
       
       if (error) throw error;
-      return data;
+      
+      // Group by date and etapa
+      const grouped = data?.reduce((acc: any[], item) => {
+        const date = format(new Date(item.created_at), 'yyyy-MM-dd');
+        const existing = acc.find(x => x.date === date && x.etapa === item.etapa);
+        
+        if (existing) {
+          existing.total++;
+        } else {
+          acc.push({ date, etapa: item.etapa, total: 1 });
+        }
+        
+        return acc;
+      }, []);
+      
+      return grouped || [];
     },
     enabled: !!user?.id,
   });
@@ -96,14 +131,30 @@ export function TAReportsUpdated() {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase.rpc('get_ta_efficiency_metrics_by_date_range', {
-        p_user_id: user.id,
-        p_start_date: format(startDate, 'yyyy-MM-dd'),
-        p_end_date: format(endDate, 'yyyy-MM-dd')
-      });
+      const startOfDayDate = startOfDay(startDate);
+      const endOfDayDate = endOfDay(endDate);
+      
+      const { data, error } = await supabase
+        .from('ta_actions')
+        .select('etapa')
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDayDate.toISOString())
+        .lte('created_at', endOfDayDate.toISOString());
       
       if (error) throw error;
-      return data?.[0] as TAEfficiencyMetrics;
+      
+      const total_contactados = data?.length || 0;
+      const agendados = data?.filter(item => item.etapa === 'OI').length || 0;
+      
+      const metrics: TAEfficiencyMetrics = {
+        total_contactados,
+        agendados,
+        leads_por_agendamento: agendados > 0 ? Number((total_contactados / agendados).toFixed(2)) : 0,
+        taxa_conversao_marcar_oi: total_contactados > 0 ? Number(((agendados / total_contactados) * 100).toFixed(2)) : 0,
+        taxa_conversao_geral: total_contactados > 0 ? Number(((agendados / total_contactados) * 100).toFixed(2)) : 0,
+      };
+      
+      return metrics;
     },
     enabled: !!user?.id,
   });
