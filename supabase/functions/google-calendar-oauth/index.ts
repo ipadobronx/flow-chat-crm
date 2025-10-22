@@ -109,7 +109,13 @@ serve(async (req) => {
 
       if (error) {
         console.error('Database error:', error);
-        return new Response(`Database error: ${error.message}`, { status: 500 });
+        return new Response(
+          JSON.stringify({ error: 'Erro ao salvar configurações' }),
+          { 
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
       }
 
       // Página de sucesso que fecha automaticamente
@@ -312,10 +318,13 @@ serve(async (req) => {
 
       if (calendarData.error) {
         console.error('Calendar API error:', calendarData.error);
-        return new Response(JSON.stringify({ error: calendarData.error.message }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({ error: 'Erro ao sincronizar com Google Calendar' }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
       }
 
       // Atualizar agendamento com ID do evento

@@ -11,6 +11,9 @@ import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-
 import { useDndMonitor, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { TAHierarchyConfig, HierarchyConfig } from "./TAHierarchyConfig";
+import { updateLeadPartialSchema } from "@/lib/schemas";
+import { sanitizeText } from "@/lib/validation";
+import { globalRateLimiter } from "@/lib/validation";
 
 type Lead = Tables<"leads">;
 

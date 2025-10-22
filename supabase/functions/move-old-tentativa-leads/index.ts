@@ -12,6 +12,48 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Autenticação necessária' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create client to verify user
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Token inválido' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user has admin role
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (roleError || roleData?.role !== 'admin') {
+      console.error('Authorization failed - admin role required');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Acesso restrito a administradores' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('Iniciando verificação de leads antigos na etapa "Tentativa"...');
 
     // Criar cliente Supabase com service_role para operações administrativas
@@ -32,7 +74,10 @@ Deno.serve(async (req) => {
 
     if (selectError) {
       console.error('Erro ao buscar leads:', selectError);
-      throw selectError;
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao processar solicitação' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log(`Encontrados ${leadsToMove?.length || 0} leads para mover de "Tentativa" para "Novo"`);
@@ -51,11 +96,13 @@ Deno.serve(async (req) => {
 
       if (updateError) {
         console.error('Erro ao atualizar leads:', updateError);
-        throw updateError;
+        return new Response(
+          JSON.stringify({ success: false, error: 'Erro ao atualizar leads' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
-      console.log(`Movidos ${updatedLeads?.length || 0} leads de "Tentativa" para "Novo":`, 
-        leadsToMove.map(lead => `${lead.nome} (ID: ${lead.id})`));
+      console.log(`Movidos ${updatedLeads?.length || 0} leads de "Tentativa" para "Novo"`);
 
       return new Response(
         JSON.stringify({
@@ -94,7 +141,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: 'Erro interno ao processar solicitação'
       }),
       { 
         status: 500,

@@ -243,6 +243,12 @@ export function SelecionadosCard() {
           const baseTime = new Date();
           const updates = reordered.map((lead, index) => {
             const newCreatedAt = new Date(baseTime.getTime() + index * 1000).toISOString();
+            
+            // Validar data antes de enviar
+            if (isNaN(new Date(newCreatedAt).getTime())) {
+              throw new Error("Data inválida");
+            }
+            
             return supabase
               .from("leads")
               .update({ created_at: newCreatedAt })
