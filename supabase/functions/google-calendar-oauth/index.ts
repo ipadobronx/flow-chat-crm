@@ -30,10 +30,26 @@ serve(async (req) => {
       }
 
       const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+      const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+      
+      console.log('Checking Google credentials...');
+      console.log('GOOGLE_CLIENT_ID exists:', !!clientId);
+      console.log('GOOGLE_CLIENT_SECRET exists:', !!clientSecret);
+      
+      if (!clientId || !clientSecret) {
+        console.error('Missing Google credentials!');
+        return new Response(JSON.stringify({ 
+          error: 'Google Calendar não está configurado. Configure GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nos secrets do Supabase.' 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       const redirectUri = `${supabaseUrl}/functions/v1/google-calendar-oauth?action=callback`;
       
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.set('client_id', clientId!);
+      authUrl.searchParams.set('client_id', clientId);
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/calendar');
