@@ -26,20 +26,24 @@ export function TADateFilter({
   const [preset, setPreset] = useState("7dias");
 
   const handlePresetChange = (value: string) => {
+    console.log("TADateFilter - Preset changed to:", value);
     setPreset(value);
     onPresetChange(value);
     
     const today = new Date();
     
     if (value === "7dias") {
+      console.log("TADateFilter - Setting 7 days period");
       const sevenDaysAgo = subDays(today, 6);
       onStartDateChange(sevenDaysAgo);
       onEndDateChange(today);
     } else if (value === "30dias") {
+      console.log("TADateFilter - Setting 30 days period");
       const thirtyDaysAgo = subDays(today, 29);
       onStartDateChange(thirtyDaysAgo);
       onEndDateChange(today);
     } else if (value === "90dias") {
+      console.log("TADateFilter - Setting 90 days period");
       const ninetyDaysAgo = subDays(today, 89);
       onStartDateChange(ninetyDaysAgo);
       onEndDateChange(today);
