@@ -34,9 +34,10 @@ export const useGoogleCalendar = () => {
     mutationFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { action: 'auth', userId: user.id },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        `google-calendar-oauth?action=auth&userId=${user.id}`,
+        { method: 'GET' }
+      );
 
       if (error) throw error;
 
