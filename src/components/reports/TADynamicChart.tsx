@@ -95,6 +95,13 @@ export default function TADynamicChart({
 
   const chartInfo = getChartInfo();
 
+  // Calcular intervalo de labels baseado no período
+  const getTickInterval = () => {
+    if (periodFilter <= 7) return 0; // Mostrar todos os labels
+    if (periodFilter <= 30) return 2; // Mostrar a cada 3 dias
+    return 6; // Mostrar a cada 7 dias para períodos maiores
+  };
+
   // Configuração do gráfico
   const chartConfig = {
     contatosEfetuados: { label: "Contatos Efetuados", color: "hsl(217 91% 60%)" },
@@ -133,23 +140,27 @@ export default function TADynamicChart({
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-80 w-full">
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartInfo.data}>
+            <BarChart 
+              data={chartInfo.data}
+              margin={{ top: 5, right: 20, left: 0, bottom: 70 }}
+            >
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 tickLine={false}
                 axisLine={false}
                 angle={-45}
                 textAnchor="end"
-                height={60}
-                interval={0}
+                height={80}
+                interval={getTickInterval()}
               />
               <YAxis 
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 tickLine={false}
                 axisLine={false}
+                width={40}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
               {activeCard === 'leadsContactados' ? (
