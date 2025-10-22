@@ -146,7 +146,8 @@ export default function TAPresentation() {
         "Não atendido": "NAO_ATENDIDO",
         "Ligar Depois": "LIGAR_DEPOIS",
         "Marcar": "MARCAR",
-        "OI": "OI"
+        "OI": "OI",
+        "Não Tem Interesse": "NAO_TEM_INTERESSE"
       };
       
       const taAction = etapaMapping[selectedEtapa];
@@ -281,7 +282,7 @@ export default function TAPresentation() {
   };
 
   
-  const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar", "OI"];
+  const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar", "OI", "Não Tem Interesse"];
 
   const getLeadImageUrl = (leadName: string) => {
     // Generate different Unsplash images based on lead name

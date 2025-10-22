@@ -3,7 +3,7 @@ import { useAuth } from "./useAuth";
 import { useTACache } from "./useTACache";
 import { toast } from "sonner";
 
-export type TAActionType = 'NAO_ATENDIDO' | 'LIGAR_DEPOIS' | 'MARCAR' | 'OI';
+export type TAActionType = 'NAO_ATENDIDO' | 'LIGAR_DEPOIS' | 'MARCAR' | 'OI' | 'NAO_TEM_INTERESSE';
 
 export const useTAActions = () => {
   const { user } = useAuth();
@@ -48,6 +48,8 @@ export const useTAActions = () => {
         return 'Marcar no WhatsApp';
       case 'OI':
         return 'Agendado (OI)';
+      case 'NAO_TEM_INTERESSE':
+        return 'Não Tem Interesse';
       default:
         return etapa;
     }
