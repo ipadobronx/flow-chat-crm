@@ -400,15 +400,43 @@ export function TAReportsUpdated() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Taxa Conversão Geral</CardTitle>
+              <CardTitle className="text-sm font-medium">Taxa de Conversão por Etapa</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {efficiencyData.taxa_conversao_geral || 0}%
-              </div>
-              <p className="text-xs text-muted-foreground">
-                taxa geral de agendamentos
-              </p>
+            <CardContent className="space-y-2">
+              {dashboardData && dashboardData.total_contactados > 0 && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Não Atendido:</span>
+                    <span className="text-sm font-semibold">
+                      {((dashboardData.nao_atendeu / dashboardData.total_contactados) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Ligar Depois:</span>
+                    <span className="text-sm font-semibold">
+                      {((dashboardData.ligar_depois / dashboardData.total_contactados) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Marcar WhatsApp:</span>
+                    <span className="text-sm font-semibold">
+                      {((dashboardData.marcar_whatsapp / dashboardData.total_contactados) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Não Tem Interesse:</span>
+                    <span className="text-sm font-semibold">
+                      {((dashboardData.nao_tem_interesse / dashboardData.total_contactados) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-xs font-medium">OI Agendado:</span>
+                    <span className="text-sm font-bold text-primary">
+                      {((dashboardData.agendados / dashboardData.total_contactados) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
