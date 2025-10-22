@@ -140,36 +140,69 @@ export default function TADynamicChart({
                 axisLine={false}
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar 
-                dataKey="contatosEfetuados" 
-                stackId="a" 
-                fill="var(--color-contatosEfetuados)" 
-                radius={[0, 0, 0, 0]}
-              />
-              <Bar 
-                dataKey="ligacoesNaoAtendidas" 
-                stackId="a" 
-                fill="var(--color-ligacoesNaoAtendidas)" 
-                radius={[0, 0, 0, 0]}
-              />
-              <Bar 
-                dataKey="marcarWhatsapp" 
-                stackId="a" 
-                fill="var(--color-marcarWhatsapp)" 
-                radius={[0, 0, 0, 0]}
-              />
-              <Bar 
-                dataKey="ligarDepois" 
-                stackId="a" 
-                fill="var(--color-ligarDepois)" 
-                radius={[0, 0, 0, 0]}
-              />
-              <Bar 
-                dataKey="oi" 
-                stackId="a" 
-                fill="var(--color-oi)" 
-                radius={[2, 2, 0, 0]}
-              />
+              {activeCard === 'leadsContactados' ? (
+                // Modo "Leads Contactados" - mostra categorias separadas
+                <>
+                  <Bar 
+                    dataKey="ligacoesNaoAtendidas" 
+                    stackId="a" 
+                    fill="var(--color-ligacoesNaoAtendidas)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="ligarDepois" 
+                    stackId="a" 
+                    fill="var(--color-ligarDepois)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="marcarWhatsapp" 
+                    stackId="a" 
+                    fill="var(--color-marcarWhatsapp)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="oi" 
+                    stackId="a" 
+                    fill="var(--color-oi)" 
+                    radius={[2, 2, 0, 0]}
+                  />
+                </>
+              ) : (
+                // Outros modos - mostra todas as barras
+                <>
+                  <Bar 
+                    dataKey="contatosEfetuados" 
+                    stackId="a" 
+                    fill="var(--color-contatosEfetuados)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="ligacoesNaoAtendidas" 
+                    stackId="a" 
+                    fill="var(--color-ligacoesNaoAtendidas)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="marcarWhatsapp" 
+                    stackId="a" 
+                    fill="var(--color-marcarWhatsapp)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="ligarDepois" 
+                    stackId="a" 
+                    fill="var(--color-ligarDepois)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="oi" 
+                    stackId="a" 
+                    fill="var(--color-oi)" 
+                    radius={[2, 2, 0, 0]}
+                  />
+                </>
+              )}
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
