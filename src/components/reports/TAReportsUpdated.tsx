@@ -91,13 +91,14 @@ export function TAReportsUpdated() {
 
   // Fetch efficiency metrics
   const { data: efficiencyData } = useQuery({
-    queryKey: ['ta-efficiency', user?.id],
+    queryKey: ['ta-efficiency', user?.id, startDate, endDate],
     queryFn: async () => {
       if (!user?.id) return null;
       
+      const period = `${Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))} days`;
       const { data, error } = await supabase.rpc('get_ta_efficiency_metrics', {
         p_user_id: user.id,
-        p_period: '30 days'
+        p_period: period
       });
       
       if (error) throw error;
