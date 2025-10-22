@@ -211,11 +211,13 @@ export type Database = {
       google_calendar_tokens: {
         Row: {
           access_token: string
+          access_token_encrypted: string | null
           calendar_id: string | null
           created_at: string | null
           id: string
           last_sync_at: string | null
           refresh_token: string
+          refresh_token_encrypted: string | null
           sync_enabled: boolean | null
           token_expiry: string
           updated_at: string | null
@@ -223,11 +225,13 @@ export type Database = {
         }
         Insert: {
           access_token: string
+          access_token_encrypted?: string | null
           calendar_id?: string | null
           created_at?: string | null
           id?: string
           last_sync_at?: string | null
           refresh_token: string
+          refresh_token_encrypted?: string | null
           sync_enabled?: boolean | null
           token_expiry: string
           updated_at?: string | null
@@ -235,15 +239,56 @@ export type Database = {
         }
         Update: {
           access_token?: string
+          access_token_encrypted?: string | null
           calendar_id?: string | null
           created_at?: string | null
           id?: string
           last_sync_at?: string | null
           refresh_token?: string
+          refresh_token_encrypted?: string | null
           sync_enabled?: boolean | null
           token_expiry?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      google_calendar_tokens_backup: {
+        Row: {
+          access_token: string | null
+          calendar_id: string | null
+          created_at: string | null
+          id: string | null
+          last_sync_at: string | null
+          refresh_token: string | null
+          sync_enabled: boolean | null
+          token_expiry: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          sync_enabled?: boolean | null
+          token_expiry?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          sync_enabled?: boolean | null
+          token_expiry?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -842,13 +887,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      google_calendar_tokens_decrypted: {
+        Row: {
+          access_token: string | null
+          calendar_id: string | null
+          created_at: string | null
+          id: string | null
+          last_sync_at: string | null
+          refresh_token: string | null
+          sync_enabled: boolean | null
+          token_expiry: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token?: never
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          refresh_token?: never
+          sync_enabled?: boolean | null
+          token_expiry?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: never
+          calendar_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          refresh_token?: never
+          sync_enabled?: boolean | null
+          token_expiry?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calcular_dias_atraso: {
         Args: { data_vencimento: string }
         Returns: number
       }
+      decrypt_token: { Args: { encrypted_token: string }; Returns: string }
+      encrypt_token: { Args: { token: string }; Returns: string }
       get_birthday_leads: {
         Args: { p_data?: string; p_user_id: string }
         Returns: {
