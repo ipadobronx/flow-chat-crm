@@ -40,16 +40,33 @@ export const useGoogleCalendar = () => {
       );
 
       if (error) throw error;
-
-      // Abrir URL de autenticação em nova janela
-      const authUrl = data.authUrl;
-      window.open(authUrl, '_blank', 'width=600,height=700');
-
       return data;
     },
     onSuccess: (data) => {
-      // Redirecionar para a URL de autenticação na mesma aba
-      window.location.href = data.authUrl;
+      // Abrir URL de autenticação em popup
+      const popup = window.open(data.authUrl, 'Google Calendar Auth', 'width=600,height=700');
+      
+      // Polling para verificar quando a conexão foi estabelecida
+      const checkInterval = setInterval(async () => {
+        const { data: tokenData } = await supabase
+          .from('google_calendar_tokens')
+          .select('id')
+          .eq('user_id', user!.id)
+          .maybeSingle();
+
+        if (tokenData) {
+          clearInterval(checkInterval);
+          if (popup && !popup.closed) popup.close();
+          queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
+          toast.success('Google Calendar conectado com sucesso!');
+        }
+      }, 1000);
+
+      // Limpar interval após 2 minutos
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        if (popup && !popup.closed) popup.close();
+      }, 120000);
     },
     onError: (error) => {
       console.error('Error connecting Google Calendar:', error);

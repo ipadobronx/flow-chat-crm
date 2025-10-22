@@ -21,17 +21,6 @@ export default function Schedule() {
   const { isConnected, syncAgendamento, isSyncing } = useGoogleCalendar();
   const queryClient = useQueryClient();
 
-  // Verificar se acabamos de voltar da autenticação do Google
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('connected') === 'true') {
-      toast.success('Google Calendar conectado com sucesso!');
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
-      // Limpar o parâmetro da URL
-      window.history.replaceState({}, '', '/dashboard/schedule');
-    }
-  }, [queryClient]);
-
   const handleMarkAsCompleted = async (id: string) => {
     if (!user) return;
 

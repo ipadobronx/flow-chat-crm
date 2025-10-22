@@ -96,16 +96,66 @@ serve(async (req) => {
         return new Response(`Database error: ${error.message}`, { status: 500 });
       }
 
-      // Determinar a URL de retorno baseado no ambiente
-      const isPreview = supabaseUrl.includes('.supabase.co');
-      const returnUrl = isPreview 
-        ? `https://a0c71ebd-1b63-4a1a-b09f-5b5b77105268.lovableproject.com/dashboard/schedule?connected=true`
-        : `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/dashboard/schedule?connected=true`;
-
-      // Redirecionar de volta para o app
-      return new Response(null, {
-        status: 302,
-        headers: { Location: returnUrl },
+      // Página de sucesso que fecha automaticamente
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Conectado com sucesso!</title>
+            <style>
+              body { 
+                font-family: system-ui, -apple-system, sans-serif;
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                height: 100vh; 
+                margin: 0; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              }
+              .card { 
+                background: white; 
+                padding: 3rem 2rem; 
+                border-radius: 16px; 
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+                text-align: center;
+                max-width: 400px;
+              }
+              .success { 
+                color: #22c55e; 
+                font-size: 64px; 
+                margin-bottom: 1rem;
+                animation: scaleIn 0.5s ease-out;
+              }
+              h1 { 
+                margin: 0 0 0.5rem; 
+                color: #1a1a1a;
+                font-size: 24px;
+              }
+              p { 
+                color: #666; 
+                margin: 0;
+                font-size: 14px;
+              }
+              @keyframes scaleIn {
+                from { transform: scale(0); }
+                to { transform: scale(1); }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="success">✓</div>
+              <h1>Google Calendar Conectado!</h1>
+              <p>Esta janela fechará automaticamente...</p>
+            </div>
+            <script>
+              setTimeout(() => window.close(), 2000);
+            </script>
+          </body>
+        </html>
+      `, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
       });
     }
 
