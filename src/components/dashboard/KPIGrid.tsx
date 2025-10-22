@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
 import { Users, Phone, Calendar, FileText, CheckCircle, Award } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useKPIMetrics } from "@/hooks/dashboard/useKPIMetrics";
 import { cn } from "@/lib/utils";
 
 interface KPIGridProps {
@@ -10,152 +8,77 @@ interface KPIGridProps {
 }
 
 export function KPIGrid({ startDate, endDate }: KPIGridProps) {
-  const { user } = useAuth();
-  const [metrics, setMetrics] = useState([
+  const { data: kpiData, isLoading } = useKPIMetrics(startDate, endDate);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-32 bg-muted animate-pulse rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!kpiData) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Nenhum dado disponível para o período selecionado
+      </div>
+    );
+  }
+
+  const metrics = [
     {
       title: "Nº de rec",
-      value: "0",
-      change: "0%",
+      value: kpiData.total_rec.toString(),
+      change: "+100%",
       trend: "up" as const,
       icon: Users,
       color: "primary" as const
     },
     {
       title: "Ligações",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
+      value: kpiData.total_ligacoes.toString(),
+      change: `${kpiData.taxa_conversao_ligacao}%`,
+      trend: kpiData.taxa_conversao_ligacao >= 50 ? "up" as const : "down" as const,
       icon: Phone,
       color: "success" as const
     },
     {
       title: "OIs Agendados",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
+      value: kpiData.total_oi_agendados.toString(),
+      change: `${kpiData.taxa_conversao_oi}%`,
+      trend: kpiData.taxa_conversao_oi >= 30 ? "up" as const : "down" as const,
       icon: Calendar,
       color: "warning" as const
     },
     {
       title: "Proposta apresentada",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
+      value: kpiData.total_proposta_apresentada.toString(),
+      change: `${kpiData.taxa_conversao_proposta}%`,
+      trend: kpiData.taxa_conversao_proposta >= 50 ? "up" as const : "down" as const,
       icon: FileText,
       color: "chart-1" as const
     },
     {
       title: "N Realizado",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
+      value: kpiData.total_n_realizado.toString(),
+      change: `${kpiData.taxa_conversao_n}%`,
+      trend: kpiData.taxa_conversao_n >= 60 ? "up" as const : "down" as const,
       icon: CheckCircle,
       color: "chart-2" as const
     },
     {
       title: "Apólice Emitida",
-      value: "0",
-      change: "0%",
-      trend: "up" as const,
+      value: kpiData.total_apolice_emitida.toString(),
+      change: `${kpiData.taxa_conversao_apolice}%`,
+      trend: kpiData.taxa_conversao_apolice >= 70 ? "up" as const : "down" as const,
       icon: Award,
       color: "chart-3" as const
     }
-  ]);
+  ];
 
-  useEffect(() => {
-    fetchMetrics();
-  }, [startDate, endDate]);
-
-  const fetchMetrics = async () => {
-    try {
-      // Buscar métricas do funil de vendas
-      const { data: salesFunnelData, error } = await supabase
-        .from('leads')
-        .select('etapa, created_at')
-        .gte('created_at', startDate?.toISOString() || new Date().toISOString())
-        .lte('created_at', endDate?.toISOString() || new Date().toISOString());
-
-      if (error) throw error;
-
-      // Contar métricas por etapa do funil
-      const totalRecs = salesFunnelData?.length || 0;
-      const ligacoes = salesFunnelData?.filter(lead => 
-        ['Ligar Depois', 'OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
-      ).length || 0;
-      const oisAgendados = salesFunnelData?.filter(lead => 
-        ['OI', 'PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
-      ).length || 0;
-      const propostasApresentadas = salesFunnelData?.filter(lead => 
-        ['PC', 'N', 'Apólice Emitida'].includes(lead.etapa)
-      ).length || 0;
-      const negociosRealizados = salesFunnelData?.filter(lead => 
-        ['N', 'Apólice Emitida'].includes(lead.etapa)
-      ).length || 0;
-      const apolicesEmitidas = salesFunnelData?.filter(lead => 
-        lead.etapa === 'Apólice Emitida'
-      ).length || 0;
-
-      // Calcular taxas de conversão
-      const calcularTaxaConversao = (atual: number, anterior: number) => {
-        if (anterior === 0) return "0%";
-        const taxa = ((atual / anterior) * 100).toFixed(1);
-        return `${taxa}%`;
-      };
-
-      setMetrics([
-        {
-          title: "Nº de rec",
-          value: totalRecs.toString(),
-          change: "+100%",
-          trend: "up" as const,
-          icon: Users,
-          color: "primary" as const
-        },
-        {
-          title: "Ligações",
-          value: ligacoes.toString(),
-          change: calcularTaxaConversao(ligacoes, totalRecs),
-          trend: "up" as const,
-          icon: Phone,
-          color: "success" as const
-        },
-        {
-          title: "OIs Agendados",
-          value: oisAgendados.toString(),
-          change: calcularTaxaConversao(oisAgendados, ligacoes),
-          trend: "up" as const,
-          icon: Calendar,
-          color: "warning" as const
-        },
-        {
-          title: "Proposta apresentada",
-          value: propostasApresentadas.toString(),
-          change: calcularTaxaConversao(propostasApresentadas, oisAgendados),
-          trend: "up" as const,
-          icon: FileText,
-          color: "chart-1" as const
-        },
-        {
-          title: "N Realizado",
-          value: negociosRealizados.toString(),
-          change: calcularTaxaConversao(negociosRealizados, propostasApresentadas),
-          trend: "up" as const,
-          icon: CheckCircle,
-          color: "chart-2" as const
-        },
-        {
-          title: "Apólice Emitida",
-          value: apolicesEmitidas.toString(),
-          change: calcularTaxaConversao(apolicesEmitidas, negociosRealizados),
-          trend: "up" as const,
-          icon: Award,
-          color: "chart-3" as const
-        }
-      ]);
-    } catch (error) {
-      console.error('Erro ao buscar métricas do funil de vendas:', error);
-    }
-  };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
       {metrics.map((metric) => (

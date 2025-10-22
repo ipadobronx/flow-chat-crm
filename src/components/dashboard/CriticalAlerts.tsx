@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -7,178 +7,52 @@ import {
   AlertTriangle, 
   CreditCard, 
   UserX, 
-  FileX, 
-  Heart, 
   Clock, 
   Phone, 
   ExternalLink,
   X
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+import { useCriticalAlerts } from "@/hooks/dashboard/useCriticalAlerts";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-interface CriticalAlert {
-  id: string;
-  type: 'payment_failure' | 'health_rejection' | 'uw_pending' | 'serious_illness_rejection' | 'policy_cancellation' | 'document_missing';
-  title: string;
-  description: string;
-  clientName: string;
-  policyNumber?: string;
-  severity: 'critical' | 'high' | 'medium';
-  actionRequired: string;
-  dueDate?: Date;
-  dismissed: boolean;
-}
-
 const ALERT_ICONS = {
+  stalled_deal: Clock,
+  missed_call: Phone,
+  callback_pending: AlertTriangle,
+  contract_expiry: CreditCard,
   payment_failure: CreditCard,
   health_rejection: UserX,
-  uw_pending: Clock,
-  serious_illness_rejection: Heart,
-  policy_cancellation: FileX,
-  document_missing: AlertTriangle
 };
 
 const ALERT_COLORS = {
   critical: "border-red-500 bg-red-50",
   high: "border-orange-500 bg-orange-50",
-  medium: "border-yellow-500 bg-yellow-50"
+  medium: "border-yellow-500 bg-yellow-50",
+  low: "border-blue-500 bg-blue-50",
 };
 
 const SEVERITY_COLORS = {
   critical: "bg-red-100 text-red-800",
   high: "bg-orange-100 text-orange-800",
-  medium: "bg-yellow-100 text-yellow-800"
+  medium: "bg-yellow-100 text-yellow-800",
+  low: "bg-blue-100 text-blue-800",
 };
 
 export function CriticalAlerts() {
-  const { user } = useAuth();
-  const [alerts, setAlerts] = useState<CriticalAlert[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user) {
-      fetchCriticalAlerts();
-    }
-  }, [user]);
-
-  const fetchCriticalAlerts = async () => {
-    try {
-      setLoading(true);
-      
-      // Buscar dados que podem gerar alertas críticos
-      const { data: leadsData, error } = await supabase
-        .from('leads')
-        .select('id, nome, etapa, created_at')
-        .in('etapa', ['Apólice Emitida', 'PC', 'OI'])
-        .limit(10);
-
-      if (error) throw error;
-
-      // Gerar alertas críticos de exemplo baseados em situações reais
-      const criticalAlerts: CriticalAlert[] = [
-        {
-          id: 'payment-1',
-          type: 'payment_failure',
-          title: 'Falha de pagamento detectada',
-          description: 'Cobrança da apólice 12345 foi rejeitada pelo banco',
-          clientName: 'Maria Silva',
-          policyNumber: '12345',
-          severity: 'critical',
-          actionRequired: 'Entrar em contato imediatamente para atualizar dados bancários',
-          dueDate: new Date(),
-          dismissed: false
-        },
-        {
-          id: 'health-1',
-          type: 'health_rejection',
-          title: 'Reprovação na avaliação de saúde',
-          description: 'Cliente não passou na análise médica para seguro de vida',
-          clientName: 'João Santos',
-          policyNumber: '67890',
-          severity: 'high',
-          actionRequired: 'Oferecer produtos alternativos ou condições especiais',
-          dismissed: false
-        },
-        {
-          id: 'uw-1',
-          type: 'uw_pending',
-          title: 'Pendência na subscrição há 5 dias',
-          description: 'Documentação aguardando análise da UW há mais tempo que o esperado',
-          clientName: 'Ana Costa',
-          policyNumber: '54321',
-          severity: 'medium',
-          actionRequired: 'Verificar status com equipe de subscrição',
-          dismissed: false
-        },
-        {
-          id: 'illness-1',
-          type: 'serious_illness_rejection',
-          title: 'Reprovação por doença grave',
-          description: 'Solicitação negada devido a histórico médico do segurado',
-          clientName: 'Carlos Oliveira',
-          severity: 'critical',
-          actionRequired: 'Agendar reunião para explicar alternativas disponíveis',
-          dismissed: false
-        },
-        {
-          id: 'cancellation-1',
-          type: 'policy_cancellation',
-          title: 'Cliente solicitou cancelamento',
-          description: 'Apólice em risco de cancelamento por insatisfação',
-          clientName: 'Pedro Lima',
-          policyNumber: '98765',
-          severity: 'high',
-          actionRequired: 'Contato urgente para retenção do cliente',
-          dismissed: false
-        },
-        {
-          id: 'document-1',
-          type: 'document_missing',
-          title: 'Documentos obrigatórios em falta',
-          description: 'Faltam documentos para finalizar a emissão da apólice',
-          clientName: 'Empresa ABC Ltda',
-          policyNumber: '11111',
-          severity: 'medium',
-          actionRequired: 'Solicitar envio dos documentos pendentes',
-          dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-          dismissed: false
-        }
-      ];
-
-      // Filtrar apenas alertas não dispensados e ordenar por severidade
-      const activeAlerts = criticalAlerts
-        .filter(alert => !alert.dismissed)
-        .sort((a, b) => {
-          const severityOrder = { critical: 0, high: 1, medium: 2 };
-          return severityOrder[a.severity] - severityOrder[b.severity];
-        });
-
-      setAlerts(activeAlerts);
-    } catch (error) {
-      console.error('Erro ao buscar alertas críticos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: alerts = [], isLoading } = useCriticalAlerts();
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
 
   const dismissAlert = (alertId: string) => {
-    setAlerts(prev => 
-      prev.map(alert => 
-        alert.id === alertId 
-          ? { ...alert, dismissed: true }
-          : alert
-      ).filter(alert => !alert.dismissed)
-    );
+    setDismissedAlerts(prev => new Set([...prev, alertId]));
   };
 
-  const criticalCount = alerts.filter(a => a.severity === 'critical').length;
-  const highCount = alerts.filter(a => a.severity === 'high').length;
-  const totalCount = alerts.length;
+  const visibleAlerts = alerts.filter(alert => !dismissedAlerts.has(alert.id));
+  const criticalCount = visibleAlerts.filter(a => a.severidade === 'critical').length;
+  const highCount = visibleAlerts.filter(a => a.severidade === 'high').length;
+  const totalCount = visibleAlerts.length;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="border-red-200">
         <CardHeader>
@@ -246,13 +120,13 @@ export function CriticalAlerts() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3 max-h-80 overflow-y-auto">
-          {alerts.map((alert) => {
-            const IconComponent = ALERT_ICONS[alert.type];
+          {visibleAlerts.map((alert) => {
+            const IconComponent = ALERT_ICONS[alert.tipo_alerta as keyof typeof ALERT_ICONS] || AlertTriangle;
             
             return (
               <Alert 
                 key={alert.id} 
-                className={`${ALERT_COLORS[alert.severity]} border-l-4`}
+                className={`${ALERT_COLORS[alert.severidade]} border-l-4`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3 flex-1">
@@ -260,32 +134,31 @@ export function CriticalAlerts() {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-sm">{alert.title}</h4>
+                        <h4 className="font-semibold text-sm">{alert.titulo}</h4>
                         <Badge 
                           variant="secondary" 
-                          className={`text-xs ${SEVERITY_COLORS[alert.severity]}`}
+                          className={`text-xs ${SEVERITY_COLORS[alert.severidade]}`}
                         >
-                          {alert.severity === 'critical' && 'CRÍTICO'}
-                          {alert.severity === 'high' && 'ALTA'}
-                          {alert.severity === 'medium' && 'MÉDIA'}
+                          {alert.severidade === 'critical' && 'CRÍTICO'}
+                          {alert.severidade === 'high' && 'ALTA'}
+                          {alert.severidade === 'medium' && 'MÉDIA'}
                         </Badge>
                       </div>
                       
                       <AlertDescription className="text-sm mb-2">
-                        <strong>{alert.clientName}</strong>
-                        {alert.policyNumber && ` • Apólice ${alert.policyNumber}`}
+                        <strong>{alert.lead_nome}</strong>
                         <br />
-                        {alert.description}
+                        {alert.descricao}
                       </AlertDescription>
                       
                       <div className="bg-white/50 rounded p-2 mb-3">
                         <p className="text-xs font-medium text-blue-700">
-                          <strong>Ação requerida:</strong> {alert.actionRequired}
+                          <strong>Ação requerida:</strong> {alert.acao_requerida}
                         </p>
-                        {alert.dueDate && (
+                        {alert.due_date && (
                           <p className="text-xs text-muted-foreground mt-1">
                             <Clock className="h-3 w-3 inline mr-1" />
-                            Prazo: {format(alert.dueDate, "dd/MM/yyyy", { locale: ptBR })}
+                            Prazo: {format(parseISO(alert.due_date), "dd/MM/yyyy", { locale: ptBR })}
                           </p>
                         )}
                       </div>
