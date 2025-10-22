@@ -386,14 +386,14 @@ export function TAReportsUpdated() {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Taxa Marcar → OI</CardTitle>
+              <CardTitle className="text-sm font-medium text-center">Taxa de Conversão</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <div className="text-2xl font-bold">
                 {efficiencyData.taxa_conversao_marcar_oi || 0}%
               </div>
               <p className="text-xs text-muted-foreground">
-                conversão de "Marcar" para "OI"
+                Conversão De: OI → Leads Contactados
               </p>
             </CardContent>
           </Card>
