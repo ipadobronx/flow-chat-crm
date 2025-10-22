@@ -1,86 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { format, startOfWeek, endOfWeek, eachWeekOfInterval, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { BarChart3, TrendingUp } from "lucide-react";
+import { useWeeklyRecs } from "@/hooks/dashboard/useWeeklyRecs";
 
 interface RecsPerWeekChartProps {
   startDate?: Date;
   endDate?: Date;
 }
 
-interface WeeklyData {
-  week: string;
-  recs: number;
-  weekStart: Date;
-}
-
 export function RecsPerWeekChart({ startDate, endDate }: RecsPerWeekChartProps) {
-  const { user } = useAuth();
-  const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [chartType, setChartType] = useState<'line' | 'bar'>('line');
-
-  useEffect(() => {
-    if (user) {
-      fetchWeeklyData();
-    }
-  }, [user, startDate, endDate]);
-
-  const fetchWeeklyData = async () => {
-    try {
-      setLoading(true);
-      
-      // Definir período padrão se não fornecido (últimas 8 semanas)
-      const defaultEndDate = endDate || new Date();
-      const defaultStartDate = startDate || new Date(Date.now() - 8 * 7 * 24 * 60 * 60 * 1000);
-      
-      // Buscar todos os leads no período
-      const { data: leadsData, error } = await supabase
-        .from('leads')
-        .select('created_at')
-        .gte('created_at', defaultStartDate.toISOString())
-        .lte('created_at', defaultEndDate.toISOString())
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      // Gerar todas as semanas no intervalo
-      const weeks = eachWeekOfInterval(
-        {
-          start: defaultStartDate,
-          end: defaultEndDate
-        },
-        { weekStartsOn: 1 } // Segunda-feira como início da semana
-      );
-
-      // Contar leads por semana
-      const weeklyStats = weeks.map(weekStart => {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-        
-        const recsInWeek = leadsData?.filter(lead => {
-          const leadDate = parseISO(lead.created_at);
-          return leadDate >= weekStart && leadDate <= weekEnd;
-        }).length || 0;
-
-        return {
-          week: format(weekStart, "dd/MM", { locale: ptBR }),
-          recs: recsInWeek,
-          weekStart
-        };
-      });
-
-      setWeeklyData(weeklyStats);
-    } catch (error) {
-      console.error('Erro ao buscar dados semanais:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: weeklyData = [], isLoading } = useWeeklyRecs(startDate, endDate);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -101,7 +33,7 @@ export function RecsPerWeekChart({ startDate, endDate }: RecsPerWeekChartProps) 
   const averageRecs = weeklyData.length > 0 ? Math.round(totalRecs / weeklyData.length) : 0;
   const maxRecs = Math.max(...weeklyData.map(w => w.recs), 0);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
