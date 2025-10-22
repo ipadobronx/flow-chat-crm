@@ -157,37 +157,29 @@ export default function TAPresentation() {
         await recordTAAction(currentLead.id, taAction);
       }
 
-      // Não atualizar etapa do lead se for "Não Tem Interesse" (não existe no enum)
-      if (selectedEtapa !== "Não Tem Interesse") {
-        // Atualizar etapa do lead
-        await supabase
-          .from("leads")
-          .update({ 
-            etapa: selectedEtapa as any,
-            observacoes: observacoes || currentLead.observacoes
-          })
-          .eq("id", currentLead.id);
+      // Mapear "Não Tem Interesse" para a etapa "Não" do pipeline
+      const etapaPipeline = selectedEtapa === "Não Tem Interesse" ? "Não" : selectedEtapa;
 
-        // Registrar no histórico do TA
-        await supabase
-          .from("ta_historico")
-          .insert({
-            lead_id: currentLead.id,
-            user_id: currentLead.user_id,
-            etapa_anterior: currentLead.etapa,
-            etapa_nova: selectedEtapa as any,
-            observacoes: observacoes,
-            origem: 'ta'
-          });
-      } else {
-        // Para "Não Tem Interesse", apenas atualizar observações
-        await supabase
-          .from("leads")
-          .update({ 
-            observacoes: observacoes || currentLead.observacoes
-          })
-          .eq("id", currentLead.id);
-      }
+      // Atualizar etapa do lead
+      await supabase
+        .from("leads")
+        .update({ 
+          etapa: etapaPipeline as any,
+          observacoes: observacoes || currentLead.observacoes
+        })
+        .eq("id", currentLead.id);
+
+      // Registrar no histórico do TA
+      await supabase
+        .from("ta_historico")
+        .insert({
+          lead_id: currentLead.id,
+          user_id: currentLead.user_id,
+          etapa_anterior: currentLead.etapa,
+          etapa_nova: etapaPipeline as any,
+          observacoes: observacoes,
+          origem: 'ta'
+        });
 
       // Se for "Ligar Depois" e tem data de agendamento, criar agendamento
       if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
