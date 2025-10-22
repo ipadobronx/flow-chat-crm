@@ -8,16 +8,29 @@ import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, Phone, Loader2, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Schedule() {
   const { user } = useAuth();
   const [statusFilter, setStatusFilter] = useState<string>("pendente");
   const { data: agendamentos, isLoading, refetch } = useAgendamentos({ status: statusFilter });
   const { isConnected, syncAgendamento, isSyncing } = useGoogleCalendar();
+  const queryClient = useQueryClient();
+
+  // Verificar se acabamos de voltar da autenticação do Google
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('connected') === 'true') {
+      toast.success('Google Calendar conectado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
+      // Limpar o parâmetro da URL
+      window.history.replaceState({}, '', '/dashboard/schedule');
+    }
+  }, [queryClient]);
 
   const handleMarkAsCompleted = async (id: string) => {
     if (!user) return;

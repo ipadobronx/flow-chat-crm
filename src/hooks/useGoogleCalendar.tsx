@@ -47,26 +47,9 @@ export const useGoogleCalendar = () => {
 
       return data;
     },
-    onSuccess: () => {
-      toast.success('Abrindo janela de autenticação do Google...');
-      
-      // Polling para verificar quando a conexão foi estabelecida
-      const checkInterval = setInterval(async () => {
-        const { data } = await supabase
-          .from('google_calendar_tokens')
-          .select('id')
-          .eq('user_id', user!.id)
-          .maybeSingle();
-
-        if (data) {
-          clearInterval(checkInterval);
-          queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
-          toast.success('Google Calendar conectado com sucesso!');
-        }
-      }, 2000);
-
-      // Limpar interval após 2 minutos
-      setTimeout(() => clearInterval(checkInterval), 120000);
+    onSuccess: (data) => {
+      // Redirecionar para a URL de autenticação na mesma aba
+      window.location.href = data.authUrl;
     },
     onError: (error) => {
       console.error('Error connecting Google Calendar:', error);
