@@ -194,6 +194,30 @@ export default function TADynamicChart({
                   fill="var(--color-ligacoesNaoAtendidas)" 
                   radius={[2, 2, 0, 0]}
                 />
+              ) : activeCard === 'ligarDepois' ? (
+                // Modo "Ligar Depois" - mostra apenas ligar depois
+                <Bar 
+                  dataKey="ligarDepois" 
+                  stackId="a" 
+                  fill="var(--color-ligarDepois)" 
+                  radius={[2, 2, 0, 0]}
+                />
+              ) : activeCard === 'marcarWhatsapp' ? (
+                // Modo "Marcar WhatsApp" - mostra apenas marcar whatsapp
+                <Bar 
+                  dataKey="marcarWhatsapp" 
+                  stackId="a" 
+                  fill="var(--color-marcarWhatsapp)" 
+                  radius={[2, 2, 0, 0]}
+                />
+              ) : activeCard === 'resultadoGeral' ? (
+                // Modo "OI Agendado" - mostra apenas OI
+                <Bar 
+                  dataKey="oi" 
+                  stackId="a" 
+                  fill="var(--color-oi)" 
+                  radius={[2, 2, 0, 0]}
+                />
               ) : activeCard === 'naoTemInteresse' ? (
                 // Modo "Não Tem Interesse" - mostra apenas não tem interesse
                 <Bar 
@@ -203,14 +227,8 @@ export default function TADynamicChart({
                   radius={[2, 2, 0, 0]}
                 />
               ) : (
-                // Outros modos - mostra todas as barras
+                // Fallback - mostra leads contactados empilhados
                 <>
-                  <Bar 
-                    dataKey="contatosEfetuados" 
-                    stackId="a" 
-                    fill="var(--color-contatosEfetuados)" 
-                    radius={[0, 0, 0, 0]}
-                  />
                   <Bar 
                     dataKey="ligacoesNaoAtendidas" 
                     stackId="a" 
@@ -218,15 +236,15 @@ export default function TADynamicChart({
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
-                    dataKey="marcarWhatsapp" 
-                    stackId="a" 
-                    fill="var(--color-marcarWhatsapp)" 
-                    radius={[0, 0, 0, 0]}
-                  />
-                  <Bar 
                     dataKey="ligarDepois" 
                     stackId="a" 
                     fill="var(--color-ligarDepois)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="marcarWhatsapp" 
+                    stackId="a" 
+                    fill="var(--color-marcarWhatsapp)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
