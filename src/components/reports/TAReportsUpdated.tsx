@@ -266,7 +266,7 @@ export function TAReportsUpdated() {
           gradient="bg-gradient-to-r from-red-500 to-red-600"
         />
         <TAMetricCard
-          title="Resultado Geral"
+          title="OI Agendado"
           value={dashboardData?.agendados || 0}
           isActive={activeCard === 'resultadoGeral'}
           onClick={() => setActiveCard('resultadoGeral')}
