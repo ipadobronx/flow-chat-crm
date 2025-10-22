@@ -6,11 +6,11 @@ import { CalendarIcon } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface TADateFilterProps {
-  startDate?: Date;
-  endDate?: Date;
-  preset?: string;
+  startDate: Date;
+  endDate: Date;
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onPresetChange: (preset: string) => void;
@@ -19,27 +19,28 @@ interface TADateFilterProps {
 export function TADateFilter({
   startDate,
   endDate,
-  preset = "7days",
   onStartDateChange,
   onEndDateChange,
   onPresetChange,
 }: TADateFilterProps) {
+  const [preset, setPreset] = useState("7dias");
 
   const handlePresetChange = (value: string) => {
+    setPreset(value);
     onPresetChange(value);
     
     const today = new Date();
     
-    if (value === "7days") {
-      const sevenDaysAgo = subDays(today, 7);
+    if (value === "7dias") {
+      const sevenDaysAgo = subDays(today, 6);
       onStartDateChange(sevenDaysAgo);
       onEndDateChange(today);
-    } else if (value === "30days") {
-      const thirtyDaysAgo = subDays(today, 30);
+    } else if (value === "30dias") {
+      const thirtyDaysAgo = subDays(today, 29);
       onStartDateChange(thirtyDaysAgo);
       onEndDateChange(today);
-    } else if (value === "90days") {
-      const ninetyDaysAgo = subDays(today, 90);
+    } else if (value === "90dias") {
+      const ninetyDaysAgo = subDays(today, 89);
       onStartDateChange(ninetyDaysAgo);
       onEndDateChange(today);
     }
@@ -52,14 +53,14 @@ export function TADateFilter({
           <SelectValue placeholder="Período" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="7days">7 dias</SelectItem>
-          <SelectItem value="30days">30 dias</SelectItem>
-          <SelectItem value="90days">90 dias</SelectItem>
-          <SelectItem value="custom">Customizado</SelectItem>
+          <SelectItem value="7dias">7 dias</SelectItem>
+          <SelectItem value="30dias">30 dias</SelectItem>
+          <SelectItem value="90dias">90 dias</SelectItem>
+          <SelectItem value="customizado">Customizado</SelectItem>
         </SelectContent>
       </Select>
 
-      {preset === "custom" && (
+      {preset === "customizado" && (
         <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>

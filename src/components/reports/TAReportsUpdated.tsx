@@ -164,30 +164,7 @@ export function TAReportsUpdated() {
   const chartData = processTemporalData();
 
   const handlePresetChange = (preset: string) => {
-    const today = new Date();
-    switch (preset) {
-      case 'hoje':
-        setStartDate(today);
-        setEndDate(today);
-        break;
-      case '7dias':
-        setStartDate(subDays(today, 6));
-        setEndDate(today);
-        break;
-      case '30dias':
-        setStartDate(subDays(today, 29));
-        setEndDate(today);
-        break;
-      case '90dias':
-        setStartDate(subDays(today, 89));
-        setEndDate(today);
-        break;
-    }
-  };
-
-  const handlePeriodChange = (start: Date, end: Date) => {
-    setStartDate(start);
-    setEndDate(end);
+    // Dates are already handled by TADateFilter
   };
 
   const handleStartDateChange = (date: Date | undefined) => {
