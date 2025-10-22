@@ -243,13 +243,20 @@ export function TAReportsUpdated() {
       />
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <TAMetricCard
           title="Leads Contactados"
           value={dashboardData?.total_contactados || 0}
           isActive={activeCard === 'leadsContactados'}
           onClick={() => setActiveCard('leadsContactados')}
           gradient="bg-gradient-to-r from-blue-500 to-blue-600"
+        />
+        <TAMetricCard
+          title="Não Atendido"
+          value={dashboardData?.nao_atendeu || 0}
+          isActive={activeCard === 'naoAtendido'}
+          onClick={() => setActiveCard('naoAtendido')}
+          gradient="bg-gradient-to-r from-gray-500 to-gray-600"
         />
         <TAMetricCard
           title="Marcar no WhatsApp"
@@ -279,6 +286,7 @@ export function TAReportsUpdated() {
         activeCard={activeCard}
         data={{
           leadsContactados: chartData,
+          naoAtendido: chartData,
           marcarWhatsapp: chartData,
           ligarDepois: chartData,
           resultadoGeral: chartData,

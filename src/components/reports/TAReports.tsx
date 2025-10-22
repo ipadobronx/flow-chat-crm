@@ -105,6 +105,14 @@ export function TAReports() {
       ligarDepois: totaisAtuais.ligarDepois / 7 + Math.floor(Math.random() * 1),
       oi: totaisAtuais.oisAgendados / 7 + Math.floor(Math.random() * 1)
     })),
+    naoAtendido: Array.from({ length: 7 }, (_, i) => ({
+      date: format(subDays(new Date(), 6 - i), 'dd/MM'),
+      contatosEfetuados: totaisAtuais.contatosEfetuados / 7 + Math.floor(Math.random() * 3),
+      ligacoesNaoAtendidas: totaisAtuais.ligacoesNaoAtendidas / 7 + Math.floor(Math.random() * 2),
+      marcarWhatsapp: totaisAtuais.marcarWhatsapp / 7 + Math.floor(Math.random() * 1),
+      ligarDepois: totaisAtuais.ligarDepois / 7 + Math.floor(Math.random() * 1),
+      oi: totaisAtuais.oisAgendados / 7 + Math.floor(Math.random() * 1)
+    })),
     marcarWhatsapp: Array.from({ length: 7 }, (_, i) => ({
       date: format(subDays(new Date(), 6 - i), 'dd/MM'),
       contatosEfetuados: Math.floor(Math.random() * 3) + 1,

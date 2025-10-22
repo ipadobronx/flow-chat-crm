@@ -16,6 +16,7 @@ interface TADynamicChartProps {
   activeCard: string;
   data: {
     leadsContactados: ChartData[];
+    naoAtendido: ChartData[];
     marcarWhatsapp: ChartData[];
     ligarDepois: ChartData[];
     resultadoGeral: ChartData[];
@@ -57,6 +58,10 @@ export default function TADynamicChart({
       case 'leadsContactados':
         title = `Leads Contactados - Últimos ${periodFilter} dias`;
         rawData = data.leadsContactados;
+        break;
+      case 'naoAtendido':
+        title = `Não Atendido - Últimos ${periodFilter} dias`;
+        rawData = data.naoAtendido;
         break;
       case 'marcarWhatsapp':
         title = `Marcar WhatsApp - Últimos ${periodFilter} dias`;
@@ -168,6 +173,14 @@ export default function TADynamicChart({
                     radius={[2, 2, 0, 0]}
                   />
                 </>
+              ) : activeCard === 'naoAtendido' ? (
+                // Modo "Não Atendido" - mostra apenas ligações não atendidas
+                <Bar 
+                  dataKey="ligacoesNaoAtendidas" 
+                  stackId="a" 
+                  fill="var(--color-ligacoesNaoAtendidas)" 
+                  radius={[2, 2, 0, 0]}
+                />
               ) : (
                 // Outros modos - mostra todas as barras
                 <>
