@@ -225,6 +225,7 @@ export default function TAPresentation() {
       const ligacoesLigarDepois = taHistory?.filter(h => h.etapa_nova === "Ligar Depois").length || 0;
       const ligacoesAgendadas = taHistory?.filter(h => h.etapa_nova === "OI").length || 0;
       const ligacoesMarcadas = taHistory?.filter(h => h.etapa_nova === "Marcar").length || 0;
+      const ligacoesNaoTemInteresse = taHistory?.filter(h => h.etapa_nova === "Não Tem Interesse").length || 0;
 
       // Salvar relatório
       const { error: reportError } = await supabase
@@ -240,7 +241,8 @@ export default function TAPresentation() {
           ligacoes_nao_atendidas: ligacoesNaoAtendidas,
           ligacoes_ligar_depois: ligacoesLigarDepois,
           ligacoes_agendadas: ligacoesAgendadas,
-          ligacoes_marcadas: ligacoesMarcadas
+          ligacoes_marcadas: ligacoesMarcadas,
+          ligacoes_nao_tem_interesse: ligacoesNaoTemInteresse
         });
 
       if (reportError) throw reportError;

@@ -18,6 +18,7 @@ interface TAMetrics {
   ligar_depois: number;
   marcar_whatsapp: number;
   agendados: number;
+  nao_tem_interesse: number;
 }
 
 interface TAEfficiencyMetrics {
@@ -35,6 +36,7 @@ interface ChartDataPoint {
   marcarWhatsapp: number;
   ligarDepois: number;
   oi: number;
+  naoTemInteresse: number;
 }
 
 export function TAReportsUpdated() {
@@ -115,6 +117,7 @@ export function TAReportsUpdated() {
         marcarWhatsapp: 0,
         ligarDepois: 0,
         oi: 0,
+        naoTemInteresse: 0,
       });
       current.setDate(current.getDate() + 1);
     }
@@ -138,6 +141,10 @@ export function TAReportsUpdated() {
             break;
           case 'OI':
             existingData.oi = item.total;
+            existingData.contatosEfetuados += item.total;
+            break;
+          case 'NAO_TEM_INTERESSE':
+            existingData.naoTemInteresse = item.total;
             existingData.contatosEfetuados += item.total;
             break;
         }
@@ -243,7 +250,7 @@ export function TAReportsUpdated() {
       />
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <TAMetricCard
           title="Leads Contactados"
           value={dashboardData?.total_contactados || 0}
@@ -273,6 +280,13 @@ export function TAReportsUpdated() {
           gradient="bg-gradient-to-r from-orange-500 to-orange-600"
         />
         <TAMetricCard
+          title="Não Tem Interesse"
+          value={dashboardData?.nao_tem_interesse || 0}
+          isActive={activeCard === 'naoTemInteresse'}
+          onClick={() => setActiveCard('naoTemInteresse')}
+          gradient="bg-gradient-to-r from-purple-500 to-purple-600"
+        />
+        <TAMetricCard
           title="OI Agendado"
           value={dashboardData?.agendados || 0}
           isActive={activeCard === 'resultadoGeral'}
@@ -289,6 +303,7 @@ export function TAReportsUpdated() {
           naoAtendido: chartData,
           marcarWhatsapp: chartData,
           ligarDepois: chartData,
+          naoTemInteresse: chartData,
           resultadoGeral: chartData,
         }}
         currentPeriod={currentPeriod}

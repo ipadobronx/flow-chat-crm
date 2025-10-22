@@ -521,6 +521,7 @@ export type Database = {
           ligacoes_ligar_depois: number
           ligacoes_marcadas: number
           ligacoes_nao_atendidas: number
+          ligacoes_nao_tem_interesse: number
           periodo_fim: string
           periodo_inicio: string
           total_leads: number
@@ -537,6 +538,7 @@ export type Database = {
           ligacoes_ligar_depois?: number
           ligacoes_marcadas?: number
           ligacoes_nao_atendidas?: number
+          ligacoes_nao_tem_interesse?: number
           periodo_fim: string
           periodo_inicio: string
           total_leads?: number
@@ -553,6 +555,7 @@ export type Database = {
           ligacoes_ligar_depois?: number
           ligacoes_marcadas?: number
           ligacoes_nao_atendidas?: number
+          ligacoes_nao_tem_interesse?: number
           periodo_fim?: string
           periodo_inicio?: string
           total_leads?: number
@@ -846,6 +849,7 @@ export type Database = {
           ligar_depois: number
           marcar_whatsapp: number
           nao_atendeu: number
+          nao_tem_interesse: number
           total_contactados: number
         }[]
       }

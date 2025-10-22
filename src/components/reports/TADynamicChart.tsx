@@ -9,6 +9,7 @@ interface ChartData {
   marcarWhatsapp: number;
   ligarDepois: number;
   oi: number;
+  naoTemInteresse: number;
   outros?: number;
 }
 
@@ -19,6 +20,7 @@ interface TADynamicChartProps {
     naoAtendido: ChartData[];
     marcarWhatsapp: ChartData[];
     ligarDepois: ChartData[];
+    naoTemInteresse: ChartData[];
     resultadoGeral: ChartData[];
   };
   currentPeriod: string;
@@ -71,6 +73,10 @@ export default function TADynamicChart({
         title = `Ligar Depois - Últimos ${periodFilter} dias`;
         rawData = data.ligarDepois;
         break;
+      case 'naoTemInteresse':
+        title = `Não Tem Interesse - Últimos ${periodFilter} dias`;
+        rawData = data.naoTemInteresse;
+        break;
       case 'resultadoGeral':
         title = `Resultado Geral - Últimos ${periodFilter} dias`;
         rawData = data.resultadoGeral;
@@ -95,6 +101,7 @@ export default function TADynamicChart({
     ligacoesNaoAtendidas: { label: "Ligações Não Atendidas", color: "hsl(220 9% 46%)" },
     ligarDepois: { label: "Ligar Depois", color: "hsl(0 84% 60%)" },
     marcarWhatsapp: { label: "Marcar WhatsApp", color: "hsl(25 95% 53%)" },
+    naoTemInteresse: { label: "Não Tem Interesse", color: "hsl(280 87% 60%)" },
     oi: { label: "OI (Agendados)", color: "hsl(142 71% 45%)" },
     outros: { label: "Outros", color: "hsl(var(--chart-4))" }
   };
@@ -167,6 +174,12 @@ export default function TADynamicChart({
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
+                    dataKey="naoTemInteresse" 
+                    stackId="a" 
+                    fill="var(--color-naoTemInteresse)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
                     dataKey="oi" 
                     stackId="a" 
                     fill="var(--color-oi)" 
@@ -179,6 +192,14 @@ export default function TADynamicChart({
                   dataKey="ligacoesNaoAtendidas" 
                   stackId="a" 
                   fill="var(--color-ligacoesNaoAtendidas)" 
+                  radius={[2, 2, 0, 0]}
+                />
+              ) : activeCard === 'naoTemInteresse' ? (
+                // Modo "Não Tem Interesse" - mostra apenas não tem interesse
+                <Bar 
+                  dataKey="naoTemInteresse" 
+                  stackId="a" 
+                  fill="var(--color-naoTemInteresse)" 
                   radius={[2, 2, 0, 0]}
                 />
               ) : (
@@ -206,6 +227,12 @@ export default function TADynamicChart({
                     dataKey="ligarDepois" 
                     stackId="a" 
                     fill="var(--color-ligarDepois)" 
+                    radius={[0, 0, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="naoTemInteresse" 
+                    stackId="a" 
+                    fill="var(--color-naoTemInteresse)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
