@@ -96,10 +96,34 @@ serve(async (req) => {
         return new Response(`Database error: ${error.message}`, { status: 500 });
       }
 
-      // Redirecionar de volta para o app
-      return new Response(null, {
-        status: 302,
-        headers: { Location: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/schedule?connected=true` },
+      // Redirecionar de volta para o app com uma página de sucesso
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Conectado com sucesso!</title>
+            <style>
+              body { font-family: system-ui; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f5f5f5; }
+              .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+              .success { color: #22c55e; font-size: 48px; margin-bottom: 1rem; }
+              h1 { margin: 0 0 0.5rem; color: #333; }
+              p { color: #666; margin: 0; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="success">✓</div>
+              <h1>Google Calendar Conectado!</h1>
+              <p>Você pode fechar esta janela e voltar ao aplicativo.</p>
+            </div>
+            <script>
+              setTimeout(() => window.close(), 2000);
+            </script>
+          </body>
+        </html>
+      `, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
       });
     }
 
