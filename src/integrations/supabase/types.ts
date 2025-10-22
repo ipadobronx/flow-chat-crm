@@ -853,8 +853,29 @@ export type Database = {
           total_contactados: number
         }[]
       }
+      get_ta_dashboard_by_date_range: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          agendados: number
+          ligar_depois: number
+          marcar_whatsapp: number
+          nao_atendeu: number
+          nao_tem_interesse: number
+          total_contactados: number
+        }[]
+      }
       get_ta_efficiency_metrics: {
         Args: { p_period?: string; p_user_id: string }
+        Returns: {
+          agendados: number
+          leads_por_agendamento: number
+          taxa_conversao_geral: number
+          taxa_conversao_marcar_oi: number
+          total_contactados: number
+        }[]
+      }
+      get_ta_efficiency_metrics_by_date_range: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
         Returns: {
           agendados: number
           leads_por_agendamento: number
@@ -885,6 +906,14 @@ export type Database = {
       }
       get_ta_temporal_data: {
         Args: { p_period?: string; p_user_id: string }
+        Returns: {
+          date: string
+          etapa: string
+          total: number
+        }[]
+      }
+      get_ta_temporal_data_by_date_range: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
         Returns: {
           date: string
           etapa: string
