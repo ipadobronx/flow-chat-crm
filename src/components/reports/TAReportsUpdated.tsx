@@ -48,6 +48,7 @@ export function TAReportsUpdated() {
   const [endDate, setEndDate] = useState(new Date());
   const [activeCard, setActiveCard] = useState<string>('leadsContactados');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [preset, setPreset] = useState<string>("7dias");
   const [weeklyGoal, setWeeklyGoal] = useState<number>(() => {
     const saved = localStorage.getItem('ta_weekly_goal');
     return saved ? parseInt(saved) : 0;
@@ -164,7 +165,7 @@ export function TAReportsUpdated() {
   const chartData = processTemporalData();
 
   const handlePresetChange = (preset: string) => {
-    // Dates are already handled by TADateFilter
+    setPreset(preset);
   };
 
   const handleStartDateChange = (date: Date | undefined) => {
@@ -242,6 +243,7 @@ export function TAReportsUpdated() {
       <TADateFilter
         startDate={startDate}
         endDate={endDate}
+        preset={preset}
         onStartDateChange={handleStartDateChange}
         onEndDateChange={handleEndDateChange}
         onPresetChange={handlePresetChange}

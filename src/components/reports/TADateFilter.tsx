@@ -6,11 +6,11 @@ import { CalendarIcon } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 interface TADateFilterProps {
   startDate: Date;
   endDate: Date;
+  preset: string;
   onStartDateChange: (date: Date | undefined) => void;
   onEndDateChange: (date: Date | undefined) => void;
   onPresetChange: (preset: string) => void;
@@ -19,15 +19,14 @@ interface TADateFilterProps {
 export function TADateFilter({
   startDate,
   endDate,
+  preset,
   onStartDateChange,
   onEndDateChange,
   onPresetChange,
 }: TADateFilterProps) {
-  const [preset, setPreset] = useState("7dias");
 
   const handlePresetChange = (value: string) => {
     console.log("TADateFilter - Preset changed to:", value);
-    setPreset(value);
     onPresetChange(value);
     
     const today = new Date();

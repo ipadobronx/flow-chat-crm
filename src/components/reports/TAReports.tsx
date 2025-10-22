@@ -21,6 +21,7 @@ export function TAReports() {
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [activeCard, setActiveCard] = useState<string>("leads-contactados");
+  const [preset, setPreset] = useState<string>("7dias");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: relatorios = [], isLoading } = useQuery({
@@ -156,7 +157,7 @@ export function TAReports() {
   const [chartLoading, setChartLoading] = useState<boolean>(false);
 
   const handlePresetChange = (presetValue: string) => {
-    // Dates are already handled by TADateFilter
+    setPreset(presetValue);
   };
 
   const handlePeriodChange = (period: number) => {
@@ -207,6 +208,7 @@ export function TAReports() {
           <TADateFilter
             startDate={startDate}
             endDate={endDate}
+            preset={preset}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
             onPresetChange={handlePresetChange}
