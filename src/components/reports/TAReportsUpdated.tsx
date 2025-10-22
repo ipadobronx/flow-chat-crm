@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTACache } from "@/hooks/useTACache";
@@ -10,7 +11,8 @@ import { TADateFilter } from "./TADateFilter";
 import { TAMetricCard } from "./TAMetricCard";
 import TADynamicChart from "./TADynamicChart";
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Target } from "lucide-react";
+import { toast } from "sonner";
 
 interface TAMetrics {
   total_contactados: number;
@@ -46,6 +48,10 @@ export function TAReportsUpdated() {
   const [endDate, setEndDate] = useState(new Date());
   const [activeCard, setActiveCard] = useState<string>('leadsContactados');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [weeklyGoal, setWeeklyGoal] = useState<number>(() => {
+    const saved = localStorage.getItem('ta_weekly_goal');
+    return saved ? parseInt(saved) : 0;
+  });
 
   // Fetch TA dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
@@ -197,6 +203,20 @@ export function TAReportsUpdated() {
     setIsRefreshing(false);
   };
 
+  const handleSaveGoal = () => {
+    localStorage.setItem('ta_weekly_goal', weeklyGoal.toString());
+    toast.success('Meta semanal salva com sucesso!');
+  };
+
+  const calculateLeadsNeeded = (): number => {
+    if (!efficiencyData || !weeklyGoal || weeklyGoal === 0) return 0;
+    if (efficiencyData.taxa_conversao_geral === 0) return 0;
+    
+    // Cálculo: Meta de OIs / (Taxa de conversão / 100)
+    const leadsNeeded = Math.ceil(weeklyGoal / (efficiencyData.taxa_conversao_geral / 100));
+    return leadsNeeded;
+  };
+
   const isLoading = isDashboardLoading || isTemporalLoading;
 
   if (isLoading) {
@@ -316,16 +336,51 @@ export function TAReportsUpdated() {
       {efficiencyData && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Eficiência por Agendamento</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Calculadora de Meta
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {efficiencyData.leads_por_agendamento || 0}
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Qual a sua meta de OIs semanais?
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    value={weeklyGoal}
+                    onChange={(e) => setWeeklyGoal(parseInt(e.target.value) || 0)}
+                    placeholder="Digite sua meta"
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSaveGoal} size="sm">
+                    Salvar
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                leads contactados por agendamento
-              </p>
+              
+              {weeklyGoal > 0 && efficiencyData.taxa_conversao_geral > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Para alcançar sua meta:
+                  </p>
+                  <div className="text-2xl font-bold text-primary">
+                    {calculateLeadsNeeded()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    leads precisam ser contactados por semana
+                  </p>
+                </div>
+              )}
+              
+              {weeklyGoal > 0 && efficiencyData.taxa_conversao_geral === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Sem dados de conversão suficientes para calcular
+                </p>
+              )}
             </CardContent>
           </Card>
           
