@@ -22,18 +22,36 @@ export const useDailyActivities = (selectedDate?: Date) => {
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
 
-      const date = selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      // Generate date in local timezone to avoid UTC conversion issues
+      const date = selectedDate 
+        ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+        : (() => {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          })();
+
+      console.log('🔍 [useDailyActivities] Fetching calls for date:', date, 'user:', user.id);
 
       const { data, error } = await supabase.rpc('get_scheduled_calls_for_today', {
         p_user_id: user.id,
         p_date: date
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useDailyActivities] Error fetching scheduled calls:', error);
+        throw error;
+      }
+      
+      console.log('✅ [useDailyActivities] Scheduled calls found:', data?.length || 0, 'calls');
+      if (data && data.length > 0) {
+        console.log('📋 [useDailyActivities] First call:', data[0]);
+      }
       
       return (data || []) as ScheduledCall[];
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 1,
+    retry: 2,
+    retryDelay: 1000,
   });
 };
