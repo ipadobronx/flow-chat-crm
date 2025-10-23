@@ -93,9 +93,10 @@ export function DailySalesActivities() {
                       </div>
                       <div className="flex items-center gap-2">
                         {call.synced_with_google && (
-                          <div title="Sincronizado com Google Calendar">
-                            <Calendar className="h-4 w-4 text-green-500" />
-                          </div>
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <Calendar className="h-3 w-3 text-emerald-500" />
+                            Google
+                          </Badge>
                         )}
                         <span className="text-sm font-semibold text-primary whitespace-nowrap">
                           {call.horario}

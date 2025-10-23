@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAgendamentos } from "@/hooks/useAgendamentos";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { format, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Phone, Loader2, CheckCircle2, X } from "lucide-react";
+import { Calendar, Clock, Phone, Loader2, CheckCircle2, X, AlertCircle } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export default function Schedule() {
   const [statusFilter, setStatusFilter] = useState<string>("pendente");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const { data: agendamentos, isLoading, refetch } = useAgendamentos({ status: statusFilter });
   const { isConnected, syncAgendamento, isSyncing } = useGoogleCalendar();
   const queryClient = useQueryClient();
@@ -90,6 +92,46 @@ export default function Schedule() {
     refetch();
   };
 
+  const handleImportFromGoogle = async () => {
+    if (!user) return;
+    setIsImporting(true);
+
+    try {
+      const today = new Date();
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      console.log('🔄 Importando eventos do Google Calendar...');
+
+      const { data, error } = await supabase.functions.invoke('sync-google-calendar-events', {
+        body: {
+          user_id: user.id,
+          start_date: today.toISOString(),
+          end_date: nextMonth.toISOString()
+        }
+      });
+
+      if (error) throw error;
+
+      console.log('✅ Importação concluída:', data);
+
+      toast.success(`✅ ${data.imported} eventos importados do Google Calendar!`, {
+        description: data.skipped > 0 ? `${data.skipped} eventos já existentes foram ignorados` : undefined
+      });
+
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['scheduled-calls'] });
+    } catch (error) {
+      console.error('❌ Erro ao importar:', error);
+      toast.error('Erro ao importar eventos do Google Calendar', {
+        description: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -100,8 +142,47 @@ export default function Schedule() {
               Gerencie suas ligações agendadas e sincronize com Google Calendar
             </p>
           </div>
-          <GoogleCalendarConnect />
+          <div className="flex items-center gap-3">
+            <GoogleCalendarConnect />
+            {isConnected && (
+              <Button
+                onClick={handleImportFromGoogle}
+                disabled={isImporting}
+                variant="outline"
+                size="sm"
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Importando...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Importar do Google Calendar
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
+
+        {isConnected && agendamentos && agendamentos.length === 0 && !isLoading && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Você tem o Google Calendar conectado mas nenhum agendamento local.{' '}
+              <Button 
+                variant="link" 
+                onClick={handleImportFromGoogle} 
+                className="px-1 h-auto font-semibold"
+                disabled={isImporting}
+              >
+                {isImporting ? 'Importando...' : 'Clique aqui para importar seus eventos.'}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
