@@ -7,6 +7,7 @@ export interface ScheduledCall {
   lead_id: string;
   lead_nome: string;
   lead_telefone: string;
+  recomendante: string[] | null;
   data_agendamento: string;
   observacoes: string | null;
   synced_with_google: boolean;

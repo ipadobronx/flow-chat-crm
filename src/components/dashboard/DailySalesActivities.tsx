@@ -76,9 +76,20 @@ export function DailySalesActivities() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Phone className="h-4 w-4 flex-shrink-0 text-blue-500" />
-                        <h4 className={`text-sm font-medium truncate ${completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {call.lead_nome}
-                        </h4>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-1 min-w-0">
+                          <h4 className={`text-sm font-bold truncate ${completed ? 'line-through text-muted-foreground' : ''}`}>
+                            {call.lead_nome}
+                          </h4>
+                          {call.recomendante && call.recomendante.length > 0 && (
+                            <button
+                              onClick={() => window.location.href = `/dashboard/pipeline?lead=${call.lead_id}`}
+                              className="text-xs text-muted-foreground hover:text-primary transition-colors truncate text-left"
+                              title="Ver detalhes do lead"
+                            >
+                              ({call.recomendante[0]})
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {call.synced_with_google && (
