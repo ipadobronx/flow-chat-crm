@@ -1143,6 +1143,14 @@ export type Database = {
           total: number
         }[]
       }
+      get_weekly_recs_stats: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          recs_count: number
+          week_label: string
+          week_start: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

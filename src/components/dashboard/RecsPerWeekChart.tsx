@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart3, TrendingUp } from "lucide-react";
 import { useWeeklyRecs } from "@/hooks/dashboard/useWeeklyRecs";
 
@@ -37,12 +38,28 @@ export function RecsPerWeekChart({ startDate, endDate }: RecsPerWeekChartProps) 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recs por Semana</CardTitle>
-          <CardDescription>Evolução das recomendações ao longo do tempo</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recs por Semana</CardTitle>
+              <CardDescription>Evolução das recomendações ao longo do tempo</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-9" />
+              <Skeleton className="h-9 w-9" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Carregando dados...</p>
+          <div className="h-[300px]">
+            <Skeleton className="h-full w-full" />
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="text-center space-y-2">
+                <Skeleton className="h-8 w-16 mx-auto" />
+                <Skeleton className="h-3 w-24 mx-auto" />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

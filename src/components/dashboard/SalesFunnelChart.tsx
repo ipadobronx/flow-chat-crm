@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSalesFunnel } from "@/hooks/dashboard/useSalesFunnel";
 
 interface SalesFunnelChartProps {
@@ -88,8 +89,17 @@ export function SalesFunnelChart({ startDate, endDate }: SalesFunnelChartProps) 
           <CardDescription>Acompanhe a conversão em cada etapa do processo</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
-            <p className="text-muted-foreground">Carregando dados...</p>
+          <div className="h-[300px] space-y-4">
+            <Skeleton className="h-full w-full" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="text-center space-y-2">
+                <Skeleton className="w-4 h-4 rounded mx-auto" />
+                <Skeleton className="h-3 w-20 mx-auto" />
+                <Skeleton className="h-3 w-16 mx-auto" />
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

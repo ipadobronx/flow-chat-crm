@@ -20,43 +20,34 @@ export const useWeeklyRecs = (startDate?: Date, endDate?: Date) => {
 
       const defaultEndDate = endDate || new Date();
       const defaultStartDate = startDate || new Date(Date.now() - 8 * 7 * 24 * 60 * 60 * 1000);
-      
-      const { data: leadsData, error } = await supabase
-        .from('leads')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .gte('created_at', defaultStartDate.toISOString())
-        .lte('created_at', defaultEndDate.toISOString())
-        .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      console.log('🔍 [useWeeklyRecs] Fetching weekly data via RPC');
 
-      const weeks = eachWeekOfInterval(
-        {
-          start: defaultStartDate,
-          end: defaultEndDate
-        },
-        { weekStartsOn: 1 }
-      );
-
-      const weeklyStats = weeks.map(weekStart => {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-        
-        const recsInWeek = leadsData?.filter(lead => {
-          const leadDate = parseISO(lead.created_at);
-          return leadDate >= weekStart && leadDate <= weekEnd;
-        }).length || 0;
-
-        return {
-          week: format(weekStart, "dd/MM", { locale: ptBR }),
-          recs: recsInWeek,
-          weekStart
-        };
+      // Use optimized RPC function instead of fetching all leads
+      const { data, error } = await supabase.rpc('get_weekly_recs_stats', {
+        p_user_id: user.id,
+        p_start_date: defaultStartDate.toISOString().split('T')[0],
+        p_end_date: defaultEndDate.toISOString().split('T')[0]
       });
+
+      if (error) {
+        console.error('❌ [useWeeklyRecs] Error:', error);
+        throw error;
+      }
+
+      console.log('✅ [useWeeklyRecs] Received', data?.length || 0, 'weeks of data');
+
+      // Transform RPC data to match expected format
+      const weeklyStats = (data || []).map(row => ({
+        week: row.week_label,
+        recs: Number(row.recs_count),
+        weekStart: parseISO(row.week_start)
+      }));
 
       return weeklyStats as WeeklyData[];
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // 2 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos - cache mais longo
+    gcTime: 1000 * 60 * 15, // 15 minutos - mantém dados em cache
   });
 };

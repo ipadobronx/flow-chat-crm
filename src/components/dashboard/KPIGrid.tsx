@@ -1,5 +1,6 @@
 import { Users, Phone, Calendar, FileText, CheckCircle, Award } from "lucide-react";
 import { useKPIMetrics } from "@/hooks/dashboard/useKPIMetrics";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface KPIGridProps {
@@ -14,7 +15,17 @@ export function KPIGrid({ startDate, endDate }: KPIGridProps) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-32 bg-muted animate-pulse rounded-xl" />
+          <div key={i} className="rounded-xl border border-border/50 bg-card/50 p-3 sm:p-4 lg:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <Skeleton className="h-8 w-8 rounded-lg" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
         ))}
       </div>
     );

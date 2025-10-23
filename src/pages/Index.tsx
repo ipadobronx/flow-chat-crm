@@ -7,6 +7,9 @@ import { RecsPerWeekChart } from "@/components/dashboard/RecsPerWeekChart";
 import { DailySalesActivities } from "@/components/dashboard/DailySalesActivities";
 import { FollowUpActivities } from "@/components/dashboard/FollowUpActivities";
 import { CriticalAlerts } from "@/components/dashboard/CriticalAlerts";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "lucide-react";
+import { useDashboardCache } from "@/hooks/dashboard/useDashboardCache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
@@ -14,14 +17,36 @@ const Index = () => {
   const today = new Date();
   const [startDate, setStartDate] = useState<Date | undefined>(today);
   const [endDate, setEndDate] = useState<Date | undefined>(today);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { invalidateAllDashboard } = useDashboardCache();
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await invalidateAllDashboard();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         <div className="space-y-2 sm:space-y-4">
           <div className="space-y-1 sm:space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard de Vendas</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Insights em tempo real sobre seu desempenho de vendas</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard de Vendas</h1>
+                <p className="text-sm sm:text-base text-muted-foreground">Insights em tempo real sobre seu desempenho de vendas</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="gap-2"
+              >
+                <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+            </div>
           </div>
           <DateFilter 
             startDate={startDate}

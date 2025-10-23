@@ -36,6 +36,7 @@ export const useFollowUpActivities = (startDate?: Date, endDate?: Date) => {
       return (data || []) as FollowUpActivity[];
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // 2 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 15, // 15 minutos
   });
 };

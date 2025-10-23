@@ -38,6 +38,7 @@ export const useSalesFunnel = (startDate?: Date, endDate?: Date) => {
       return data?.[0] as FunnelMetrics;
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 2, // 2 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 15, // 15 minutos
   });
 };

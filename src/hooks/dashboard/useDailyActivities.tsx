@@ -50,7 +50,8 @@ export const useDailyActivities = (selectedDate?: Date) => {
       return (data || []) as ScheduledCall[];
     },
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 15, // 15 minutos
     retry: 2,
     retryDelay: 1000,
   });
