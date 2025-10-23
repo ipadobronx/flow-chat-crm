@@ -26,6 +26,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 import { format } from "date-fns";
@@ -43,6 +44,7 @@ import {
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
+import { Calendar } from "@/components/ui/calendar";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
 import { useMultiSelect } from "@/hooks/useMultiSelect";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -214,6 +216,7 @@ const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNo
 
 export default function Pipeline() {
   const { user } = useAuth();
+  const googleCalendar = useGoogleCalendar();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -637,8 +640,8 @@ export default function Pipeline() {
 
       if (leadError) throw leadError;
 
-      // 2. Criar o agendamento na tabela agendamentos_ligacoes (Ligações de hoje)
-      const { error: agendamentoError } = await supabase
+      // 2. Criar o agendamento e sincronizar com Google Calendar automaticamente
+      const { data: agendamentoData, error: agendamentoError } = await supabase
         .from('agendamentos_ligacoes')
         .insert({
           user_id: user.id,
@@ -646,11 +649,18 @@ export default function Pipeline() {
           data_agendamento: dataAgendamento.toISOString(),
           observacoes: observacoesAgendamento || null,
           status: 'pendente'
-        });
+        })
+        .select()
+        .single();
 
       if (agendamentoError) throw agendamentoError;
 
-      // 3. Atualizar estado local
+      // 3. Sincronizar com Google Calendar se conectado
+      if (googleCalendar.isConnected && agendamentoData) {
+        googleCalendar.syncAgendamento(agendamentoData.id);
+      }
+
+      // 4. Atualizar estado local
       setLeads(prev => prev.map(lead => 
         lead.id === leadParaLigarDepois.id 
           ? { 
@@ -664,10 +674,10 @@ export default function Pipeline() {
 
       toast({
         title: "✅ Agendado com sucesso!",
-        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString('pt-BR')}. Você pode ver na seção "Ligações de hoje".`,
+        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString('pt-BR')}${googleCalendar.isConnected ? ' e sincronizado com Google Calendar!' : ''}`,
       });
 
-      // 4. Manter as informações no popup (não resetar)
+      // 5. Manter as informações no popup (não resetar)
       // Apenas fechar o popup após um pequeno delay para o usuário ver o sucesso
       setTimeout(() => {
         setShowLigarDepoisDialog(false);

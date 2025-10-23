@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { LeadHistory } from "./LeadHistory";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
+import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 
 type Lead = Tables<"leads">;
 
@@ -22,6 +24,7 @@ interface SitPlanLeadDetailsProps {
 }
 
 export function SitPlanLeadDetails({ selectedLead, onLeadUpdated }: SitPlanLeadDetailsProps) {
+  const queryClient = useQueryClient();
   const [observations, setObservations] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -191,10 +194,13 @@ export function SitPlanLeadDetails({ selectedLead, onLeadUpdated }: SitPlanLeadD
               <Phone className="w-4 h-4 mr-2" />
               Ligar
             </Button>
-            <Button className="flex-1" variant="outline">
-              <Calendar className="w-4 h-4 mr-2" />
-              Reagendar
-            </Button>
+            <AgendarLigacao 
+              leadId={selectedLead.id}
+              leadNome={selectedLead.nome}
+              onAgendamentoCriado={() => {
+                queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+              }}
+            />
           </div>
         </div>
 
