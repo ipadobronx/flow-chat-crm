@@ -46,6 +46,9 @@ import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
 import { useMultiSelect } from "@/hooks/useMultiSelect";
 import { Checkbox } from "@/components/ui/checkbox";
+import { updateLeadPartialSchema } from "@/lib/schemas";
+import { globalRateLimiter } from "@/lib/validation";
+import { z } from "zod";
 
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
@@ -528,19 +531,39 @@ export default function Pipeline() {
   }, [leads]);
 
   const handleSaveLead = useCallback(async () => {
-    if (!editingLead) return;
+    if (!editingLead || !user) return;
+
+    // Rate limiting check
+    if (!globalRateLimiter.canSubmit(`${user.id}-update-lead`)) {
+      toast({
+        title: "Muitas atualizações",
+        description: "Aguarde alguns segundos antes de salvar novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setSaving(true);
     try {
+      // Validate user-provided fields
+      const validatedData = updateLeadPartialSchema.parse({
+        observacoes: editingLead.observacoes,
+        pa_estimado: editingLead.pa_estimado,
+        etapa: editingLead.etapa,
+      });
+
+      // Record this submission for rate limiting
+      globalRateLimiter.recordSubmission(`${user.id}-update-lead`);
+
       const { error } = await supabase
         .from('leads')
         .update({
-          etapa: editingLead.etapa as Database["public"]["Enums"]["etapa_funil"],
+          etapa: validatedData.etapa as Database["public"]["Enums"]["etapa_funil"],
           status: editingLead.status,
           data_callback: editingLead.data_callback,
           data_nascimento: editingLead.data_nascimento,
-          observacoes: editingLead.observacoes,
-          pa_estimado: editingLead.pa_estimado,
+          observacoes: validatedData.observacoes,
+          pa_estimado: validatedData.pa_estimado,
           data_sitplan: editingLead.data_sitplan,
           high_ticket: editingLead.high_ticket,
           casado: editingLead.casado,
@@ -565,12 +588,30 @@ export default function Pipeline() {
          queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
          console.log('🔄 Cache do SitPlan invalidado - sincronização ativada');
        }
+
+       toast({
+         title: "Sucesso",
+         description: "Lead atualizado com sucesso.",
+       });
      } catch (error) {
-       console.error('Erro ao salvar lead:', error);
+       if (error instanceof z.ZodError) {
+         toast({
+           title: "Erro de validação",
+           description: error.errors[0].message,
+           variant: "destructive",
+         });
+       } else {
+         console.error('Erro ao salvar lead:', error);
+         toast({
+           title: "Erro",
+           description: "Não foi possível salvar as alterações.",
+           variant: "destructive",
+         });
+       }
     } finally {
       setSaving(false);
     }
-  }, [editingLead]);
+  }, [editingLead, user, toast]);
 
   // Função para processar agendamento "Ligar Depois"
   const handleConfirmarLigarDepois = async () => {
