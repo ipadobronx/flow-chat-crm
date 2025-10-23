@@ -31,10 +31,10 @@ export const GoogleCalendarConnect = () => {
               disabled={isConnecting || isDisconnecting}
               variant={isConnected ? "outline" : "ghost"}
               size="icon"
-              className="relative h-12 w-12 p-1 hover:bg-accent"
+              className="relative h-24 w-24 p-2 hover:bg-accent"
             >
               {(isConnecting || isDisconnecting) ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="h-12 w-12 animate-spin" />
               ) : (
                 <img 
                   src={googleCalendarLogo} 
