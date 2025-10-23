@@ -32,19 +32,22 @@ serve(async (req) => {
       const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
       const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
       
-      console.log('Checking Google credentials...');
-      console.log('GOOGLE_CLIENT_ID exists:', !!clientId);
-      console.log('GOOGLE_CLIENT_SECRET exists:', !!clientSecret);
+      console.log('🔍 Verificando credenciais do Google Calendar...');
+      console.log('GOOGLE_CLIENT_ID configurado:', !!clientId);
+      console.log('GOOGLE_CLIENT_SECRET configurado:', !!clientSecret);
       
       if (!clientId || !clientSecret) {
-        console.error('Missing Google credentials!');
+        console.error('❌ Credenciais do Google Calendar não encontradas!');
+        console.error('Configure GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nos Edge Function Secrets');
         return new Response(JSON.stringify({ 
-          error: 'Google Calendar não está configurado. Configure GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nos secrets do Supabase.' 
+          error: 'Google Calendar não está configurado. Adicione GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET nos Edge Function Secrets do Supabase.' 
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      
+      console.log('✅ Credenciais do Google Calendar carregadas com sucesso');
       
       const redirectUri = `${supabaseUrl}/functions/v1/google-calendar-oauth?action=callback`;
       
