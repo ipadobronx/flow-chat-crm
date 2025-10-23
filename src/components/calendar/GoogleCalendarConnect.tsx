@@ -1,58 +1,59 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const GoogleCalendarConnect = () => {
   const { isConnected, isLoading, connect, disconnect, isConnecting, isDisconnecting } = useGoogleCalendar();
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-6">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <CardTitle>Google Calendar</CardTitle>
-        </div>
-        <CardDescription>
-          {isConnected
-            ? "Seus agendamentos serão sincronizados automaticamente"
-            : "Conecte sua conta Google para sincronizar automaticamente"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isConnected ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="h-2 w-2 rounded-full bg-green-500" />
-              Conectado e sincronizando
-            </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="relative">
             <Button
-              variant="outline"
-              onClick={() => disconnect()}
-              disabled={isDisconnecting}
+              onClick={() => isConnected ? disconnect() : connect()}
+              disabled={isConnecting || isDisconnecting}
+              variant={isConnected ? "outline" : "default"}
+              size="icon"
+              className="relative h-10 w-10"
             >
-              {isDisconnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Desconectar
+              {(isConnecting || isDisconnecting) ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="currentColor"
+                >
+                  <path d="M17,12V3a1,1,0,0,0-2,0v9a5,5,0,0,0-4,4.9V19H7v4a1,1,0,0,0,1,1h8a1,1,0,0,0,1-1V19H13V16.9A5,5,0,0,0,17,12Z" />
+                  <circle cx="12" cy="2" r="2" />
+                </svg>
+              )}
             </Button>
+            {isConnected && (
+              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
+            )}
           </div>
-        ) : (
-          <Button onClick={() => connect()} disabled={isConnecting}>
-            {isConnecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Calendar className="mr-2 h-4 w-4" />
-            Conectar Google Calendar
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{isConnected ? "Desconectar Google Calendar" : "Conectar Google Calendar"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
