@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useTAActions, TAActionType } from "@/hooks/useTAActions";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Play, Save, ArrowLeft, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' |
 
 export default function TAPresentation() {
   const navigate = useNavigate();
+  const googleCalendar = useGoogleCalendar();
   const [searchParams] = useSearchParams();
   const filterEtapa = searchParams.get('etapa');
   const filterProfissao = searchParams.get('profissao');
@@ -181,16 +183,24 @@ export default function TAPresentation() {
           origem: 'ta'
         });
 
-      // Se for "Ligar Depois" e tem data de agendamento, criar agendamento
+      // Se for "Ligar Depois" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
       if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
-        await supabase
+        const { data: agendamentoData } = await supabase
           .from("agendamentos_ligacoes")
           .insert({
             lead_id: currentLead.id,
             data_agendamento: agendamentoDate.toISOString(),
             observacoes: observacoes,
-            user_id: currentLead.user_id
-          });
+            user_id: currentLead.user_id,
+            status: 'pendente'
+          })
+          .select()
+          .single();
+
+        // Sincronizar com Google Calendar se conectado
+        if (googleCalendar.isConnected && agendamentoData) {
+          googleCalendar.syncAgendamento(agendamentoData.id);
+        }
       }
 
       // Resetar campos para o próximo lead
