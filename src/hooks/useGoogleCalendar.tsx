@@ -105,14 +105,16 @@ export const useGoogleCalendar = () => {
       if (!user || !session) throw new Error('User not authenticated');
 
       const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        method: 'POST',
-        body: { action: 'sync', agendamentoId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        body: { agendamentoId },
       });
 
       if (error) throw error;
+      
+      // Verificar se houve erro na resposta da edge function
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
       return data;
     },
     onSuccess: () => {

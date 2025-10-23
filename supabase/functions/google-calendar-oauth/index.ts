@@ -18,7 +18,17 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    let action = url.searchParams.get('action');
+    
+    // Se for POST e não tem action na URL, tentar pegar do body
+    if (!action && req.method === 'POST') {
+      try {
+        const body = await req.clone().json();
+        action = body.action || 'sync'; // Default para 'sync' se não especificado
+      } catch (e) {
+        // Ignorar erro de parse JSON, continua sem action
+      }
+    }
 
     // OAuth - Iniciar fluxo
     if (action === 'auth') {
