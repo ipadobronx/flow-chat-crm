@@ -1735,13 +1735,15 @@ export default function Pipeline() {
                 <Input
                   type="date"
                   value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      setDataAgendamento(new Date(e.target.value));
-                    } else {
-                      setDataAgendamento(undefined);
-                    }
-                  }}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    // Parse a string no formato yyyy-MM-dd e cria uma data local
+                    const [year, month, day] = e.target.value.split('-').map(Number);
+                    setDataAgendamento(new Date(year, month - 1, day));
+                  } else {
+                    setDataAgendamento(undefined);
+                  }
+                }}
                   min={format(new Date(), "yyyy-MM-dd")}
                   className="w-full h-10 sm:h-12 border-2 rounded-lg sm:rounded-xl transition-all duration-200 focus:border-primary/50"
                 />
