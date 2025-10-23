@@ -70,7 +70,7 @@ export const useGoogleCalendar = () => {
     },
     onError: (error) => {
       console.error('Error connecting Google Calendar:', error);
-      toast.error('Google Calendar não está disponível no ambiente de preview. Faça o deploy do app para testar a integração.');
+      toast.error('Erro ao conectar Google Calendar. Verifique se as credenciais estão configuradas corretamente no Supabase.');
     },
   });
 
