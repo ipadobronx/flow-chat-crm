@@ -1028,6 +1028,19 @@ export type Database = {
           status: string
         }[]
       }
+      get_scheduled_calls_for_today: {
+        Args: { p_date?: string; p_user_id: string }
+        Returns: {
+          data_agendamento: string
+          horario: string
+          id: string
+          lead_id: string
+          lead_nome: string
+          lead_telefone: string
+          observacoes: string
+          synced_with_google: boolean
+        }[]
+      }
       get_security_status: {
         Args: never
         Returns: {
