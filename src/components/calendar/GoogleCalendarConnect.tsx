@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import googleCalendarLogo from "@/assets/google-calendar-logo.png";
 
 export const GoogleCalendarConnect = () => {
   const { isConnected, isLoading, connect, disconnect, isConnecting, isDisconnecting } = useGoogleCalendar();
@@ -30,19 +31,16 @@ export const GoogleCalendarConnect = () => {
               disabled={isConnecting || isDisconnecting}
               variant={isConnected ? "outline" : "default"}
               size="icon"
-              className="relative h-10 w-10"
+              className="relative h-10 w-10 p-2"
             >
               {(isConnecting || isDisconnecting) ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="currentColor"
-                >
-                  <path d="M17,12V3a1,1,0,0,0-2,0v9a5,5,0,0,0-4,4.9V19H7v4a1,1,0,0,0,1,1h8a1,1,0,0,0,1-1V19H13V16.9A5,5,0,0,0,17,12Z" />
-                  <circle cx="12" cy="2" r="2" />
-                </svg>
+                <img 
+                  src={googleCalendarLogo} 
+                  alt="Google Calendar" 
+                  className="h-full w-full object-contain"
+                />
               )}
             </Button>
             {isConnected && (
