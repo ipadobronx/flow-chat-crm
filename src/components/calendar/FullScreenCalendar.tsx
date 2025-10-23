@@ -206,11 +206,11 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                     </time>
                   </button>
                 </header>
-                <div className="flex-1 p-2.5">
+                <div className="flex-1 p-2.5 space-y-1.5">
                   {data
                     .filter((event) => isSameDay(event.day, day))
                     .map((dayData) => (
-                      <div key={dayData.day.toString()} className="space-y-1.5">
+                      <React.Fragment key={dayData.day.toString()}>
                         {dayData.events.slice(0, 2).map((event) => (
                           <div
                             key={event.id}
@@ -218,27 +218,39 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                               e.stopPropagation();
                               onEventClick?.(event);
                             }}
-                            className="flex flex-col items-start gap-1 rounded-lg border bg-muted/50 p-2 text-xs leading-tight hover:bg-muted cursor-pointer"
+                            className={cn(
+                              "group relative flex flex-col items-start gap-1 rounded-lg p-2 text-xs leading-tight cursor-pointer transition-all duration-200",
+                              "border-l-4 shadow-sm hover:shadow-md",
+                              event.status === 'pendente' 
+                                ? "bg-primary/10 border-l-primary hover:bg-primary/20" 
+                                : "bg-secondary/10 border-l-secondary hover:bg-secondary/20"
+                            )}
                           >
-                            <div className="flex items-center gap-1 w-full">
-                              <p className="font-medium leading-none flex-1 truncate">
+                            <div className="flex items-center gap-1.5 w-full">
+                              <p className="font-semibold leading-none flex-1 truncate text-foreground">
                                 {event.lead_nome}
                               </p>
                               {event.synced_with_google && (
-                                <CalendarIcon className="h-3 w-3 text-green-500" />
+                                <CalendarIcon className="h-3 w-3 text-emerald-500 flex-shrink-0" />
                               )}
                             </div>
-                            <p className="leading-none text-muted-foreground">
+                            <p className="leading-none text-muted-foreground font-medium">
                               {event.horario}
                             </p>
                           </div>
                         ))}
                         {dayData.events.length > 2 && (
-                          <div className="text-xs text-muted-foreground">
-                            + {dayData.events.length - 2} mais
-                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedDay(day);
+                            }}
+                            className="w-full text-xs font-medium text-primary hover:text-primary/80 p-1.5 rounded-md hover:bg-primary/10 transition-colors"
+                          >
+                            + Ver {dayData.events.length - 2} agendamento{dayData.events.length - 2 > 1 ? 's' : ''}
+                          </button>
                         )}
-                      </div>
+                      </React.Fragment>
                     ))}
                 </div>
               </div>
@@ -288,14 +300,22 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                       .map((date) => (
                         <div
                           key={date.day.toString()}
-                          className="-mx-0.5 mt-auto flex flex-wrap-reverse"
+                          className="-mx-0.5 mt-auto flex flex-wrap-reverse gap-0.5"
                         >
-                          {date.events.map((event) => (
+                          {date.events.slice(0, 3).map((event) => (
                             <span
                               key={event.id}
-                              className="mx-0.5 mt-1 h-1.5 w-1.5 rounded-full bg-muted-foreground"
+                              className={cn(
+                                "mt-1 h-1.5 w-1.5 rounded-full",
+                                event.status === 'pendente' ? "bg-primary" : "bg-secondary"
+                              )}
                             />
                           ))}
+                          {date.events.length > 3 && (
+                            <span className="mt-1 text-[0.6rem] text-primary font-bold">
+                              +{date.events.length - 3}
+                            </span>
+                          )}
                         </div>
                       ))}
                   </div>
@@ -316,19 +336,24 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
             <div
               key={event.id}
               onClick={() => onEventClick?.(event)}
-              className="flex items-start gap-3 rounded-lg border bg-card p-3 hover:bg-accent cursor-pointer"
+              className={cn(
+                "flex items-start gap-3 rounded-lg border-l-4 p-3 cursor-pointer transition-all shadow-sm hover:shadow-md",
+                event.status === 'pendente' 
+                  ? "bg-primary/10 border-l-primary hover:bg-primary/20" 
+                  : "bg-secondary/10 border-l-secondary hover:bg-secondary/20"
+              )}
             >
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium">{event.lead_nome}</p>
+                  <p className="font-semibold">{event.lead_nome}</p>
                   {event.synced_with_google && (
-                    <Badge variant="outline" className="gap-1">
+                    <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
                       <CalendarIcon className="h-3 w-3" />
-                      Sync
+                      Sincronizado
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-medium">
                   {event.horario} • {event.lead_telefone}
                 </p>
                 {event.observacoes && (
