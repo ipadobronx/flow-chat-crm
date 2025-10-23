@@ -238,6 +238,7 @@ export default function Pipeline() {
   const [showLigarDepoisDialog, setShowLigarDepoisDialog] = useState(false);
   const [leadParaLigarDepois, setLeadParaLigarDepois] = useState<Lead | null>(null);
   const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
+  const [horarioAgendamento, setHorarioAgendamento] = useState<string>("");
   const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
 
   // Multi-select functionality
@@ -618,16 +619,21 @@ export default function Pipeline() {
 
   // Função para processar agendamento "Ligar Depois"
   const handleConfirmarLigarDepois = async () => {
-    if (!leadParaLigarDepois || !dataAgendamento || !user) {
+    if (!leadParaLigarDepois || !dataAgendamento || !horarioAgendamento || !user) {
       toast({
-        title: "Data obrigatória",
-        description: "Por favor, selecione uma data para ligar depois.",
+        title: "Data e horário obrigatórios",
+        description: "Por favor, selecione uma data e horário para ligar depois.",
         variant: "destructive"
       });
       return;
     }
 
     try {
+      // Combinar data e horário
+      const [hours, minutes] = horarioAgendamento.split(':');
+      const dataCompleta = new Date(dataAgendamento);
+      dataCompleta.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
       // 1. Atualizar a etapa do lead para "Ligar Depois" e salvar data_callback e observações
       const { error: leadError } = await supabase
         .from('leads')
@@ -646,7 +652,7 @@ export default function Pipeline() {
         .insert({
           user_id: user.id,
           lead_id: leadParaLigarDepois.id,
-          data_agendamento: dataAgendamento.toISOString(),
+          data_agendamento: dataCompleta.toISOString(),
           observacoes: observacoesAgendamento || null,
           status: 'pendente'
         })
@@ -674,7 +680,7 @@ export default function Pipeline() {
 
       toast({
         title: "✅ Agendado com sucesso!",
-        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${dataAgendamento.toLocaleDateString('pt-BR')}${googleCalendar.isConnected ? ' e sincronizado com Google Calendar!' : ''}`,
+        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${format(dataCompleta, "dd/MM/yyyy 'às' HH:mm")}${googleCalendar.isConnected ? ' e sincronizado com Google Calendar!' : ''}`,
       });
 
       // 5. Manter as informações no popup (não resetar)
@@ -683,6 +689,7 @@ export default function Pipeline() {
         setShowLigarDepoisDialog(false);
         setLeadParaLigarDepois(null);
         setDataAgendamento(undefined);
+        setHorarioAgendamento("");
         setObservacoesAgendamento("");
       }, 1500);
 
@@ -1722,7 +1729,7 @@ export default function Pipeline() {
               
               <div className="space-y-2 sm:space-y-3">
                 <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Ligar Depois *
+                  Data *
                 </Label>
                 
                 <Input
@@ -1738,6 +1745,29 @@ export default function Pipeline() {
                   min={format(new Date(), "yyyy-MM-dd")}
                   className="w-full h-10 sm:h-12 border-2 rounded-lg sm:rounded-xl transition-all duration-200 focus:border-primary/50"
                 />
+              </div>
+
+              <div className="space-y-2 sm:space-y-3">
+                <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
+                  Horário *
+                </Label>
+                <select
+                  value={horarioAgendamento}
+                  onChange={(e) => setHorarioAgendamento(e.target.value)}
+                  className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 bg-background px-3 transition-all duration-200 focus:border-primary/50"
+                >
+                  <option value="">Selecione um horário</option>
+                  {[
+                    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                    "17:00", "17:30", "18:00"
+                  ].map((time) => (
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2 sm:space-y-3">
@@ -1761,6 +1791,7 @@ export default function Pipeline() {
                     setShowLigarDepoisDialog(false);
                     setLeadParaLigarDepois(null);
                     setDataAgendamento(undefined);
+                    setHorarioAgendamento("");
                     setObservacoesAgendamento("");
                   }}
                   className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 hover:bg-muted/50 transition-all duration-200"
@@ -1769,7 +1800,7 @@ export default function Pipeline() {
                 </Button>
                 <Button
                   onClick={handleConfirmarLigarDepois}
-                  disabled={!dataAgendamento}
+                  disabled={!dataAgendamento || !horarioAgendamento}
                   className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Agendar

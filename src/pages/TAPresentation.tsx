@@ -35,6 +35,7 @@ export default function TAPresentation() {
   const [selectedEtapa, setSelectedEtapa] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [agendamentoDate, setAgendamentoDate] = useState<Date>();
+  const [agendamentoTime, setAgendamentoTime] = useState<string>("");
 
   const { recordTAAction } = useTAActions();
 
@@ -184,12 +185,17 @@ export default function TAPresentation() {
         });
 
       // Se for "Ligar Depois" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
-      if (selectedEtapa === "Ligar Depois" && agendamentoDate) {
+      if (selectedEtapa === "Ligar Depois" && agendamentoDate && agendamentoTime) {
+        // Combinar data e horário
+        const [hours, minutes] = agendamentoTime.split(':');
+        const dataCompleta = new Date(agendamentoDate);
+        dataCompleta.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
         const { data: agendamentoData } = await supabase
           .from("agendamentos_ligacoes")
           .insert({
             lead_id: currentLead.id,
-            data_agendamento: agendamentoDate.toISOString(),
+            data_agendamento: dataCompleta.toISOString(),
             observacoes: observacoes,
             user_id: currentLead.user_id,
             status: 'pendente'
@@ -207,6 +213,7 @@ export default function TAPresentation() {
       setSelectedEtapa("");
       setObservacoes("");
       setAgendamentoDate(undefined);
+      setAgendamentoTime("");
 
       if (currentLeadIndex < leads.length - 1) {
         setCurrentLeadIndex(currentLeadIndex + 1);
@@ -289,10 +296,11 @@ export default function TAPresentation() {
     setStage('initial');
     setCurrentLeadIndex(0);
     setCountdown(5);
-    setTransitionStep(0);
-    setSelectedEtapa("");
-    setObservacoes("");
-    setAgendamentoDate(undefined);
+      setTransitionStep(0);
+      setSelectedEtapa("");
+      setObservacoes("");
+      setAgendamentoDate(undefined);
+      setAgendamentoTime("");
   };
 
   
@@ -489,32 +497,55 @@ export default function TAPresentation() {
 
                   {/* Agendamento para Ligar Depois */}
                   {selectedEtapa === "Ligar Depois" && (
-                    <div>
-                      <Label className="text-[#00FFF0] font-medium text-sm">Data para Ligar</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full mt-1 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20 h-9 text-sm",
-                              !agendamentoDate && "text-white/50"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione a data"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={agendamentoDate}
-                            onSelect={setAgendamentoDate}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-[#00FFF0] font-medium text-sm">Data para Ligar</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full mt-1 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20 h-9 text-sm",
+                                !agendamentoDate && "text-white/50"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione a data"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={agendamentoDate}
+                              onSelect={setAgendamentoDate}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-[#00FFF0] font-medium text-sm">Horário</Label>
+                        <select
+                          value={agendamentoTime}
+                          onChange={(e) => setAgendamentoTime(e.target.value)}
+                          className="w-full mt-1 rounded-md border border-white/20 bg-white/10 text-white px-3 py-2 text-sm"
+                        >
+                          <option value="">Selecione um horário</option>
+                          {[
+                            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                            "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                            "17:00", "17:30", "18:00"
+                          ].map((time) => (
+                            <option key={time} value={time} className="bg-gray-900 text-white">
+                              {time}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -522,7 +553,7 @@ export default function TAPresentation() {
                 {/* Botão de Salvar */}
                 <Button
                   onClick={saveAndNext}
-                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && !agendamentoDate)}
+                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && (!agendamentoDate || !agendamentoTime))}
                   className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                 >
                   <Save className="mr-2 h-5 w-5" />
