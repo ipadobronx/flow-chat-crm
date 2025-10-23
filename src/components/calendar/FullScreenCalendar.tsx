@@ -63,8 +63,30 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
   const [currentMonth, setCurrentMonth] = React.useState(
     format(today, "MMM-yyyy")
   );
+  const [showDayDialog, setShowDayDialog] = React.useState(false);
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  // Cores vibrantes por dia da semana
+  const dayColors = [
+    "bg-red-500/20 border-l-red-500 hover:bg-red-500/30",      // Domingo
+    "bg-blue-500/20 border-l-blue-500 hover:bg-blue-500/30",   // Segunda
+    "bg-purple-500/20 border-l-purple-500 hover:bg-purple-500/30", // Terça
+    "bg-green-500/20 border-l-green-500 hover:bg-green-500/30",   // Quarta
+    "bg-orange-500/20 border-l-orange-500 hover:bg-orange-500/30", // Quinta
+    "bg-pink-500/20 border-l-pink-500 hover:bg-pink-500/30",     // Sexta
+    "bg-cyan-500/20 border-l-cyan-500 hover:bg-cyan-500/30",     // Sábado
+  ];
+
+  const dayDotColors = [
+    "bg-red-500",    // Domingo
+    "bg-blue-500",   // Segunda
+    "bg-purple-500", // Terça
+    "bg-green-500",  // Quarta
+    "bg-orange-500", // Quinta
+    "bg-pink-500",   // Sexta
+    "bg-cyan-500",   // Sábado
+  ];
 
   const days = eachDayOfInterval({
     start: startOfWeek(firstDayCurrentMonth),
@@ -89,6 +111,14 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
   const selectedDayEvents = data
     .filter((date) => isSameDay(date.day, selectedDay))
     .flatMap((date) => date.events);
+
+  const handleDayClick = (day: Date) => {
+    setSelectedDay(day);
+    const hasEvents = data.some((date) => isSameDay(date.day, day) && date.events.length > 0);
+    if (hasEvents) {
+      setShowDayDialog(true);
+    }
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -166,7 +196,7 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
             {days.map((day, dayIdx) => (
               <div
                 key={dayIdx}
-                onClick={() => setSelectedDay(day)}
+                onClick={() => handleDayClick(day)}
                 className={cn(
                   dayIdx === 0 && colStartClasses[getDay(day)],
                   !isEqual(day, selectedDay) &&
@@ -211,39 +241,40 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                     .filter((event) => isSameDay(event.day, day))
                     .map((dayData) => (
                       <React.Fragment key={dayData.day.toString()}>
-                        {dayData.events.slice(0, 2).map((event) => (
-                          <div
-                            key={event.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEventClick?.(event);
-                            }}
-                            className={cn(
-                              "group relative flex flex-col items-start gap-1 rounded-lg p-2 text-xs leading-tight cursor-pointer transition-all duration-200",
-                              "border-l-4 shadow-sm hover:shadow-md",
-                              event.status === 'pendente' 
-                                ? "bg-primary/10 border-l-primary hover:bg-primary/20" 
-                                : "bg-secondary/10 border-l-secondary hover:bg-secondary/20"
-                            )}
-                          >
-                            <div className="flex items-center gap-1.5 w-full">
-                              <p className="font-semibold leading-none flex-1 truncate text-foreground">
-                                {event.lead_nome}
-                              </p>
-                              {event.synced_with_google && (
-                                <CalendarIcon className="h-3 w-3 text-emerald-500 flex-shrink-0" />
+                        {dayData.events.slice(0, 2).map((event) => {
+                          const eventDay = getDay(new Date(event.datetime));
+                          return (
+                            <div
+                              key={event.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onEventClick?.(event);
+                              }}
+                              className={cn(
+                                "group relative flex flex-col items-start gap-1 rounded-lg p-2 text-xs leading-tight cursor-pointer transition-all duration-200",
+                                "border-l-4 shadow-sm hover:shadow-md",
+                                dayColors[eventDay]
                               )}
+                            >
+                              <div className="flex items-center gap-1.5 w-full">
+                                <p className="font-semibold leading-none flex-1 truncate text-foreground">
+                                  {event.lead_nome}
+                                </p>
+                                {event.synced_with_google && (
+                                  <CalendarIcon className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                                )}
+                              </div>
+                              <p className="leading-none text-muted-foreground font-medium">
+                                {event.horario}
+                              </p>
                             </div>
-                            <p className="leading-none text-muted-foreground font-medium">
-                              {event.horario}
-                            </p>
-                          </div>
-                        ))}
+                          );
+                        })}
                         {dayData.events.length > 2 && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedDay(day);
+                              handleDayClick(day);
                             }}
                             className="w-full text-xs font-medium text-primary hover:text-primary/80 p-1.5 rounded-md hover:bg-primary/10 transition-colors"
                           >
@@ -302,15 +333,18 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                           key={date.day.toString()}
                           className="-mx-0.5 mt-auto flex flex-wrap-reverse gap-0.5"
                         >
-                          {date.events.slice(0, 3).map((event) => (
-                            <span
-                              key={event.id}
-                              className={cn(
-                                "mt-1 h-1.5 w-1.5 rounded-full",
-                                event.status === 'pendente' ? "bg-primary" : "bg-secondary"
-                              )}
-                            />
-                          ))}
+                          {date.events.slice(0, 3).map((event) => {
+                            const eventDay = getDay(new Date(event.datetime));
+                            return (
+                              <span
+                                key={event.id}
+                                className={cn(
+                                  "mt-1 h-1.5 w-1.5 rounded-full",
+                                  dayDotColors[eventDay]
+                                )}
+                              />
+                            );
+                          })}
                           {date.events.length > 3 && (
                             <span className="mt-1 text-[0.6rem] text-primary font-bold">
                               +{date.events.length - 3}
@@ -326,44 +360,117 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
         </div>
       </div>
 
+      {/* Dialog de agendamentos do dia */}
+      {isDesktop && (
+        <div
+          className={cn(
+            "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all",
+            showDayDialog ? "block" : "hidden"
+          )}
+          onClick={() => setShowDayDialog(false)}
+        >
+          <div
+            className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold">
+                  Agendamentos - {format(selectedDay, "d 'de' MMMM", { locale: ptBR })}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedDayEvents.length} agendamento{selectedDayEvents.length !== 1 ? 's' : ''} neste dia
+                </p>
+              </div>
+              <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                {selectedDayEvents.map((event) => {
+                  const eventDay = getDay(new Date(event.datetime));
+                  return (
+                    <div
+                      key={event.id}
+                      onClick={() => {
+                        setShowDayDialog(false);
+                        onEventClick?.(event);
+                      }}
+                      className={cn(
+                        "flex items-start gap-3 rounded-lg border-l-4 p-3 cursor-pointer transition-all shadow-sm hover:shadow-md",
+                        dayColors[eventDay]
+                      )}
+                    >
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">{event.lead_nome}</p>
+                          {event.synced_with_google && (
+                            <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                              <CalendarIcon className="h-3 w-3" />
+                              Sincronizado
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground font-medium">
+                          {event.horario} • {event.lead_telefone}
+                        </p>
+                        {event.observacoes && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {event.observacoes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setShowDayDialog(false)}
+                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
+              >
+                <span className="sr-only">Fechar</span>
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Selected Day Events (Mobile) */}
       {!isDesktop && selectedDayEvents.length > 0 && (
         <div className="mt-4 space-y-2 px-4 pb-4">
           <h3 className="text-sm font-semibold">
             Agendamentos - {format(selectedDay, "d 'de' MMMM", { locale: ptBR })}
           </h3>
-          {selectedDayEvents.map((event) => (
-            <div
-              key={event.id}
-              onClick={() => onEventClick?.(event)}
-              className={cn(
-                "flex items-start gap-3 rounded-lg border-l-4 p-3 cursor-pointer transition-all shadow-sm hover:shadow-md",
-                event.status === 'pendente' 
-                  ? "bg-primary/10 border-l-primary hover:bg-primary/20" 
-                  : "bg-secondary/10 border-l-secondary hover:bg-secondary/20"
-              )}
-            >
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold">{event.lead_nome}</p>
-                  {event.synced_with_google && (
-                    <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                      <CalendarIcon className="h-3 w-3" />
-                      Sincronizado
-                    </Badge>
+          {selectedDayEvents.map((event) => {
+            const eventDay = getDay(new Date(event.datetime));
+            return (
+              <div
+                key={event.id}
+                onClick={() => onEventClick?.(event)}
+                className={cn(
+                  "flex items-start gap-3 rounded-lg border-l-4 p-3 cursor-pointer transition-all shadow-sm hover:shadow-md",
+                  dayColors[eventDay]
+                )}
+              >
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{event.lead_nome}</p>
+                    {event.synced_with_google && (
+                      <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                        <CalendarIcon className="h-3 w-3" />
+                        Sincronizado
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {event.horario} • {event.lead_telefone}
+                  </p>
+                  {event.observacoes && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {event.observacoes}
+                    </p>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  {event.horario} • {event.lead_telefone}
-                </p>
-                {event.observacoes && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {event.observacoes}
-                  </p>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
