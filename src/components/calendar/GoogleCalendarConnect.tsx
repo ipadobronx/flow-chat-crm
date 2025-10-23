@@ -29,12 +29,12 @@ export const GoogleCalendarConnect = () => {
             <Button
               onClick={() => isConnected ? disconnect() : connect()}
               disabled={isConnecting || isDisconnecting}
-              variant={isConnected ? "outline" : "default"}
+              variant={isConnected ? "outline" : "ghost"}
               size="icon"
-              className="relative h-10 w-10 p-2"
+              className="relative h-12 w-12 p-1 hover:bg-accent"
             >
               {(isConnecting || isDisconnecting) ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" />
               ) : (
                 <img 
                   src={googleCalendarLogo} 
