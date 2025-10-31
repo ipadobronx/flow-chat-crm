@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Iniciando verificação de leads antigos na etapa "Tentativa"...');
+    console.log('Iniciando verificação de leads antigos na etapa "Novo"...');
 
     // Criar cliente Supabase com service_role para operações administrativas
     const supabaseAdmin = createClient(
@@ -62,15 +62,15 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Buscar leads que estão há mais de 30 dias na etapa "Tentativa"
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Buscar leads que estão há mais de 15 dias na etapa "Novo"
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
 
     const { data: leadsToMove, error: selectError } = await supabaseAdmin
       .from('leads')
       .select('id, nome, etapa, etapa_changed_at')
-      .eq('etapa', 'Tentativa')
-      .lt('etapa_changed_at', thirtyDaysAgo.toISOString());
+      .eq('etapa', 'Novo')
+      .lt('etapa_changed_at', fifteenDaysAgo.toISOString());
 
     if (selectError) {
       console.error('Erro ao buscar leads:', selectError);
@@ -80,14 +80,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Encontrados ${leadsToMove?.length || 0} leads para mover de "Tentativa" para "Novo"`);
+    console.log(`Encontrados ${leadsToMove?.length || 0} leads para mover de "Novo" para "Todos"`);
 
     if (leadsToMove && leadsToMove.length > 0) {
-      // Mover leads de volta para "Novo"
+      // Mover leads para "Todos"
       const { data: updatedLeads, error: updateError } = await supabaseAdmin
         .from('leads')
         .update({
-          etapa: 'Novo',
+          etapa: 'Todos',
           etapa_changed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      console.log(`Movidos ${updatedLeads?.length || 0} leads de "Tentativa" para "Novo"`);
+      console.log(`Movidos ${updatedLeads?.length || 0} leads de "Novo" para "Todos"`);
 
       return new Response(
         JSON.stringify({
@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
           moved_leads: leadsToMove.map(lead => ({
             id: lead.id,
             name: lead.nome,
-            days_in_tentativa: Math.floor((Date.now() - new Date(lead.etapa_changed_at).getTime()) / (1000 * 60 * 60 * 24))
+            days_in_novo: Math.floor((Date.now() - new Date(lead.etapa_changed_at).getTime()) / (1000 * 60 * 60 * 24))
           }))
         }),
         { 
