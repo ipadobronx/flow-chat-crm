@@ -231,7 +231,7 @@ export default function Pipeline() {
   const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
   const [showOnlySitplan, setShowOnlySitplan] = useState(false);
-  const [activeSelectionStage, setActiveSelectionStage] = useState<string | null>(null);
+  const [isGlobalSelectionMode, setIsGlobalSelectionMode] = useState(false);
   const [stageToInclude, setStageToInclude] = useState<string | null>(null);
   
   // Estados para o popup de "Ligar Depois"
@@ -274,7 +274,7 @@ export default function Pipeline() {
         });
 
         // Reset selection state
-        setActiveSelectionStage(null);
+        setIsGlobalSelectionMode(false);
 
       } catch (error) {
         console.error('Erro ao incluir leads selecionados no SitPlan:', error);
@@ -863,7 +863,7 @@ export default function Pipeline() {
               <div className="flex gap-2 sm:gap-4 min-w-max">
                 {stages.map((stage) => {
                   const stageLeads = getLeadsByStage(stage.name);
-                  const isSelectionActive = activeSelectionStage === stage.name;
+                  const isSelectionActive = isGlobalSelectionMode;
                   
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
@@ -891,20 +891,20 @@ export default function Pipeline() {
                                   <Button
                                     size="sm"
                                     className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
-                                      isSelectionActive 
+                                      isGlobalSelectionMode 
                                         ? "bg-blue-600 text-white" 
                                         : "bg-blue-500 hover:bg-blue-600 text-white"
                                     }`}
                                     onClick={() => {
-                                      if (isSelectionActive) {
+                                      if (isGlobalSelectionMode) {
                                         multiSelect.clearSelections();
-                                        setActiveSelectionStage(null);
+                                        setIsGlobalSelectionMode(false);
                                       } else {
-                                        setActiveSelectionStage(stage.name);
+                                        setIsGlobalSelectionMode(true);
                                         multiSelect.clearSelections();
                                       }
                                     }}
-                                    title="Selecionar leads específicos"
+                                    title="Selecionar leads de todas as etapas"
                                   >
                                     <CheckSquare className="h-3 w-3" />
                                   </Button>
@@ -962,17 +962,14 @@ export default function Pipeline() {
           </DndContext>
 
           {/* Fixed Action Bar - Modo Seleção */}
-          {activeSelectionStage && multiSelect.selectedCount > 0 && (
+          {isGlobalSelectionMode && multiSelect.selectedCount > 0 && (
             <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
               <div className="flex items-center gap-3 p-4 bg-card/95 backdrop-blur-md border-2 border-primary/20 rounded-xl shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
                   <Badge variant="secondary" className="text-base font-semibold">
-                    {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''}
+                    {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
                   </Badge>
-                  <span className="text-sm text-muted-foreground hidden sm:inline">
-                    em: <span className="font-medium text-foreground">{activeSelectionStage}</span>
-                  </span>
                 </div>
                 <div className="flex items-center gap-2 ml-2">
                   <Button
@@ -980,7 +977,7 @@ export default function Pipeline() {
                     size="sm"
                     onClick={() => {
                       multiSelect.clearSelections();
-                      setActiveSelectionStage(null);
+                      setIsGlobalSelectionMode(false);
                     }}
                     className="h-8"
                   >
