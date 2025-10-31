@@ -1172,6 +1172,7 @@ export type Database = {
       move_old_tentativa_leads: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      update_all_dias_na_etapa: { Args: never; Returns: undefined }
       update_security_compliance: {
         Args: {
           p_config_key: string
