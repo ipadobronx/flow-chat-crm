@@ -22,8 +22,12 @@ const Index = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await invalidateAllDashboard();
-    setTimeout(() => setIsRefreshing(false), 1000);
+    try {
+      await invalidateAllDashboard();
+      window.location.reload();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 1000);
+    }
   };
 
   return (
