@@ -989,22 +989,47 @@ export type Database = {
           tipo_atividade: string
         }[]
       }
-      get_kpi_metrics_by_date_range: {
-        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
-        Returns: {
-          taxa_conversao_apolice: number
-          taxa_conversao_ligacao: number
-          taxa_conversao_n: number
-          taxa_conversao_oi: number
-          taxa_conversao_proposta: number
-          total_apolice_emitida: number
-          total_ligacoes: number
-          total_n_realizado: number
-          total_oi_agendados: number
-          total_proposta_apresentada: number
-          total_rec: number
-        }[]
-      }
+      get_kpi_metrics_by_date_range:
+        | {
+            Args: {
+              p_end_date: string
+              p_start_date: string
+              p_user_id: string
+            }
+            Returns: {
+              taxa_conversao_apolice: number
+              taxa_conversao_ligacao: number
+              taxa_conversao_n: number
+              taxa_conversao_oi: number
+              taxa_conversao_proposta: number
+              total_apolice_emitida: number
+              total_ligacoes: number
+              total_n_realizado: number
+              total_oi_agendados: number
+              total_proposta_apresentada: number
+              total_rec: number
+            }[]
+          }
+        | {
+            Args: {
+              p_end_date: string
+              p_start_date: string
+              p_user_id: string
+            }
+            Returns: {
+              taxa_conversao_apolice: number
+              taxa_conversao_ligacao: number
+              taxa_conversao_n: number
+              taxa_conversao_oi: number
+              taxa_conversao_proposta: number
+              total_apolice_emitida: number
+              total_ligacoes: number
+              total_n_realizado: number
+              total_oi_agendados: number
+              total_proposta_apresentada: number
+              total_rec: number
+            }[]
+          }
       get_leads_with_metrics: {
         Args: { p_end_date?: string; p_start_date?: string; p_user_id: string }
         Returns: {
