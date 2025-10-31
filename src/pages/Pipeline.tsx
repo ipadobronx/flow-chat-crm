@@ -849,39 +849,7 @@ export default function Pipeline() {
           </div>
         </div>
 
-        {/* Action bar minimalista para multi-seleção */}
-        {activeSelectionStage && multiSelect.selectedCount > 0 && (
-          <div className="flex-shrink-0 bg-blue-50/80 border border-blue-200/50 rounded-xl p-3 flex items-center justify-between backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-blue-700 font-medium text-sm">
-                {multiSelect.selectedCount} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  multiSelect.clearSelections();
-                  setActiveSelectionStage(null);
-                }}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100/50 h-8 px-3"
-              >
-                Cancelar
-              </Button>
-              <Button
-                size="sm"
-                onClick={multiSelect.confirmSelection}
-                className="bg-blue-600 hover:bg-blue-700 text-white h-8 px-4 rounded-lg"
-              >
-                Incluir
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -992,6 +960,44 @@ export default function Pipeline() {
             ) : null}
             </DragOverlay>
           </DndContext>
+
+          {/* Fixed Action Bar - Modo Seleção */}
+          {activeSelectionStage && multiSelect.selectedCount > 0 && (
+            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
+              <div className="flex items-center gap-3 p-4 bg-card/95 backdrop-blur-md border-2 border-primary/20 rounded-xl shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                  <Badge variant="secondary" className="text-base font-semibold">
+                    {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground hidden sm:inline">
+                    em: <span className="font-medium text-foreground">{activeSelectionStage}</span>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 ml-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      multiSelect.clearSelections();
+                      setActiveSelectionStage(null);
+                    }}
+                    className="h-8"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={multiSelect.confirmSelection}
+                    className="bg-primary hover:bg-primary/90 shadow-md h-8"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Incluir ({multiSelect.selectedCount})
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Confirmation Dialog for sending all stage leads */}
