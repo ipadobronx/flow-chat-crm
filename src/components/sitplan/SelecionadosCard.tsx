@@ -361,7 +361,9 @@ export function SelecionadosCard() {
             ta_order: baseOrder + i,
             ta_categoria_ativa: null, // Sem categoria específica
             ta_categoria_valor: null,
-            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+            ta_exclusividade: false, // Sem exclusividade - aparece em ambas
+            etapa: 'TA', // Muda a etapa do funil para TA
+            etapa_changed_at: new Date().toISOString() // Registra quando mudou
           })
           .eq("id", lead.id);
 
@@ -371,6 +373,7 @@ export function SelecionadosCard() {
       // Invalidar queries para atualizar ambas as listas
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
       await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
       
       // Forçar refetch das queries para garantir sincronização
       await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
@@ -409,7 +412,9 @@ export function SelecionadosCard() {
             ta_order: baseOrder + i,
             ta_categoria_ativa: null, // Sem categoria específica
             ta_categoria_valor: null,
-            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+            ta_exclusividade: false, // Sem exclusividade - aparece em ambas
+            etapa: 'TA', // Muda a etapa do funil para TA
+            etapa_changed_at: new Date().toISOString() // Registra quando mudou
           })
           .eq("id", selectedIds[i]);
 
@@ -418,6 +423,7 @@ export function SelecionadosCard() {
 
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
       await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
       
       toast({
         title: "Leads selecionados movidos para TA",
