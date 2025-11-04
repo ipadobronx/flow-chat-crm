@@ -14,8 +14,8 @@ import {
   globalRateLimiter 
 } from "@/lib/validation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { Button } from "@/components/ui/button";
+import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
