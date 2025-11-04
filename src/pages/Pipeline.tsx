@@ -43,8 +43,8 @@ import {
   useSensors
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
-import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 import { Calendar } from "@/components/ui/calendar";
+import { useCalendarSync } from "@/hooks/useCalendarSync";
 import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
 import { useMultiSelect } from "@/hooks/useMultiSelect";
@@ -92,6 +92,7 @@ type Lead = {
   etapa: Database["public"]["Enums"]["etapa_funil"];
   status: string | null;
   data_callback: string | null;
+  hora_callback?: string | null;
   data_nascimento: string | null;
   high_ticket: boolean;
   casado: boolean;
@@ -223,6 +224,7 @@ const DroppableColumn = ({ id, children }: { id: string; children: React.ReactNo
 export default function Pipeline() {
   const { user } = useAuth();
   const googleCalendar = useGoogleCalendar();
+  const { syncCalendarEvent, isConnected } = useCalendarSync();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -569,22 +571,71 @@ export default function Pipeline() {
         .from('leads')
         .update({
           etapa: validatedData.etapa as Database["public"]["Enums"]["etapa_funil"],
-          status: editingLead.status,
           data_callback: editingLead.data_callback,
           data_nascimento: editingLead.data_nascimento,
           observacoes: validatedData.observacoes,
           pa_estimado: validatedData.pa_estimado,
-          data_sitplan: editingLead.data_sitplan,
           high_ticket: editingLead.high_ticket,
           casado: editingLead.casado,
           tem_filhos: editingLead.tem_filhos,
           quantidade_filhos: editingLead.quantidade_filhos,
           avisado: editingLead.avisado,
           incluir_sitplan: editingLead.incluir_sitplan,
+          celular_secundario: editingLead.celular_secundario,
+          email: editingLead.email,
+          idade: editingLead.idade,
+          profissao: editingLead.profissao,
+          renda_estimada: editingLead.renda_estimada,
+          cidade: editingLead.cidade,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', editingLead.id);
 
       if (error) throw error;
+
+      // Sincronizar agendamento com Google Calendar (se data foi preenchida)
+      if (editingLead.data_callback) {
+        try {
+          const dataAgendamento = new Date(editingLead.data_callback);
+          const wasSynced = await syncCalendarEvent({
+            leadId: selectedLead!.id,
+            leadNome: selectedLead!.nome,
+            dataAgendamento,
+            observacoes: editingLead.observacoes,
+            tipo: 'callback'
+          });
+
+          if (wasSynced) {
+            toast({
+              title: "✅ Salvo e sincronizado!",
+              description: "Lead atualizado e agendamento criado no Google Calendar.",
+            });
+          } else if (isConnected) {
+            toast({
+              title: "⚠️ Salvo (sincronização falhou)",
+              description: "Lead atualizado, mas houve erro ao sincronizar com Google Calendar.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "✅ Lead atualizado!",
+              description: "Agendamento salvo localmente. Conecte o Google Calendar para sincronizar.",
+            });
+          }
+        } catch (syncError) {
+          console.error('Erro ao sincronizar agendamento:', syncError);
+          toast({
+            title: "⚠️ Erro na sincronização",
+            description: "Lead foi salvo, mas não foi possível criar o agendamento.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: "✅ Lead atualizado!",
+          description: "As alterações foram salvas com sucesso.",
+        });
+      }
 
       // Atualizar estado local
       setLeads(prev => prev.map(lead => 
@@ -598,11 +649,6 @@ export default function Pipeline() {
          queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
          console.log('🔄 Cache do SitPlan invalidado - sincronização ativada');
        }
-
-       toast({
-         title: "Sucesso",
-         description: "Lead atualizado com sucesso.",
-       });
      } catch (error) {
        if (error instanceof z.ZodError) {
          toast({
@@ -621,7 +667,7 @@ export default function Pipeline() {
     } finally {
       setSaving(false);
     }
-  }, [editingLead, user, toast]);
+  }, [editingLead, user, toast, selectedLead, syncCalendarEvent, isConnected, queryClient]);
 
   // Função para processar agendamento "Ligar Depois"
   const handleConfirmarLigarDepois = async () => {
@@ -1167,63 +1213,89 @@ export default function Pipeline() {
                   </div>
                 </div>
 
-                {/* Selects de etapa e status */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Etapa Funil *</Label>
-                    <Select 
-                      value={editingLead?.etapa || selectedLead.etapa}
-                      onValueChange={(value) => {
-                        const updatedLead = { ...selectedLead, etapa: value as Database["public"]["Enums"]["etapa_funil"] };
-                        setEditingLead(updatedLead);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {stages.map((stage) => (
-                          <SelectItem key={stage.name} value={stage.name}>
-                            {stage.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Status</Label>
-                    <Select 
-                      value={editingLead?.status || selectedLead.status || ""}
-                      onValueChange={(value) => {
-                        const updatedLead = { ...selectedLead, status: value };
-                        setEditingLead(updatedLead);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Ligar Depois">⏰ Ligar Depois</SelectItem>
-                        <SelectItem value="Aguardando Retorno">⏳ Aguardando Retorno</SelectItem>
-                        <SelectItem value="Agendado">📅 Agendado</SelectItem>
-                        <SelectItem value="Em Negociação">💼 Em Negociação</SelectItem>
-                        <SelectItem value="Proposta Enviada">📧 Proposta Enviada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Data para ligar depois */}
+                {/* Etapa Funil */}
                 <div>
-                  <Label className="text-sm text-muted-foreground">Ligar Depois</Label>
-                  <Input 
-                    type="date" 
-                    value={editingLead?.data_callback || selectedLead.data_callback || ""}
-                    onChange={(e) => {
-                      const updatedLead = { ...selectedLead, data_callback: e.target.value };
+                  <Label className="text-sm text-muted-foreground">Etapa Funil *</Label>
+                  <Select 
+                    value={editingLead?.etapa || selectedLead.etapa}
+                    onValueChange={(value) => {
+                      const updatedLead = { ...selectedLead, etapa: value as Database["public"]["Enums"]["etapa_funil"] };
                       setEditingLead(updatedLead);
                     }}
-                  />
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((stage) => (
+                        <SelectItem key={stage.name} value={stage.name}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Agendamento com Data + Hora */}
+                <div className="space-y-3 border-l-4 border-primary/50 pl-4 py-2 bg-primary/5 rounded-r">
+                  <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    📅 Agendamento
+                  </Label>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Data</Label>
+                      <Input 
+                        type="date" 
+                        value={editingLead?.data_callback?.split('T')[0] || selectedLead.data_callback?.split('T')[0] || ""}
+                        onChange={(e) => {
+                          const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || "09:00";
+                          const updatedLead = { 
+                            ...selectedLead, 
+                            data_callback: e.target.value ? `${e.target.value}T${currentTime}:00` : null,
+                            hora_callback: currentTime
+                          };
+                          setEditingLead(updatedLead);
+                        }}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Horário</Label>
+                      <select
+                        value={editingLead?.hora_callback || selectedLead.hora_callback || ""}
+                        onChange={(e) => {
+                          const currentDate = editingLead?.data_callback?.split('T')[0] || selectedLead.data_callback?.split('T')[0] || new Date().toISOString().split('T')[0];
+                          const updatedLead = { 
+                            ...selectedLead, 
+                            data_callback: `${currentDate}T${e.target.value}:00`,
+                            hora_callback: e.target.value
+                          };
+                          setEditingLead(updatedLead);
+                        }}
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        <option value="">Selecione</option>
+                        {[
+                          "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                          "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                          "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                          "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"
+                        ].map((time) => (
+                          <option key={time} value={time}>{time}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Indicador de sincronização */}
+                  {(editingLead?.data_callback || selectedLead.data_callback) && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span>Será sincronizado com Google Calendar ao salvar</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Seção: Dados Pessoais */}
@@ -1757,30 +1829,6 @@ export default function Pipeline() {
                       const updatedLead = { ...selectedLead, pa_estimado: e.target.value };
                       setEditingLead(updatedLead);
                     }}
-                  />
-                </div>
-
-                {/* SitPlan */}
-                <div>
-                  <Label className="text-sm text-muted-foreground">SitPlan</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input 
-                      type="date" 
-                      value={editingLead?.data_sitplan || selectedLead.data_sitplan || ""} 
-                      onChange={(e) => {
-                        const updatedLead = { ...selectedLead, data_sitplan: e.target.value };
-                        setEditingLead(updatedLead);
-                      }}
-                    />
-                    <Button size="sm" variant="outline">+</Button>
-                  </div>
-                </div>
-
-                {/* Agendamento de Ligação */}
-                <div className="mt-6">
-                  <AgendarLigacao 
-                    leadId={selectedLead.id} 
-                    leadNome={selectedLead.nome}
                   />
                 </div>
 
