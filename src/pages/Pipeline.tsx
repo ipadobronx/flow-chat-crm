@@ -1292,7 +1292,7 @@ export default function Pipeline() {
                   <Select 
                     value={editingLead?.etapa || selectedLead.etapa}
                     onValueChange={(value) => {
-                      const updatedLead = { ...selectedLead, etapa: value as Database["public"]["Enums"]["etapa_funil"] };
+                      const updatedLead = { ...(editingLead || selectedLead), etapa: value as Database["public"]["Enums"]["etapa_funil"] };
                       setEditingLead(updatedLead);
                     }}
                   >
@@ -1329,7 +1329,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || "09:00";
                           const updatedLead = { 
-                            ...selectedLead, 
+                            ...(editingLead || selectedLead), 
                             data_callback: e.target.value ? `${e.target.value}T${currentTime}:00` : null,
                             hora_callback: currentTime
                           };
@@ -1346,7 +1346,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const currentDate = editingLead?.data_callback?.split('T')[0] || selectedLead.data_callback?.split('T')[0] || new Date().toISOString().split('T')[0];
                           const updatedLead = { 
-                            ...selectedLead, 
+                            ...(editingLead || selectedLead), 
                             data_callback: `${currentDate}T${e.target.value}:00`,
                             hora_callback: e.target.value
                           };
@@ -1418,7 +1418,7 @@ export default function Pipeline() {
                       <Input 
                         value={editingLead?.celular_secundario || selectedLead.celular_secundario || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, celular_secundario: e.target.value };
+                          const updatedLead = { ...(editingLead || selectedLead), celular_secundario: e.target.value };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="(11) 99999-9999"
@@ -1433,7 +1433,7 @@ export default function Pipeline() {
                         type="email"
                         value={editingLead?.email || selectedLead.email || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, email: e.target.value };
+                          const updatedLead = { ...(editingLead || selectedLead), email: e.target.value };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="email@exemplo.com"
@@ -1446,7 +1446,7 @@ export default function Pipeline() {
                         type="number"
                         value={editingLead?.idade || selectedLead.idade || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, idade: parseInt(e.target.value) || null };
+                          const updatedLead = { ...(editingLead || selectedLead), idade: parseInt(e.target.value) || null };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="30"
@@ -1463,7 +1463,7 @@ export default function Pipeline() {
                         type="date" 
                         value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, data_nascimento: e.target.value };
+                          const updatedLead = { ...(editingLead || selectedLead), data_nascimento: e.target.value };
                           setEditingLead(updatedLead);
                         }}
                       />
@@ -1474,7 +1474,7 @@ export default function Pipeline() {
                       <ProfissaoCombobox
                         value={editingLead?.profissao || selectedLead.profissao || ""}
                         onValueChange={(value) => {
-                          const updatedLead = { ...selectedLead, profissao: value };
+                          const updatedLead = { ...(editingLead || selectedLead), profissao: value };
                           setEditingLead(updatedLead);
                         }}
                       />
@@ -1487,7 +1487,7 @@ export default function Pipeline() {
                       <Input 
                         value={editingLead?.renda_estimada || selectedLead.renda_estimada || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, renda_estimada: e.target.value };
+                          const updatedLead = { ...(editingLead || selectedLead), renda_estimada: e.target.value };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="R$ 5.000,00"
@@ -1499,7 +1499,7 @@ export default function Pipeline() {
                       <Input 
                         value={editingLead?.cidade || selectedLead.cidade || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...selectedLead, cidade: e.target.value };
+                          const updatedLead = { ...(editingLead || selectedLead), cidade: e.target.value };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="São Paulo - SP"
@@ -1517,7 +1517,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.high_ticket === false || (!editingLead && !selectedLead.high_ticket) ? "destructive" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, high_ticket: false };
+                          const updatedLead = { ...(editingLead || selectedLead), high_ticket: false };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1527,7 +1527,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.high_ticket === true || (!editingLead && selectedLead.high_ticket) ? "default" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, high_ticket: true };
+                          const updatedLead = { ...(editingLead || selectedLead), high_ticket: true };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1542,7 +1542,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.casado === false || (!editingLead && !selectedLead.casado) ? "destructive" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, casado: false };
+                          const updatedLead = { ...(editingLead || selectedLead), casado: false };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1552,7 +1552,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.casado === true || (!editingLead && selectedLead.casado) ? "default" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, casado: true };
+                          const updatedLead = { ...(editingLead || selectedLead), casado: true };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1567,7 +1567,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.tem_filhos === false || (!editingLead && !selectedLead.tem_filhos) ? "destructive" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, tem_filhos: false, quantidade_filhos: null };
+                          const updatedLead = { ...(editingLead || selectedLead), tem_filhos: false, quantidade_filhos: null };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1577,7 +1577,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.tem_filhos === true || (!editingLead && selectedLead.tem_filhos) ? "default" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, tem_filhos: true };
+                          const updatedLead = { ...(editingLead || selectedLead), tem_filhos: true };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1597,7 +1597,7 @@ export default function Pipeline() {
                         value={editingLead?.quantidade_filhos || selectedLead.quantidade_filhos || ""} 
                         onChange={(e) => {
                           const updatedLead = { 
-                            ...selectedLead, 
+                            ...(editingLead || selectedLead), 
                             quantidade_filhos: parseInt(e.target.value) || null 
                           };
                           setEditingLead(updatedLead);
@@ -1614,7 +1614,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.avisado === false || (!editingLead && !selectedLead.avisado) ? "destructive" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, avisado: false };
+                          const updatedLead = { ...(editingLead || selectedLead), avisado: false };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1624,7 +1624,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.avisado === true || (!editingLead && selectedLead.avisado) ? "default" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, avisado: true };
+                          const updatedLead = { ...(editingLead || selectedLead), avisado: true };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1672,7 +1672,7 @@ export default function Pipeline() {
                               )
                             );
 
-                            const updatedLead = { ...selectedLead, incluir_sitplan: false };
+                            const updatedLead = { ...(editingLead || selectedLead), incluir_sitplan: false };
                             setEditingLead(updatedLead);
 
                             toast({
@@ -1741,7 +1741,7 @@ export default function Pipeline() {
                               )
                             );
 
-                            const updatedLead = { ...selectedLead, incluir_sitplan: true };
+                            const updatedLead = { ...(editingLead || selectedLead), incluir_sitplan: true };
                             setEditingLead(updatedLead);
 
                             toast({
@@ -1890,7 +1890,7 @@ export default function Pipeline() {
                   <Textarea 
                     value={editingLead?.observacoes || selectedLead.observacoes || ""} 
                     onChange={(e) => {
-                      const updatedLead = { ...selectedLead, observacoes: e.target.value };
+                      const updatedLead = { ...(editingLead || selectedLead), observacoes: e.target.value };
                       setEditingLead(updatedLead);
                     }}
                     placeholder="Adicione observações sobre o lead..."
@@ -1904,7 +1904,7 @@ export default function Pipeline() {
                   <Input 
                     value={editingLead?.pa_estimado || selectedLead.pa_estimado || ""} 
                     onChange={(e) => {
-                      const updatedLead = { ...selectedLead, pa_estimado: e.target.value };
+                      const updatedLead = { ...(editingLead || selectedLead), pa_estimado: e.target.value };
                       setEditingLead(updatedLead);
                     }}
                   />
