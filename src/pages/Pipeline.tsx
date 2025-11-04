@@ -93,7 +93,6 @@ type Lead = {
   quantidade_filhos: number | null;
   avisado: boolean;
   incluir_sitplan: boolean;
-  incluir_ta?: boolean;
   observacoes: string | null;
   pa_estimado: string | null;
   data_sitplan: string | null;
@@ -427,9 +426,7 @@ export default function Pipeline() {
   // Organizar leads por etapa com memoização
   const getLeadsByStage = useCallback((stageName: string) => {
     const stageLeads = leads.filter(lead => {
-      // Para a coluna TA, usa incluir_ta ao invés de etapa
-      const etapaMatch = stageName === 'TA' ? lead.incluir_ta === true : lead.etapa === stageName;
-      
+      const etapaMatch = lead.etapa === stageName;
       if (showOnlySitplan) {
         const result = etapaMatch && lead.incluir_sitplan;
         if (result) {

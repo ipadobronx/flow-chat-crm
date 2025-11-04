@@ -361,7 +361,9 @@ export function SelecionadosCard() {
             ta_order: baseOrder + i,
             ta_categoria_ativa: null, // Sem categoria específica
             ta_categoria_valor: null,
-            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+            ta_exclusividade: false, // Sem exclusividade - aparece em ambas
+            etapa: 'TA', // Muda a etapa do funil para TA
+            etapa_changed_at: new Date().toISOString() // Registra quando mudou
           })
           .eq("id", lead.id);
 
@@ -410,7 +412,9 @@ export function SelecionadosCard() {
             ta_order: baseOrder + i,
             ta_categoria_ativa: null, // Sem categoria específica
             ta_categoria_valor: null,
-            ta_exclusividade: false // Sem exclusividade - aparece em ambas
+            ta_exclusividade: false, // Sem exclusividade - aparece em ambas
+            etapa: 'TA', // Muda a etapa do funil para TA
+            etapa_changed_at: new Date().toISOString() // Registra quando mudou
           })
           .eq("id", selectedIds[i]);
 
