@@ -356,6 +356,9 @@ export function SelecionadosCard() {
         const { error } = await supabase
           .from("leads")
           .update({ 
+            etapa_antes_ta: lead.etapa,
+            etapa: 'TA',
+            etapa_changed_at: new Date().toISOString(),
             incluir_ta: true,
             incluir_sitplan: false,
             ta_order: baseOrder + i,
@@ -371,6 +374,7 @@ export function SelecionadosCard() {
       // Invalidar queries para atualizar ambas as listas
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
       await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
       
       // Forçar refetch das queries para garantir sincronização
       await queryClient.refetchQueries({ queryKey: ["sitplan-selecionados"] });
@@ -404,6 +408,9 @@ export function SelecionadosCard() {
         const { error } = await supabase
           .from("leads")
           .update({ 
+            etapa_antes_ta: lead.etapa,
+            etapa: 'TA',
+            etapa_changed_at: new Date().toISOString(),
             incluir_ta: true,
             incluir_sitplan: false,
             ta_order: baseOrder + i,
@@ -418,6 +425,7 @@ export function SelecionadosCard() {
 
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
       await queryClient.invalidateQueries({ queryKey: ["ta-leads"] });
+      await queryClient.invalidateQueries({ queryKey: ["pipeline-leads"] });
       
       toast({
         title: "Leads selecionados movidos para TA",

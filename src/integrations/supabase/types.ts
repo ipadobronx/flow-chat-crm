@@ -347,6 +347,7 @@ export type Database = {
           email: string | null
           empresa: string | null
           etapa: Database["public"]["Enums"]["etapa_funil"]
+          etapa_antes_ta: Database["public"]["Enums"]["etapa_funil"] | null
           etapa_changed_at: string | null
           high_ticket: boolean | null
           id: string
@@ -384,6 +385,7 @@ export type Database = {
           email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
+          etapa_antes_ta?: Database["public"]["Enums"]["etapa_funil"] | null
           etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string
@@ -421,6 +423,7 @@ export type Database = {
           email?: string | null
           empresa?: string | null
           etapa?: Database["public"]["Enums"]["etapa_funil"]
+          etapa_antes_ta?: Database["public"]["Enums"]["etapa_funil"] | null
           etapa_changed_at?: string | null
           high_ticket?: boolean | null
           id?: string

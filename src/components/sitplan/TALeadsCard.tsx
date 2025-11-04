@@ -90,9 +90,14 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
           </div>
           
           <div className="flex items-center gap-2 flex-wrap text-xs">
-            <Badge className={`text-white ${getEtapaColor(lead.etapa)}`}>
-              {lead.etapa}
+            <Badge className={`text-white ${getEtapaColor(lead.etapa === 'TA' && lead.etapa_antes_ta ? lead.etapa_antes_ta : lead.etapa)}`}>
+              {lead.etapa === 'TA' && lead.etapa_antes_ta ? lead.etapa_antes_ta : lead.etapa}
             </Badge>
+            {lead.etapa === 'TA' && lead.etapa_antes_ta && (
+              <Badge className="text-white bg-purple-600">
+                TA
+              </Badge>
+            )}
             
             {lead.telefone && (
               <div className="flex items-center gap-1 text-muted-foreground">

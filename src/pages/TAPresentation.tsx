@@ -65,7 +65,8 @@ export default function TAPresentation() {
       } else {
         // Filtros normais (não exclusivos)
         if (filterEtapa) {
-          query = query.eq("etapa", filterEtapa as any);
+          // Buscar leads pela etapa original (etapa_antes_ta) quando estão em TA
+          query = query.or(`etapa.eq.${filterEtapa},and(etapa.eq.TA,etapa_antes_ta.eq.${filterEtapa})`);
         }
         if (filterProfissao) {
           query = query.eq("profissao", filterProfissao);

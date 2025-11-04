@@ -147,7 +147,10 @@ export default function TACategories() {
   const leadsByEtapa = leads
     .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'etapa')
     .reduce((acc, lead) => {
-      const etapa = lead.etapa || "Sem Etapa";
+      // Usar etapa_antes_ta se o lead está em TA, senão usar etapa atual
+      const etapa = (lead.etapa === 'TA' && lead.etapa_antes_ta) 
+        ? lead.etapa_antes_ta 
+        : (lead.etapa || "Sem Etapa");
       if (!acc[etapa]) {
         acc[etapa] = [];
       }
