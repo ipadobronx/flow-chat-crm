@@ -175,7 +175,9 @@ export function TALeadsCard() {
 
   // Extrair dados únicos para configuração de hierarquia
   const availableProfissoes = [...new Set(leads.map(lead => lead.profissao).filter(Boolean))] as string[];
-  const availableEtapas = [...new Set(leads.map(lead => lead.etapa))] as string[];
+    const availableEtapas = [...new Set(leads.map(lead => 
+      (lead.etapa === 'TA' && lead.etapa_antes_ta) ? lead.etapa_antes_ta : lead.etapa
+    ))].filter(Boolean) as string[];
 
   useEffect(() => {
     let sortedLeads = [...(leads ?? [])];
