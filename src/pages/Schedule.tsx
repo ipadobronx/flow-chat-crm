@@ -49,6 +49,7 @@ export default function Schedule() {
         observacoes: agendamento.observacoes,
         synced_with_google: agendamento.synced_with_google || false,
         status: agendamento.status,
+        lead_etapa: lead.etapa,
       };
 
       if (!dataMap.has(dateKey)) {

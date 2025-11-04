@@ -35,6 +35,7 @@ export interface CalendarEvent {
   observacoes?: string | null;
   synced_with_google: boolean;
   status: string;
+  lead_etapa?: string;
 }
 
 export interface CalendarData {
@@ -56,6 +57,25 @@ const colStartClasses = [
   "col-start-6",
   "col-start-7",
 ];
+
+// Cores por etapa do funil
+const etapaColors: Record<string, string> = {
+  'Novo': 'bg-blue-500/20 text-blue-700 border-blue-500',
+  'Ligar Depois': 'bg-yellow-500/20 text-yellow-700 border-yellow-500',
+  'Tentativa': 'bg-orange-500/20 text-orange-700 border-orange-500',
+  'OI': 'bg-purple-500/20 text-purple-700 border-purple-500',
+  'Delay OI': 'bg-purple-400/20 text-purple-600 border-purple-400',
+  'PC': 'bg-emerald-500/20 text-emerald-700 border-emerald-500',
+  'Delay PC': 'bg-emerald-400/20 text-emerald-600 border-emerald-400',
+  'N': 'bg-gray-500/20 text-gray-700 border-gray-500',
+  'Não': 'bg-red-500/20 text-red-700 border-red-500',
+  'Apólice Emitida': 'bg-green-600/20 text-green-800 border-green-600',
+};
+
+const getEtapaBadgeColor = (etapa?: string) => {
+  if (!etapa) return 'bg-gray-500/20 text-gray-700 border-gray-500';
+  return etapaColors[etapa] || 'bg-gray-500/20 text-gray-700 border-gray-500';
+};
 
 export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarProps) {
   const today = startOfToday();
@@ -260,9 +280,22 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                                 <p className="font-semibold leading-none flex-1 truncate text-foreground">
                                   {event.lead_nome}
                                 </p>
-                                {event.synced_with_google && (
-                                  <CalendarIcon className="h-3 w-3 text-emerald-600 flex-shrink-0" />
-                                )}
+                                <div className="flex items-center gap-1">
+                                  {event.lead_etapa && (
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(
+                                        "text-[10px] px-1 py-0 h-4 border",
+                                        getEtapaBadgeColor(event.lead_etapa)
+                                      )}
+                                    >
+                                      {event.lead_etapa}
+                                    </Badge>
+                                  )}
+                                  {event.synced_with_google && (
+                                    <CalendarIcon className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                                  )}
+                                </div>
                               </div>
                               <p className="leading-none text-muted-foreground font-medium">
                                 {event.horario}
@@ -400,6 +433,17 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold">{event.lead_nome}</p>
+                          {event.lead_etapa && (
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                "text-xs border",
+                                getEtapaBadgeColor(event.lead_etapa)
+                              )}
+                            >
+                              {event.lead_etapa}
+                            </Badge>
+                          )}
                           {event.synced_with_google && (
                             <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
                               <CalendarIcon className="h-3 w-3" />
@@ -452,6 +496,17 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{event.lead_nome}</p>
+                    {event.lead_etapa && (
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs border",
+                          getEtapaBadgeColor(event.lead_etapa)
+                        )}
+                      >
+                        {event.lead_etapa}
+                      </Badge>
+                    )}
                     {event.synced_with_google && (
                       <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
                         <CalendarIcon className="h-3 w-3" />

@@ -40,6 +40,36 @@ export default function TAPresentation() {
 
   const { recordTAAction } = useTAActions();
 
+  // Buscar agendamentos existentes para a data selecionada
+  const { data: agendamentosExistentes = [] } = useQuery({
+    queryKey: ['agendamentos-data', agendamentoDate?.toISOString()],
+    queryFn: async () => {
+      if (!agendamentoDate) return [];
+      
+      const startOfDay = new Date(agendamentoDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(agendamentoDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const { data } = await supabase
+        .from('agendamentos_ligacoes')
+        .select('data_agendamento')
+        .gte('data_agendamento', startOfDay.toISOString())
+        .lte('data_agendamento', endOfDay.toISOString())
+        .eq('status', 'pendente');
+      
+      return data || [];
+    },
+    enabled: !!agendamentoDate
+  });
+
+  // Extrair horários ocupados
+  const horariosOcupados = agendamentosExistentes.map(ag => {
+    const date = new Date(ag.data_agendamento);
+    return format(date, 'HH:mm');
+  });
+
   // Carregar leads selecionados para TA do banco de dados
   const { data: allLeads = [], isLoading, refetch } = useQuery({
     queryKey: ["ta-leads", filterEtapa, filterProfissao, isExclusivo],
@@ -532,12 +562,25 @@ export default function TAPresentation() {
                             "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
                             "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
                             "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-                            "17:00", "17:30", "18:00"
-                          ].map((time) => (
-                            <option key={time} value={time} className="bg-gray-900 text-white">
-                              {time}
-                            </option>
-                          ))}
+                            "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+                            "20:00", "20:30", "21:00", "21:30", "22:00", "22:30",
+                            "23:00", "23:30", "00:00"
+                          ].map((time) => {
+                            const isOcupado = horariosOcupados.includes(time);
+                            return (
+                              <option 
+                                key={time} 
+                                value={time} 
+                                disabled={isOcupado}
+                                className={cn(
+                                  "bg-gray-900",
+                                  isOcupado ? "text-gray-500 cursor-not-allowed" : "text-white"
+                                )}
+                              >
+                                {time} {isOcupado ? "(Ocupado)" : ""}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     </div>
