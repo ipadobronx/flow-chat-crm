@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -248,6 +248,38 @@ export default function Pipeline() {
   const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
   const [horarioAgendamento, setHorarioAgendamento] = useState<string>("");
   const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
+
+  // Buscar agendamento mais recente para o lead selecionado
+  const { data: agendamentoMaisRecente } = useQuery({
+    queryKey: ['agendamento-lead', selectedLead?.id],
+    queryFn: async () => {
+      if (!selectedLead?.id) return null;
+      
+      const { data } = await supabase
+        .from('agendamentos_ligacoes')
+        .select('data_agendamento, id')
+        .eq('lead_id', selectedLead.id)
+        .eq('status', 'pendente')
+        .order('data_agendamento', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      return data;
+    },
+    enabled: !!selectedLead?.id
+  });
+
+  // Preencher campo de agendamento automaticamente quando houver agendamento existente
+  useEffect(() => {
+    if (agendamentoMaisRecente && selectedLead && !editingLead?.data_callback) {
+      const dataAgendamento = new Date(agendamentoMaisRecente.data_agendamento);
+      setEditingLead({
+        ...selectedLead,
+        data_callback: dataAgendamento.toISOString(),
+        hora_callback: format(dataAgendamento, 'HH:mm')
+      });
+    }
+  }, [agendamentoMaisRecente, selectedLead, editingLead]);
 
   // Multi-select functionality
   const multiSelect = useMultiSelect({
@@ -593,34 +625,74 @@ export default function Pipeline() {
 
       if (error) throw error;
 
-      // Sincronizar agendamento com Google Calendar (se data foi preenchida)
-      if (editingLead.data_callback) {
+      // Se a etapa mudou, registrar no histórico
+      if (editingLead.etapa !== selectedLead.etapa) {
+        await supabase
+          .from("historico_etapas_funil")
+          .insert({
+            lead_id: selectedLead.id,
+            user_id: user.id,
+            etapa_anterior: selectedLead.etapa,
+            etapa_nova: editingLead.etapa,
+            observacoes: editingLead.observacoes
+          });
+      }
+
+      // Sincronizar agendamento com Google Calendar (se data foi preenchida ou modificada)
+      if (editingLead.data_callback && editingLead.data_callback !== selectedLead.data_callback) {
         try {
           const dataAgendamento = new Date(editingLead.data_callback);
-          const wasSynced = await syncCalendarEvent({
-            leadId: selectedLead!.id,
-            leadNome: selectedLead!.nome,
-            dataAgendamento,
-            observacoes: editingLead.observacoes,
-            tipo: 'callback'
-          });
+          
+          // Verificar se já existe agendamento pendente para este lead
+          const { data: agendamentoExistente } = await supabase
+            .from('agendamentos_ligacoes')
+            .select('id')
+            .eq('lead_id', selectedLead.id)
+            .eq('status', 'pendente')
+            .maybeSingle();
 
-          if (wasSynced) {
+          if (agendamentoExistente) {
+            // Atualizar agendamento existente
+            await supabase
+              .from('agendamentos_ligacoes')
+              .update({
+                data_agendamento: dataAgendamento.toISOString(),
+                observacoes: editingLead.observacoes,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', agendamentoExistente.id);
+            
             toast({
-              title: "✅ Salvo e sincronizado!",
-              description: "Lead atualizado e agendamento criado no Google Calendar.",
-            });
-          } else if (isConnected) {
-            toast({
-              title: "⚠️ Salvo (sincronização falhou)",
-              description: "Lead atualizado, mas houve erro ao sincronizar com Google Calendar.",
-              variant: "destructive"
+              title: "✅ Agendamento atualizado!",
+              description: "Agendamento existente foi atualizado.",
             });
           } else {
-            toast({
-              title: "✅ Lead atualizado!",
-              description: "Agendamento salvo localmente. Conecte o Google Calendar para sincronizar.",
+            // Criar novo agendamento
+            const wasSynced = await syncCalendarEvent({
+              leadId: selectedLead.id,
+              leadNome: selectedLead.nome,
+              dataAgendamento,
+              observacoes: editingLead.observacoes,
+              tipo: 'callback'
             });
+
+            if (wasSynced) {
+              toast({
+                title: "✅ Salvo e sincronizado!",
+                description: "Lead atualizado e agendamento criado no Google Calendar.",
+              });
+            } else if (isConnected) {
+              toast({
+                title: "⚠️ Salvo (sincronização falhou)",
+                description: "Lead atualizado, mas houve erro ao sincronizar com Google Calendar.",
+                variant: "destructive"
+              });
+            } else {
+              toast({
+                title: "✅ Lead atualizado!",
+                description: "Agendamento salvo localmente. Conecte o Google Calendar para sincronizar.",
+              });
+            }
           }
         } catch (syncError) {
           console.error('Erro ao sincronizar agendamento:', syncError);
@@ -630,17 +702,26 @@ export default function Pipeline() {
             variant: "destructive"
           });
         }
-      } else {
+      } else if (!editingLead.data_callback && editingLead.etapa === selectedLead.etapa) {
         toast({
           title: "✅ Lead atualizado!",
           description: "As alterações foram salvas com sucesso.",
         });
       }
 
-      // Atualizar estado local
-      setLeads(prev => prev.map(lead => 
-        lead.id === editingLead.id ? editingLead : lead
-       ));
+      // Atualizar estado local - se mudou de etapa, remover da lista atual
+      if (editingLead.etapa !== selectedLead.etapa) {
+        setLeads((prevLeads) => prevLeads.filter(lead => lead.id !== selectedLead.id));
+        toast({
+          title: "✅ Lead movido!",
+          description: `Lead movido para ${editingLead.etapa}.`,
+        });
+      } else {
+        // Apenas atualizar os dados do lead
+        setLeads(prev => prev.map(lead => 
+          lead.id === editingLead.id ? editingLead : lead
+        ));
+      }
 
        setSelectedLead(editingLead);
        
@@ -1228,10 +1309,15 @@ export default function Pipeline() {
                   </Select>
                 </div>
 
-                {/* Agendamento com Data + Hora */}
+                 {/* Agendamento com Data + Hora */}
                 <div className="space-y-3 border-l-4 border-primary/50 pl-4 py-2 bg-primary/5 rounded-r">
                   <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                     📅 Agendamento
+                    {agendamentoMaisRecente && (
+                      <Badge variant="secondary" className="text-xs">
+                        Criado no TA
+                      </Badge>
+                    )}
                   </Label>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

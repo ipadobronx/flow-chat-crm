@@ -223,6 +223,15 @@ export default function TAPresentation() {
         const dataCompleta = new Date(agendamentoDate);
         dataCompleta.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
+        // Atualizar o lead com data_callback para sincronizar com o popup
+        await supabase
+          .from("leads")
+          .update({
+            data_callback: dataCompleta.toISOString()
+          })
+          .eq("id", currentLead.id);
+
+        // Criar agendamento
         const { data: agendamentoData } = await supabase
           .from("agendamentos_ligacoes")
           .insert({
