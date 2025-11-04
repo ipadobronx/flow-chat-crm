@@ -54,17 +54,17 @@ import { globalRateLimiter } from "@/lib/validation";
 import { z } from "zod";
 
 const stages = [
-  { name: "Todos", color: "bg-blue-500" },
-  { name: "Novo", color: "bg-sky-500" },
-  { name: "Ligar Depois", color: "bg-yellow-600" },
-  { name: "Tentativa", color: "bg-red-600" },
-  { name: "OI", color: "bg-indigo-500" },
-  { name: "Delay OI", color: "bg-yellow-500" },
-  { name: "PC", color: "bg-orange-500" },
-  { name: "Delay PC", color: "bg-red-500" },
-  { name: "N", color: "bg-purple-500" },
-  { name: "Não", color: "bg-gray-500" },
-  { name: "Apólice Emitida", color: "bg-green-500" }
+  { name: "Todos", label: "Todos", color: "bg-blue-500" },
+  { name: "Novo", label: "Novo", color: "bg-sky-500" },
+  { name: "Ligar Depois", label: "Ligar Depois", color: "bg-yellow-600" },
+  { name: "Tentativa", label: "Não Atendido", color: "bg-red-600" },
+  { name: "OI", label: "OI", color: "bg-indigo-500" },
+  { name: "Delay OI", label: "Delay OI", color: "bg-yellow-500" },
+  { name: "PC", label: "PC", color: "bg-orange-500" },
+  { name: "Delay PC", label: "Delay PC", color: "bg-red-500" },
+  { name: "N", label: "N", color: "bg-purple-500" },
+  { name: "Não", label: "Não", color: "bg-gray-500" },
+  { name: "Apólice Emitida", label: "Apólice Emitida", color: "bg-green-500" }
 ] as const;
 
 type Lead = {
@@ -994,7 +994,7 @@ export default function Pipeline() {
                       <Card className="w-64 sm:w-72 lg:w-80 flex-shrink-0">
                         <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
                            <div className="flex items-center justify-between">
-                            <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.name}</CardTitle>
+                            <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.label}</CardTitle>
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                               
@@ -1293,7 +1293,7 @@ export default function Pipeline() {
                     <SelectContent>
                       {stages.map((stage) => (
                         <SelectItem key={stage.name} value={stage.name}>
-                          {stage.name}
+                          {stage.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
