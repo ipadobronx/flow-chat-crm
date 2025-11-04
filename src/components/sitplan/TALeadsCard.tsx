@@ -183,16 +183,18 @@ export function TALeadsCard() {
     // Aplicar hierarquia baseada na configuração avançada
     if (hierarchyConfig.enabledCategories.length > 0) {
       // Função para obter chave de agrupamento
-      const getGroupingKey = (lead: Lead) => {
-        const keys = hierarchyConfig.enabledCategories.map(category => {
-          if (category === 'profissao') {
-            return lead.profissao || 'Sem Profissão';
-          } else {
-            return lead.etapa;
-          }
-        });
-        return keys.join(' | ');
-      };
+  const getGroupingKey = (lead: Lead) => {
+    const keys = hierarchyConfig.enabledCategories.map(category => {
+      if (category === 'profissao') {
+        return lead.profissao || 'Sem Profissão';
+      } else {
+        return (lead.etapa === 'TA' && lead.etapa_antes_ta) 
+          ? lead.etapa_antes_ta 
+          : lead.etapa;
+      }
+    });
+    return keys.join(' | ');
+  };
 
       // Agrupar leads
       const grouped = sortedLeads.reduce((acc, lead) => {
@@ -502,19 +504,21 @@ export function TALeadsCard() {
                 }
                 
                 // Renderização com agrupamento por hierarquia avançada
-                const grouped = localLeads.reduce((acc, lead) => {
-                  const keys = hierarchyConfig.enabledCategories.map(category => {
-                    if (category === 'profissao') {
-                      return lead.profissao || 'Sem Profissão';
-                    } else {
-                      return lead.etapa;
-                    }
-                  });
-                  const key = keys.join(' | ');
-                  if (!acc[key]) acc[key] = [];
-                  acc[key].push(lead);
-                  return acc;
-                }, {} as Record<string, Lead[]>);
+            const grouped = localLeads.reduce((acc, lead) => {
+              const keys = hierarchyConfig.enabledCategories.map(category => {
+                if (category === 'profissao') {
+                  return lead.profissao || 'Sem Profissão';
+                } else {
+                  return (lead.etapa === 'TA' && lead.etapa_antes_ta) 
+                    ? lead.etapa_antes_ta 
+                    : lead.etapa;
+                }
+              });
+              const key = keys.join(' | ');
+              if (!acc[key]) acc[key] = [];
+              acc[key].push(lead);
+              return acc;
+            }, {} as Record<string, Lead[]>);
                 
                 return Object.entries(grouped).map(([groupKey, groupLeads]) => {
                   const keyParts = groupKey.split(' | ');
