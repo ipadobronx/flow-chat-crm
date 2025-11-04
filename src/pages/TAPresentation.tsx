@@ -6,6 +6,7 @@ import { ShineBorder } from "@/components/ui/shine-border";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -501,40 +502,30 @@ export default function TAPresentation() {
                     <div className="space-y-2">
                       <div>
                         <Label className="text-[#00FFF0] font-medium text-sm">
-                          {selectedEtapa === "OI" ? "Data do Agendamento" : "Data para Ligar"}
+                          {selectedEtapa === "OI" ? "Data do Agendamento *" : "Data para Ligar *"}
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full mt-1 justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20 h-9 text-sm",
-                                !agendamentoDate && "text-white/50"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione a data"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={agendamentoDate}
-                              onSelect={setAgendamentoDate}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <Input
+                          type="date"
+                          value={agendamentoDate ? format(agendamentoDate, "yyyy-MM-dd") : ""}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const [year, month, day] = e.target.value.split('-').map(Number);
+                              setAgendamentoDate(new Date(year, month - 1, day));
+                            } else {
+                              setAgendamentoDate(undefined);
+                            }
+                          }}
+                          min={format(new Date(), "yyyy-MM-dd")}
+                          className="w-full mt-1 h-10 border-2 rounded-lg transition-all duration-200 bg-white/10 border-white/20 text-white focus:border-[#00FFF0]/50"
+                        />
                       </div>
                       
                       <div>
-                        <Label className="text-[#00FFF0] font-medium text-sm">Horário</Label>
+                        <Label className="text-[#00FFF0] font-medium text-sm">Horário *</Label>
                         <select
                           value={agendamentoTime}
                           onChange={(e) => setAgendamentoTime(e.target.value)}
-                          className="w-full mt-1 rounded-md border border-white/20 bg-white/10 text-white px-3 py-2 text-sm"
+                          className="w-full mt-1 h-10 rounded-lg border-2 border-white/20 bg-white/10 text-white px-3 transition-all duration-200 focus:border-[#00FFF0]/50 text-sm"
                         >
                           <option value="">Selecione um horário</option>
                           {[
