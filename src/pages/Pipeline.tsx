@@ -45,6 +45,7 @@ import {
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { AgendarLigacao } from "@/components/agendamento/AgendarLigacao";
 import { Calendar } from "@/components/ui/calendar";
+import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
 import { useMultiSelect } from "@/hooks/useMultiSelect";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -81,7 +82,12 @@ type Lead = {
   empresa: string | null;
   valor: string | null;
   telefone: string | null;
+  celular_secundario: string | null;
+  email: string | null;
+  idade: number | null;
   profissao: string | null;
+  renda_estimada: string | null;
+  cidade: string | null;
   recomendante: string[] | null;
   etapa: Database["public"]["Enums"]["etapa_funil"];
   status: string | null;
@@ -352,7 +358,7 @@ export default function Pipeline() {
         console.log('🔄 Buscando leads do Pipeline...');
         const { data, error } = await supabase
           .from('leads')
-          .select('id, nome, empresa, valor, telefone, profissao, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan, dias_na_etapa_atual')
+          .select('id, nome, empresa, valor, telefone, celular_secundario, email, idade, profissao, renda_estimada, cidade, recomendante, etapa, status, data_callback, data_nascimento, high_ticket, casado, tem_filhos, quantidade_filhos, avisado, incluir_sitplan, observacoes, pa_estimado, data_sitplan, dias_na_etapa_atual')
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -1220,56 +1226,136 @@ export default function Pipeline() {
                   />
                 </div>
 
-                {/* Data de nascimento e Celular */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Data de Nascimento</Label>
-                    <Input 
-                      type="date" 
-                      value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
-                      onChange={(e) => {
-                        const updatedLead = { ...selectedLead, data_nascimento: e.target.value };
-                        setEditingLead(updatedLead);
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm text-muted-foreground">Celular</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input value={selectedLead.telefone || ""} readOnly className="flex-1" />
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          registrarLigacao(selectedLead.id, 'whatsapp');
-                          if (selectedLead.telefone) {
-                            const phoneNumber = selectedLead.telefone.replace(/\D/g, '');
-                            window.open(`https://wa.me/55${phoneNumber}`, '_blank');
-                          }
+                {/* Seção: Dados Pessoais */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground border-b pb-2">Dados Pessoais</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Celular Principal</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input value={selectedLead.telefone || ""} readOnly className="flex-1" />
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            registrarLigacao(selectedLead.id, 'whatsapp');
+                            if (selectedLead.telefone) {
+                              const phoneNumber = selectedLead.telefone.replace(/\D/g, '');
+                              window.open(`https://wa.me/55${phoneNumber}`, '_blank');
+                            }
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            registrarLigacao(selectedLead.id, 'telefone');
+                            if (selectedLead.telefone) {
+                              window.open(`tel:${selectedLead.telefone}`, '_self');
+                            }
+                          }}
+                        >
+                          <Phone className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Celular Secundário</Label>
+                      <Input 
+                        value={editingLead?.celular_secundario || selectedLead.celular_secundario || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, celular_secundario: e.target.value };
+                          setEditingLead(updatedLead);
                         }}
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          registrarLigacao(selectedLead.id, 'telefone');
-                          if (selectedLead.telefone) {
-                            window.open(`tel:${selectedLead.telefone}`, '_self');
-                          }
-                        }}
-                      >
-                        <Phone className="w-4 h-4" />
-                      </Button>
+                        placeholder="(11) 99999-9999"
+                      />
                     </div>
                   </div>
-                </div>
 
-                {/* Profissão */}
-                <div>
-                  <Label className="text-sm text-muted-foreground">Profissão</Label>
-                  <Input value={selectedLead.profissao || ""} readOnly />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Email</Label>
+                      <Input 
+                        type="email"
+                        value={editingLead?.email || selectedLead.email || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, email: e.target.value };
+                          setEditingLead(updatedLead);
+                        }}
+                        placeholder="email@exemplo.com"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Idade</Label>
+                      <Input 
+                        type="number"
+                        value={editingLead?.idade || selectedLead.idade || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, idade: parseInt(e.target.value) || null };
+                          setEditingLead(updatedLead);
+                        }}
+                        placeholder="30"
+                        min="0"
+                        max="120"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Data de Nascimento</Label>
+                      <Input 
+                        type="date" 
+                        value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, data_nascimento: e.target.value };
+                          setEditingLead(updatedLead);
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Profissão</Label>
+                      <ProfissaoCombobox
+                        value={editingLead?.profissao || selectedLead.profissao || ""}
+                        onValueChange={(value) => {
+                          const updatedLead = { ...selectedLead, profissao: value };
+                          setEditingLead(updatedLead);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Renda Estimada</Label>
+                      <Input 
+                        value={editingLead?.renda_estimada || selectedLead.renda_estimada || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, renda_estimada: e.target.value };
+                          setEditingLead(updatedLead);
+                        }}
+                        placeholder="R$ 5.000,00"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm text-muted-foreground">Cidade</Label>
+                      <Input 
+                        value={editingLead?.cidade || selectedLead.cidade || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...selectedLead, cidade: e.target.value };
+                          setEditingLead(updatedLead);
+                        }}
+                        placeholder="São Paulo - SP"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Campos Yes/No */}
@@ -1331,7 +1417,7 @@ export default function Pipeline() {
                         size="sm"
                         variant={editingLead?.tem_filhos === false || (!editingLead && !selectedLead.tem_filhos) ? "destructive" : "outline"}
                         onClick={() => {
-                          const updatedLead = { ...selectedLead, tem_filhos: false };
+                          const updatedLead = { ...selectedLead, tem_filhos: false, quantidade_filhos: null };
                           setEditingLead(updatedLead);
                         }}
                       >
@@ -1349,6 +1435,28 @@ export default function Pipeline() {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Campo condicional: Quantidade de Filhos */}
+                  {(editingLead?.tem_filhos || selectedLead.tem_filhos) && (
+                    <div className="flex items-center justify-between py-2 border-b bg-muted/30 px-3 rounded">
+                      <span className="text-sm text-muted-foreground">Quantidade de filhos</span>
+                      <Input 
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={editingLead?.quantidade_filhos || selectedLead.quantidade_filhos || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { 
+                            ...selectedLead, 
+                            quantidade_filhos: parseInt(e.target.value) || null 
+                          };
+                          setEditingLead(updatedLead);
+                        }}
+                        placeholder="Ex: 2"
+                        className="max-w-[100px]"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center justify-between py-2 border-b">
                     <span className="text-sm text-muted-foreground">Avisado</span>
                     <div className="flex space-x-2">

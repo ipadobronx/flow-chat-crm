@@ -36,6 +36,13 @@ export const updateLeadPartialSchema = z.object({
   ),
   observacoes: z.string().max(2000).optional().transform(sanitizeText),
   pa_estimado: z.string().max(100).optional().transform(sanitizeText),
+  celular_secundario: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  idade: z.number().int().min(0).max(120).optional().nullable(),
+  renda_estimada: z.string().max(50).optional().transform(sanitizeText),
+  cidade: z.string().max(100).optional().transform(sanitizeText),
+  profissao: z.string().max(100).optional().transform(sanitizeText),
+  quantidade_filhos: z.number().int().min(0).max(20).optional().nullable(),
   etapa: z.enum([
     'Todos', 'Novo', 'Ligar Depois', 'Tentativa', 'OI', 'Delay OI',
     'PC', 'Delay PC', 'N', 'Não', 'Apólice Emitida'
