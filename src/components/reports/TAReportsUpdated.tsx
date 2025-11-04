@@ -234,7 +234,7 @@ export function TAReportsUpdated() {
             {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
           </Button>
           <Badge variant="secondary" className="text-sm">
-            {dashboardData?.total_contactados || 0} contatos no período
+            {dashboardData?.total_contactados || 0} ações totais
           </Badge>
         </div>
       </div>
