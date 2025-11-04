@@ -14,6 +14,7 @@ import {
   globalRateLimiter 
 } from "@/lib/validation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -355,10 +356,9 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Profissão</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Profissão" 
-                              className="h-10 sm:h-11"
-                              {...field} 
+                            <ProfissaoCombobox
+                              value={field.value}
+                              onValueChange={field.onChange}
                             />
                           </FormControl>
                           <FormMessage />

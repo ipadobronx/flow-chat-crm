@@ -11,6 +11,46 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { sanitizeText, validateLeadName, validatePhoneNumber, validateEmail } from "@/lib/validation";
 
+// Função para normalizar profissões - espelha a lógica do banco
+const normalizarProfissao = (profissao: string): string => {
+  if (!profissao) return '';
+  
+  const p = profissao.trim().toLowerCase();
+  
+  // Mapeamento de profissões
+  if (['medico', 'médico', 'medica', 'médica'].includes(p)) return 'Médico(a)';
+  if (['empresario', 'empresário', 'empresaria', 'empresária', 'empreendedor', 'empreendedora'].includes(p)) return 'Empresário(a)';
+  if (['advogado', 'advogada'].includes(p)) return 'Advogado(a)';
+  if (['psicologo', 'psicólogo', 'psicologa', 'psicóloga'].includes(p)) return 'Psicólogo(a)';
+  if (['enfermeiro', 'enfermeira'].includes(p)) return 'Enfermeiro(a)';
+  if (['contador', 'contadora'].includes(p)) return 'Contador(a)';
+  if (p.includes('engenheir')) return 'Engenheiro(a)';
+  if (['arquiteto', 'arquiteta'].includes(p)) return 'Arquiteto(a)';
+  if (['bancario', 'bancário', 'bancaria', 'bancária'].includes(p)) return 'Bancário(a)';
+  if (['procurador', 'procuradora', 'procuradoria do estado'].includes(p)) return 'Procurador(a)';
+  if (['professor', 'professora'].includes(p)) return 'Professor(a)';
+  if (['fotografo', 'fotógrafo', 'fotografa', 'fotógrafa'].includes(p)) return 'Fotógrafo(a)';
+  if (['biologo', 'biólogo', 'biologa', 'bióloga'].includes(p)) return 'Biólogo(a)';
+  if (['fonoaudiologo', 'fonoaudiólogo', 'fonoaudiologa', 'fonoaudióloga'].includes(p)) return 'Fonoaudiólogo(a)';
+  if (['farmaceutico', 'farmacêutico', 'farmaceutica', 'farmacêutica'].includes(p)) return 'Farmacêutico(a)';
+  if (p.includes('servidor') || p.includes('funcionário público') || p.includes('funcionario publico')) return 'Servidor Público';
+  if (p.includes('corretor')) return 'Corretor(a) de Imóveis';
+  if (['administrador', 'administradora'].includes(p)) return 'Administrador(a)';
+  if (['dentista', 'cirurgião dentista', 'cirurgia dentista', 'cirurgiao dentista'].includes(p)) return 'Dentista';
+  if (['programador', 'programadora', 'desenvolvedor', 'desenvolvedora'].includes(p)) return 'Programador(a)';
+  if (p.includes('estudante')) return 'Estudante';
+  if (['vendedor', 'vendedora'].includes(p)) return 'Vendedor(a)';
+  if (['fisioterapeuta', 'fisioterapia'].includes(p)) return 'Fisioterapeuta';
+  if (['nutricionista', 'nutricao', 'nutrição'].includes(p)) return 'Nutricionista';
+  if (['personal trainer', 'personal', 'educador fisico', 'educador físico'].includes(p)) return 'Personal Trainer';
+  if (['economista', 'economia'].includes(p)) return 'Economista';
+  if (p.includes('marketing')) return 'Marketing';
+  if (['piloto', 'aviador', 'aviadora'].includes(p)) return 'Piloto';
+  if (p.includes('representante')) return 'Representante Comercial';
+  
+  return 'Outro';
+};
+
 interface ImportPreviewProps {
   data: ImportedData;
   mappings: FieldMapping[];
@@ -67,12 +107,14 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
         }
       }
 
+      // Normalizar profissão usando a mesma lógica do banco
+      if (row.profissao) {
+        row.profissao = normalizarProfissao(sanitizeText(row.profissao));
+      }
+
       // Sanitizar campos de texto
       if (row.observacoes) {
         row.observacoes = sanitizeText(row.observacoes);
-      }
-      if (row.profissao) {
-        row.profissao = sanitizeText(row.profissao);
       }
       if (row.cidade) {
         row.cidade = sanitizeText(row.cidade);

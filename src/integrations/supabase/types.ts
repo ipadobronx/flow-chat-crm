@@ -510,6 +510,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profissoes: {
+        Row: {
+          ativa: boolean | null
+          categoria: string | null
+          created_at: string | null
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativa?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativa?: boolean | null
+          categoria?: string | null
+          created_at?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       security_config: {
         Row: {
           config_key: string
@@ -1148,6 +1175,10 @@ export type Database = {
         Returns: boolean
       }
       move_old_tentativa_leads: { Args: never; Returns: undefined }
+      normalizar_profissao: {
+        Args: { profissao_antiga: string }
+        Returns: string
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       update_all_dias_na_etapa: { Args: never; Returns: undefined }
