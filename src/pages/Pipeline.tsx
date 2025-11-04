@@ -57,14 +57,14 @@ const stages = [
   { name: "Todos", label: "Todos", color: "bg-blue-500" },
   { name: "Novo", label: "Novo", color: "bg-sky-500" },
   { name: "Ligar Depois", label: "Ligar Depois", color: "bg-yellow-600" },
-  { name: "Tentativa", label: "Não Atendido", color: "bg-red-600" },
+  { name: "Não atendido", label: "Não Atendido", color: "bg-red-600" },
   { name: "OI", label: "OI", color: "bg-indigo-500" },
   { name: "Delay OI", label: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", label: "PC", color: "bg-orange-500" },
   { name: "Delay PC", label: "Delay PC", color: "bg-red-500" },
   { name: "N", label: "N", color: "bg-purple-500" },
-  { name: "Não", label: "Não", color: "bg-gray-500" },
-  { name: "Apólice Emitida", label: "Apólice Emitida", color: "bg-green-500" }
+  { name: "Apólice Emitida", label: "Apólice Emitida", color: "bg-green-500" },
+  { name: "Apólice Entregue", label: "Apólice Entregue", color: "bg-emerald-600" }
 ] as const;
 
 type Lead = {
