@@ -56,24 +56,15 @@ import { z } from "zod";
 const stages = [
   { name: "Todos", color: "bg-blue-500" },
   { name: "Novo", color: "bg-sky-500" },
-  { name: "TA", color: "bg-purple-600" },
-  { name: "Não atendido", color: "bg-red-600" },
   { name: "Ligar Depois", color: "bg-yellow-600" },
-  { name: "Marcar", color: "bg-green-600" },
+  { name: "Tentativa", color: "bg-red-600" },
   { name: "OI", color: "bg-indigo-500" },
   { name: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", color: "bg-orange-500" },
   { name: "Delay PC", color: "bg-red-500" },
-  { name: "Analisando Proposta", color: "bg-orange-600" },
   { name: "N", color: "bg-purple-500" },
-  { name: "Proposta Não Apresentada", color: "bg-gray-600" },
-  { name: "Pendência de UW", color: "bg-yellow-700" },
-  { name: "Apólice Emitida", color: "bg-green-500" },
-  { name: "Apólice Entregue", color: "bg-emerald-500" },
-  { name: "Delay C2", color: "bg-cyan-500" },
   { name: "Não", color: "bg-gray-500" },
-  { name: "Proposta Cancelada", color: "bg-red-600" },
-  { name: "Apólice Cancelada", color: "bg-red-700" }
+  { name: "Apólice Emitida", color: "bg-green-500" }
 ] as const;
 
 type Lead = {
