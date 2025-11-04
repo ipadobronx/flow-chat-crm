@@ -185,8 +185,8 @@ export default function TAPresentation() {
           origem: 'ta'
         });
 
-      // Se for "Ligar Depois" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
-      if (selectedEtapa === "Ligar Depois" && agendamentoDate && agendamentoTime) {
+      // Se for "Ligar Depois" ou "OI" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
+      if ((selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && agendamentoDate && agendamentoTime) {
         // Combinar data e horário
         const [hours, minutes] = agendamentoTime.split(':');
         const dataCompleta = new Date(agendamentoDate);
@@ -496,11 +496,13 @@ export default function TAPresentation() {
                     />
                   </div>
 
-                  {/* Agendamento para Ligar Depois */}
-                  {selectedEtapa === "Ligar Depois" && (
+                  {/* Agendamento para Ligar Depois e OI */}
+                  {(selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (
                     <div className="space-y-2">
                       <div>
-                        <Label className="text-[#00FFF0] font-medium text-sm">Data para Ligar</Label>
+                        <Label className="text-[#00FFF0] font-medium text-sm">
+                          {selectedEtapa === "OI" ? "Data do Agendamento" : "Data para Ligar"}
+                        </Label>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
@@ -554,7 +556,10 @@ export default function TAPresentation() {
                 {/* Botão de Salvar */}
                 <Button
                   onClick={saveAndNext}
-                  disabled={!selectedEtapa || (selectedEtapa === "Ligar Depois" && (!agendamentoDate || !agendamentoTime))}
+                  disabled={
+                    !selectedEtapa || 
+                    ((selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (!agendamentoDate || !agendamentoTime))
+                  }
                   className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                 >
                   <Save className="mr-2 h-5 w-5" />
