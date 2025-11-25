@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import { CalendarIcon, Clock, Calendar as CalendarGoogleIcon } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -162,7 +162,7 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
 
           <div className="space-y-2">
             <Label>Observações (opcional)</Label>
-            <Textarea
+            <LiquidGlassTextarea
               placeholder="Observações sobre a ligação..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -182,7 +182,7 @@ export default function Auth() {
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-300">Email</Label>
-                  <Input
+                  <LiquidGlassInput
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
@@ -194,7 +194,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-gray-300">Senha</Label>
-                  <Input
+                  <LiquidGlassInput
                     id="password"
                     type="password"
                     placeholder="Sua senha"
@@ -219,7 +219,7 @@ export default function Auth() {
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email" className="text-gray-300">Email</Label>
-                  <Input
+                  <LiquidGlassInput
                     id="signup-email"
                     type="email"
                     placeholder="seu@email.com"
@@ -231,7 +231,7 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-gray-300">Senha</Label>
-                  <Input
+                  <LiquidGlassInput
                     id="signup-password"
                     type="password"
                     placeholder="Crie uma senha"

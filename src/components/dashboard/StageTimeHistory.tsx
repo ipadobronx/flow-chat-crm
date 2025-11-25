@@ -103,21 +103,24 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle>Histórico de Tempo em Etapas</CardTitle>
+          <CardTitle className="font-inter font-normal tracking-tighter">Histórico de Tempo em Etapas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">Carregando...</div>
+          <div className="py-2">
+            <GlassProgressBar progress={60} />
+            <div className="mt-2 text-center text-sm text-black">Carregando...</div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="font-inter font-normal tracking-tighter">
           Histórico de Tempo em Etapas
           {records.length > 0 && (
             <Badge variant="secondary" className="ml-2">
@@ -128,13 +131,13 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
       </CardHeader>
       <CardContent>
         {records.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-8 text-black">
             Nenhum histórico de tempo encontrado.
           </div>
         ) : (
           <div className="space-y-4">
             {records.map((record) => (
-              <div key={record.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={record.id} className="flex items-center justify-between p-3 rounded-2xl border border-border/20 bg-white/30 dark:bg-white/10 backdrop-blur-md">
                 <div className="flex-1">
                   {showLeadName && (
                     <div className="font-medium text-sm mb-1">{record.lead_nome}</div>
@@ -149,7 +152,7 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
+                  <div className="text-xs text-black mt-1">
                     Entrada: {formatDistanceToNow(new Date(record.data_entrada), { 
                       addSuffix: true, 
                       locale: ptBR 
@@ -172,3 +175,4 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
     </Card>
   );
 }
+import GlassProgressBar from "@/components/ui/glass-progress-bar";

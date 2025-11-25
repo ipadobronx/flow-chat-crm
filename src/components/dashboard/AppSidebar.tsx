@@ -115,27 +115,36 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs sm:text-sm">Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive(item.url)} 
-                    tooltip={isCollapsed ? item.title : undefined}
-                  >
-                    <NavLink to={item.url} className="flex items-center space-x-2 sm:space-x-3 px-2 sm:px-3 py-2 rounded-lg transition-colors">
-                      <item.icon className="w-4 h-4 flex-shrink-0" />
-                      {!isCollapsed && (
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs sm:text-sm font-medium truncate">{item.title}</div>
-                          <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                        </div>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <div className="flex flex-col space-y-1 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-xl w-full">
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive(item.url)} 
+                      tooltip={isCollapsed ? item.title : undefined}
+                    >
+                      <NavLink
+                        to={item.url}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-inter tracking-tighter transition-all duration-300 hover:scale-105 active:scale-95 ${
+                          isActive(item.url)
+                            ? "bg-white/30 backdrop-blur-md text-foreground shadow-lg"
+                            : "text-muted-foreground hover:bg-white/10"
+                        }`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!isCollapsed && (
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate">{item.title}</div>
+                            <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                          </div>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

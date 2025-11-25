@@ -1,6 +1,6 @@
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+ 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -15,21 +15,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import OutlineButton from "@/components/ui/outline-button";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
+import CheckedSwitch from "@/components/ui/checked-switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
-import { format } from "date-fns";
+import { format, addDays, startOfWeek } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   DndContext, 
   closestCenter, 
@@ -44,6 +46,8 @@ import {
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { Calendar } from "@/components/ui/calendar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import GlassProgressBar from "@/components/ui/glass-progress-bar";
 import { useCalendarSync } from "@/hooks/useCalendarSync";
 import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { StageTimeHistory } from "@/components/dashboard/StageTimeHistory";
@@ -229,7 +233,14 @@ export default function Pipeline() {
   const [editingLigacao, setEditingLigacao] = useState<string | null>(null);
   const [ligacaoParaExcluir, setLigacaoParaExcluir] = useState<any | null>(null);
   const [novoTipoLigacao, setNovoTipoLigacao] = useState<{ [key: string]: string }>({});
-  const [showOnlySitplan, setShowOnlySitplan] = useState(false);
+  const [showOnlySitplan, setShowOnlySitplan] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem("showOnlySitplan");
+      return stored ? JSON.parse(stored) : false;
+    } catch {
+      return false;
+    }
+  });
   const [isGlobalSelectionMode, setIsGlobalSelectionMode] = useState(false);
   const [stageToInclude, setStageToInclude] = useState<string | null>(null);
   
@@ -271,6 +282,21 @@ export default function Pipeline() {
       });
     }
   }, [agendamentoMaisRecente, selectedLead, editingLead]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("showOnlySitplan", JSON.stringify(showOnlySitplan));
+    } catch {}
+  }, [showOnlySitplan]);
+
+  useEffect(() => {
+    const listener = (e: any) => {
+      const value = !!e.detail?.value;
+      setShowOnlySitplan(value);
+    };
+    window.addEventListener("sitplan-filter-toggle", listener);
+    return () => window.removeEventListener("sitplan-filter-toggle", listener);
+  }, []);
 
   // Multi-select functionality
   const multiSelect = useMultiSelect({
@@ -947,31 +973,7 @@ export default function Pipeline() {
   return (
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 h-full flex flex-col">
-        <div className="flex-shrink-0 space-y-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">Sales Pipeline</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">Kanban board for lead management</p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              <Label className="text-sm">Mostrar apenas leads do SitPlan</Label>
-              <Switch
-                checked={showOnlySitplan}
-                onCheckedChange={(checked) => {
-                  setShowOnlySitplan(checked);
-                  if (checked) {
-                    console.log('🔍 Filtro SitPlan ativado - mostrando apenas leads com incluir_sitplan = true');
-                    const sitplanLeads = leads.filter(lead => lead.incluir_sitplan);
-                    console.log(`📊 Total de leads marcados para SitPlan: ${sitplanLeads.length}`, 
-                      sitplanLeads.map(lead => ({ nome: lead.nome, etapa: lead.etapa })));
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        
 
         <div className="flex-1 overflow-hidden relative">
           <DndContext
@@ -981,7 +983,12 @@ export default function Pipeline() {
             onDragEnd={handleDragEnd}
           >
             {loading ? (
-              <div className="text-center py-8">Carregando leads...</div>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-80">
+                  <GlassProgressBar progress={70} />
+                  <div className="mt-2 text-center text-sm text-muted-foreground">Carregando leads...</div>
+                </div>
+              </div>
             ) : (
             <div className="overflow-x-auto pb-4">
               <div className="flex gap-2 sm:gap-4 min-w-max">
@@ -991,54 +998,47 @@ export default function Pipeline() {
                   
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
-                      <Card className="w-64 sm:w-72 lg:w-80 flex-shrink-0">
-                        <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
-                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-xs sm:text-sm font-medium truncate">{stage.label}</CardTitle>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
-                              
-                              {/* Botões minimalistas estilo Safari */}
-                              {stageLeads.length > 0 && (
-                                <div className="flex gap-1.5">
-                                  {/* Botão verde - Enviar todos os leads da etapa */}
-                                  <Button
-                                    size="sm"
-                                    className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
-                                    onClick={() => setStageToInclude(stage.name)}
-                                    title="Enviar toda a etapa para o SitPlan"
-                                  >
-                                    <Users className="h-3 w-3" />
-                                  </Button>
-                                  
-                                  {/* Botão azul - Ativar modo de seleção */}
-                                  <Button
-                                    size="sm"
-                                    className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
-                                      isGlobalSelectionMode 
-                                        ? "bg-blue-600 text-white" 
-                                        : "bg-blue-500 hover:bg-blue-600 text-white"
-                                    }`}
-                                    onClick={() => {
-                                      if (isGlobalSelectionMode) {
-                                        multiSelect.clearSelections();
-                                        setIsGlobalSelectionMode(false);
-                                      } else {
-                                        setIsGlobalSelectionMode(true);
-                                        multiSelect.clearSelections();
-                                      }
-                                    }}
-                                    title="Selecionar leads de todas as etapas"
-                                  >
-                                    <CheckSquare className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
+                      <div className="w-64 sm:w-72 lg:w-80 flex-shrink-0 rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-white/5">
+                        <div className="flex flex-col space-y-1.5 p-6">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter truncate">{stage.label}</h3>
+                            <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
-                        </CardHeader>
-                        <CardContent className="space-y-2 sm:space-y-3 h-[400px] sm:h-[500px] lg:h-[600px] overflow-y-auto px-3 sm:px-6">
+                          {stageLeads.length > 0 && (
+                            <div className="flex gap-1.5">
+                              <Button
+                                size="sm"
+                                className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                                onClick={() => setStageToInclude(stage.name)}
+                                title="Enviar toda a etapa para o SitPlan"
+                              >
+                                <Users className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
+                                  isGlobalSelectionMode 
+                                    ? "bg-blue-600 text-white" 
+                                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                                }`}
+                                onClick={() => {
+                                  if (isGlobalSelectionMode) {
+                                    multiSelect.clearSelections();
+                                    setIsGlobalSelectionMode(false);
+                                  } else {
+                                    setIsGlobalSelectionMode(true);
+                                    multiSelect.clearSelections();
+                                  }
+                                }}
+                                title="Selecionar leads de todas as etapas"
+                              >
+                                <CheckSquare className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-6 pt-0 space-y-2 sm:space-y-3 h-[400px] sm:h-[500px] lg:h-[600px] overflow-y-auto">
                           {stageLeads.map((lead) => (
                             <DraggableLeadCard
                               key={lead.id}
@@ -1055,8 +1055,8 @@ export default function Pipeline() {
                               Nenhum lead nesta etapa
                             </div>
                           )}
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     </DroppableColumn>
                   );
                 })}
@@ -1110,7 +1110,7 @@ export default function Pipeline() {
                   <Button
                     size="sm"
                     onClick={multiSelect.confirmSelection}
-                    className="bg-primary hover:bg-primary/90 shadow-md h-8"
+                    className="h-8 rounded-full px-4 font-inter font-light bg-black text-white hover:bg-black/80 transition-colors"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Incluir ({multiSelect.selectedCount})
@@ -1123,23 +1123,23 @@ export default function Pipeline() {
 
         {/* Confirmation Dialog for sending all stage leads */}
         <AlertDialog open={!!stageToInclude} onOpenChange={() => setStageToInclude(null)}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Inclusão da Etapa</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="font-inter font-normal tracking-tighter text-lg sm:text-xl">Confirmar Inclusão da Etapa</AlertDialogTitle>
+              <AlertDialogDescription className="text-sm text-gray-500">
                 Tem certeza que deseja incluir todos os {getLeadsByStage(stageToInclude || '').length} leads da etapa "{stageToInclude}" no SitPlan?
                 Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel className="w-full sm:w-auto rounded-full px-6 py-3 font-inter font-light bg-transparent border border-border/30 text-foreground hover:bg-white/10 transition-colors">Cancelar</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   if (stageToInclude) {
                     handleIncludeAllStage(stageToInclude);
                   }
                 }}
-                className="bg-green-600 text-white hover:bg-green-700"
+                className="w-full sm:w-auto rounded-full px-6 py-3 font-inter font-light bg-black text-white hover:bg-black/80 transition-colors"
               >
                 Incluir Todos
               </AlertDialogAction>
@@ -1152,27 +1152,23 @@ export default function Pipeline() {
           setSelectedLead(null);
           setEditingLead(null);
         }}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-            <DialogHeader className="space-y-2 sm:space-y-3">
-              <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                <Avatar className="w-8 h-8 sm:w-10 sm:h-10 mx-auto sm:mx-0">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedLead?.nome}`} />
-                  <AvatarFallback className="text-xs sm:text-sm">{selectedLead?.nome?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div className="text-center sm:text-left">
-                  <p className="text-base sm:text-lg font-semibold">👤 {selectedLead?.nome}</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Recomendação</p>
-                </div>
-              </DialogTitle>
-            </DialogHeader>
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
+              <ScrollArea className="max-h-[80vh] w-full">
+              <div className="p-4 sm:p-6">
+              <DialogHeader className="space-y-2 sm:space-y-3">
+                <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+                  <div className="text-center sm:text-left">
+                    <p className="text-lg sm:text-xl font-inter font-normal tracking-tighter">{selectedLead?.nome}</p>
+                    <p className="text-sm sm:text-base text-black font-inter tracking-tighter">Recomendação</p>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
 
             {selectedLead && (
               <div className="space-y-4 sm:space-y-6">
                 {/* Botões de ação */}
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2">
-                  <Button 
-                    size="sm" 
-                    className="bg-[#25D366] hover:bg-[#20BA5A] w-full sm:w-auto text-white"
+                  <OutlineButton
                     onClick={() => {
                       registrarLigacao(selectedLead.id, 'whatsapp');
                       if (selectedLead.telefone) {
@@ -1180,15 +1176,14 @@ export default function Pipeline() {
                         window.open(`https://wa.me/55${phoneNumber}`, '_blank');
                       }
                     }}
+                    className="w-full sm:w-auto bg-[#25D366] text-white border-transparent hover:bg-[#20BA5A] hover:border-transparent"
                   >
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                     </svg>
-                    WhatsApp
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                    <span className="ml-2">WhatsApp</span>
+                  </OutlineButton>
+                  <OutlineButton
                     className="w-full sm:w-auto"
                     onClick={async (e) => {
                       e.preventDefault();
@@ -1255,19 +1250,19 @@ export default function Pipeline() {
                       }
                     }}
                   >
-                    <ArrowRight className="w-4 h-4 mr-2" />
-                    Incluir no Próximo Sit Plan
-                  </Button>
+                    <ArrowRight className="w-4 h-4" />
+                    <span className="ml-2">Incluir no Próximo Sit Plan</span>
+                  </OutlineButton>
                 </div>
 
                 {/* Informações básicas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm text-muted-foreground">Nome</Label>
+                  <Label className="text-sm text-black">Nome</Label>
                     <p className="font-medium">{selectedLead.nome}</p>
                   </div>
                   <div>
-                    <Label className="text-sm text-muted-foreground">Recomendante(s)</Label>
+                  <Label className="text-sm text-black">Recomendante(s)</Label>
                     <p className="font-medium">
                       {selectedLead.recomendante && selectedLead.recomendante.length > 0 
                         ? selectedLead.recomendante.join(', ')
@@ -1279,7 +1274,7 @@ export default function Pipeline() {
 
                 {/* Etapa Funil */}
                 <div>
-                  <Label className="text-sm text-muted-foreground">Etapa Funil *</Label>
+                  <Label className="text-sm text-black">Etapa Funil *</Label>
                   <Select 
                     value={editingLead?.etapa || selectedLead.etapa}
                     onValueChange={(value) => {
@@ -1287,7 +1282,7 @@ export default function Pipeline() {
                       setEditingLead(updatedLead);
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1301,81 +1296,130 @@ export default function Pipeline() {
                 </div>
 
                  {/* Agendamento com Data + Hora */}
-                <div className="space-y-3 border-l-4 border-primary/50 pl-4 py-2 bg-primary/5 rounded-r">
-                  <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                    📅 Agendamento
-                    {agendamentoMaisRecente && (
-                      <Badge variant="secondary" className="text-xs">
-                        Criado no TA
-                      </Badge>
-                    )}
-                  </Label>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Data</Label>
-                      <Input 
-                        type="date" 
-                        value={editingLead?.data_callback?.split('T')[0] || selectedLead.data_callback?.split('T')[0] || ""}
-                        onChange={(e) => {
-                          const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || "09:00";
-                          const updatedLead = { 
-                            ...(editingLead || selectedLead), 
-                            data_callback: e.target.value ? `${e.target.value}T${currentTime}:00` : null,
-                            hora_callback: currentTime
-                          };
-                          setEditingLead(updatedLead);
-                        }}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300">
+                  <div className="flex items-center justify-between p-6">
+                    <div className="flex flex-col space-y-1.5">
+                      <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter">Agendamento</h3>
+                      <p className="text-sm text-black">Selecione a data e horário</p>
                     </div>
-                    
+                    {agendamentoMaisRecente && (
+                      <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
+                    )}
+                  </div>
+                  <div className="p-6 pt-0 space-y-4">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Horário</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {Array.from({ length: 6 }).map((_, idx) => {
+                          const dayDate = addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), idx + 1);
+                          const dayNum = format(dayDate, 'd');
+                          const weekLabelRaw = format(dayDate, 'EEE', { locale: ptBR });
+                          const weekLabel = weekLabelRaw.charAt(0).toUpperCase() + weekLabelRaw.slice(1);
+                          const isSelected = (editingLead?.data_callback || selectedLead.data_callback)?.startsWith(format(dayDate, 'yyyy-MM-dd'));
+                          return (
+                            <div
+                              key={`${dayNum}-${weekLabel}`}
+                              className={`text-center p-3 rounded-2xl ${isSelected ? 'bg-black text-white' : 'bg-white/50 text-black/60'}`}
+                              onClick={() => {
+                                const dateStr = format(dayDate, 'yyyy-MM-dd');
+                                const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                                const updatedLead = {
+                                  ...(editingLead || selectedLead),
+                                  data_callback: `${dateStr}T${currentTime}:00`,
+                                  hora_callback: currentTime,
+                                };
+                                setEditingLead(updatedLead);
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <div className="font-medium">{dayNum}</div>
+                              <div className="text-xs font-light mt-1">{weekLabel}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-end mt-4">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className="rounded-full p-2 bg-white/20 backdrop-blur-md border border-white/30 text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl active:scale-95"
+                              aria-label="Abrir calendário"
+                            >
+                              <CalendarIcon className="w-4 h-4" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
+                              onSelect={(date) => {
+                                if (!date) return;
+                                const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                                const dateStr = format(date, 'yyyy-MM-dd');
+                                const updatedLead = {
+                                  ...(editingLead || selectedLead),
+                                  data_callback: `${dateStr}T${currentTime}:00`,
+                                  hora_callback: currentTime,
+                                };
+                                setEditingLead(updatedLead);
+                              }}
+                              locale={ptBR}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                              className="pointer-events-auto"
+                              classNames={{
+                                day_selected:
+                                  "bg-black text-white hover:bg-black hover:text-white focus:bg-black focus:text-white",
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-black">Horário</Label>
                       <select
-                        value={editingLead?.hora_callback || selectedLead.hora_callback || ""}
+                        value={editingLead?.hora_callback || selectedLead.hora_callback || ''}
                         onChange={(e) => {
-                          const currentDate = editingLead?.data_callback?.split('T')[0] || selectedLead.data_callback?.split('T')[0] || new Date().toISOString().split('T')[0];
-                          const updatedLead = { 
-                            ...(editingLead || selectedLead), 
+                          const currentDate = (editingLead?.data_callback || selectedLead.data_callback || new Date().toISOString()).split('T')[0];
+                          const updatedLead = {
+                            ...(editingLead || selectedLead),
                             data_callback: `${currentDate}T${e.target.value}:00`,
-                            hora_callback: e.target.value
+                            hora_callback: e.target.value,
                           };
                           setEditingLead(updatedLead);
                         }}
-                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15"
                       >
                         <option value="">Selecione</option>
                         {[
-                          "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-                          "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-                          "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-                          "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"
+                          '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+                          '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+                          '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+                          '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00',
                         ].map((time) => (
                           <option key={time} value={time}>{time}</option>
                         ))}
                       </select>
                     </div>
+                    {(editingLead?.data_callback || selectedLead.data_callback) && (
+                      <div className="flex items-center gap-2 text-xs text-black">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span>Será sincronizado com Google Calendar ao salvar</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Indicador de sincronização */}
-                  {(editingLead?.data_callback || selectedLead.data_callback) && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                      <span>Será sincronizado com Google Calendar ao salvar</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Seção: Dados Pessoais */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-muted-foreground border-b pb-2">Dados Pessoais</h3>
+                  <h3 className="text-sm font-semibold text-black border-b pb-2">Dados Pessoais</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Celular Principal</Label>
+                      <Label className="text-sm text-black">Celular Principal</Label>
                       <div className="flex items-center space-x-2">
-                        <Input value={selectedLead.telefone || ""} readOnly className="flex-1" />
+                        <LiquidGlassInput value={selectedLead.telefone || ""} readOnly className="flex-1" />
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -1386,6 +1430,7 @@ export default function Pipeline() {
                               window.open(`https://wa.me/55${phoneNumber}`, '_blank');
                             }
                           }}
+                          className="rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl active:scale-95"
                         >
                           <MessageSquare className="w-4 h-4" />
                         </Button>
@@ -1398,6 +1443,7 @@ export default function Pipeline() {
                               window.open(`tel:${selectedLead.telefone}`, '_self');
                             }
                           }}
+                          className="rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl active:scale-95"
                         >
                           <Phone className="w-4 h-4" />
                         </Button>
@@ -1405,8 +1451,8 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-muted-foreground">Celular Secundário</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Celular Secundário</Label>
+                      <LiquidGlassInput 
                         value={editingLead?.celular_secundario || selectedLead.celular_secundario || ""} 
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), celular_secundario: e.target.value };
@@ -1419,8 +1465,8 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Email</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Email</Label>
+                      <LiquidGlassInput 
                         type="email"
                         value={editingLead?.email || selectedLead.email || ""} 
                         onChange={(e) => {
@@ -1432,8 +1478,8 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-muted-foreground">Idade</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Idade</Label>
+                      <LiquidGlassInput 
                         type="number"
                         value={editingLead?.idade || selectedLead.idade || ""} 
                         onChange={(e) => {
@@ -1449,8 +1495,8 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Data de Nascimento</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Data de Nascimento</Label>
+                      <LiquidGlassInput 
                         type="date" 
                         value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
                         onChange={(e) => {
@@ -1461,7 +1507,7 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-muted-foreground">Profissão</Label>
+                      <Label className="text-sm text-black">Profissão</Label>
                       <ProfissaoCombobox
                         value={editingLead?.profissao || selectedLead.profissao || ""}
                         onValueChange={(value) => {
@@ -1474,8 +1520,8 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-muted-foreground">Renda Estimada</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Renda Estimada</Label>
+                      <LiquidGlassInput 
                         value={editingLead?.renda_estimada || selectedLead.renda_estimada || ""} 
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), renda_estimada: e.target.value };
@@ -1486,8 +1532,8 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-muted-foreground">Cidade</Label>
-                      <Input 
+                      <Label className="text-sm text-black">Cidade</Label>
+                      <LiquidGlassInput 
                         value={editingLead?.cidade || selectedLead.cidade || ""} 
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), cidade: e.target.value };
@@ -1502,86 +1548,41 @@ export default function Pipeline() {
                 {/* Campos Yes/No */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">HighTicket</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={editingLead?.high_ticket === false || (!editingLead && !selectedLead.high_ticket) ? "destructive" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), high_ticket: false };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ❌ Não
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={editingLead?.high_ticket === true || (!editingLead && selectedLead.high_ticket) ? "default" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), high_ticket: true };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                    </div>
+                    <span className="text-sm text-black">HighTicket</span>
+                    <CheckedSwitch
+                      checked={!!(editingLead?.high_ticket ?? selectedLead.high_ticket)}
+                      onChange={(value) => {
+                        const updatedLead = { ...(editingLead || selectedLead), high_ticket: value };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Casado(a)</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={editingLead?.casado === false || (!editingLead && !selectedLead.casado) ? "destructive" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), casado: false };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ❌ Não
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={editingLead?.casado === true || (!editingLead && selectedLead.casado) ? "default" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), casado: true };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                    </div>
+                    <span className="text-sm text-black">Casado(a)</span>
+                    <CheckedSwitch
+                      checked={!!(editingLead?.casado ?? selectedLead.casado)}
+                      onChange={(value) => {
+                        const updatedLead = { ...(editingLead || selectedLead), casado: value };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Filhos</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={editingLead?.tem_filhos === false || (!editingLead && !selectedLead.tem_filhos) ? "destructive" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), tem_filhos: false, quantidade_filhos: null };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ❌ Não
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={editingLead?.tem_filhos === true || (!editingLead && selectedLead.tem_filhos) ? "default" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), tem_filhos: true };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                    </div>
+                    <span className="text-sm text-black">Filhos</span>
+                    <CheckedSwitch
+                      checked={!!(editingLead?.tem_filhos ?? selectedLead.tem_filhos)}
+                      onChange={(value) => {
+                        const updatedLead = { ...(editingLead || selectedLead), tem_filhos: value, quantidade_filhos: value ? (editingLead?.quantidade_filhos ?? selectedLead.quantidade_filhos ?? null) : null };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
                   </div>
                   
                   {/* Campo condicional: Quantidade de Filhos */}
                   {(editingLead?.tem_filhos || selectedLead.tem_filhos) && (
                     <div className="flex items-center justify-between py-2 border-b bg-muted/30 px-3 rounded">
-                      <span className="text-sm text-muted-foreground">Quantidade de filhos</span>
-                      <Input 
+                      <span className="text-sm text-black">Quantidade de filhos</span>
+                      <LiquidGlassInput 
                         type="number"
                         min="1"
                         max="20"
@@ -1599,37 +1600,21 @@ export default function Pipeline() {
                     </div>
                   )}
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Avisado</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={editingLead?.avisado === false || (!editingLead && !selectedLead.avisado) ? "destructive" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), avisado: false };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ❌ Não
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={editingLead?.avisado === true || (!editingLead && selectedLead.avisado) ? "default" : "outline"}
-                        onClick={() => {
-                          const updatedLead = { ...(editingLead || selectedLead), avisado: true };
-                          setEditingLead(updatedLead);
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                    </div>
+                    <span className="text-sm text-black">Avisado</span>
+                    <CheckedSwitch
+                      checked={!!(editingLead?.avisado ?? selectedLead.avisado)}
+                      onChange={(value) => {
+                        const updatedLead = { ...(editingLead || selectedLead), avisado: value };
+                        setEditingLead(updatedLead);
+                      }}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Incluir no SitPlan?</span>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant={editingLead?.incluir_sitplan === false || (!editingLead && !selectedLead.incluir_sitplan) ? "destructive" : "outline"}
-                        onClick={async () => {
+                    <span className="text-sm text-black">Incluir no SitPlan?</span>
+                    <CheckedSwitch
+                      checked={!!(editingLead?.incluir_sitplan ?? selectedLead.incluir_sitplan)}
+                      onChange={async (value) => {
+                        if (!value) {
                           console.log('🎯 Removendo do SitPlan...');
                           try {
                             // Save to database
@@ -1673,17 +1658,8 @@ export default function Pipeline() {
                           } catch (error) {
                             console.error('💥 Erro inesperado:', error);
                           }
-                        }}
-                      >
-                        ❌ Não
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={editingLead?.incluir_sitplan === true || (!editingLead && selectedLead.incluir_sitplan) ? "default" : "outline"}
-                        onClick={async (e) => {
+                        } else {
                           console.log('🔥 BOTÃO SIM CLICADO! selectedLead:', selectedLead);
-                          e.preventDefault();
-                          e.stopPropagation();
                           console.log('🎯 Incluindo no SitPlan - selectedLead:', selectedLead?.id);
                           
                           if (!selectedLead?.id) {
@@ -1752,18 +1728,16 @@ export default function Pipeline() {
                               variant: "destructive"
                             });
                           }
-                        }}
-                      >
-                        ✅ Sim
-                      </Button>
-                    </div>
+                        }
+                      }}
+                    />
                   </div>
                 </div>
 
                 {/* Histórico de Ligações */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Label className="text-sm text-black flex items-center gap-2">
                       <Clock className="w-4 h-4" />
                       Histórico de Ligações
                     </Label>
@@ -1774,7 +1748,7 @@ export default function Pipeline() {
                   
                   <div className="max-h-40 overflow-y-auto border rounded-lg">
                     {loadingHistorico ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
+                      <div className="p-4 text-center text-sm text-black">
                         Carregando histórico...
                       </div>
                      ) : ligacoesHistorico.length > 0 ? (
@@ -1830,7 +1804,7 @@ export default function Pipeline() {
                              </div>
                              
                              <div className="flex items-center gap-2">
-                               <span className="text-muted-foreground text-xs">
+                               <span className="text-black text-xs">
                                  {new Date(ligacao.data_ligacao).toLocaleString('pt-BR', {
                                    day: '2-digit',
                                    month: '2-digit',
@@ -1868,7 +1842,7 @@ export default function Pipeline() {
                          ))}
                        </div>
                     ) : (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
+                      <div className="p-4 text-center text-sm text-black">
                         Nenhuma ligação registrada ainda
                       </div>
                     )}
@@ -1877,8 +1851,8 @@ export default function Pipeline() {
 
                 {/* Observações */}
                 <div>
-                  <Label className="text-sm text-muted-foreground">Observações</Label>
-                  <Textarea 
+                  <Label className="text-sm text-black">Observações</Label>
+                  <LiquidGlassTextarea 
                     value={editingLead?.observacoes || selectedLead.observacoes || ""} 
                     onChange={(e) => {
                       const updatedLead = { ...(editingLead || selectedLead), observacoes: e.target.value };
@@ -1891,8 +1865,8 @@ export default function Pipeline() {
 
                 {/* PA Estimado */}
                 <div>
-                  <Label className="text-sm text-muted-foreground">PA Estimado</Label>
-                  <Input 
+                  <Label className="text-sm text-black">PA Estimado</Label>
+                  <LiquidGlassInput 
                     value={editingLead?.pa_estimado || selectedLead.pa_estimado || ""} 
                     onChange={(e) => {
                       const updatedLead = { ...(editingLead || selectedLead), pa_estimado: e.target.value };
@@ -1914,25 +1888,26 @@ export default function Pipeline() {
                 {/* Botão Salvar */}
                 <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
                   <Button 
-                    variant="outline" 
                     onClick={() => {
                       setSelectedLead(null);
                       setEditingLead(null);
                     }}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto rounded-full px-6 py-3 font-inter font-light bg-transparent border border-border/30 text-foreground hover:bg-white/10 transition-colors"
                   >
                     Cancelar
                   </Button>
                   <Button 
                     onClick={handleSaveLead}
                     disabled={saving || !editingLead}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto rounded-full px-6 py-3 font-inter font-light bg-black text-white hover:bg-black/80 transition-colors"
                   >
                     {saving ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </div>
             )}
+              </div>
+              </ScrollArea>
           </DialogContent>
         </Dialog>
 
@@ -1943,24 +1918,24 @@ export default function Pipeline() {
               <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
                 Agendar Ligação
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+              <DialogDescription className="text-xs sm:text-sm text-black">
                 Selecione uma data para agendar a ligação com este lead
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 sm:space-y-6">
               {leadParaLigarDepois && (
                 <div className="text-center">
-                  <p className="text-xs sm:text-sm text-muted-foreground">Lead:</p>
+                  <p className="text-xs sm:text-sm text-black">Lead:</p>
                   <p className="font-medium text-base sm:text-lg truncate">{leadParaLigarDepois.nome}</p>
                 </div>
               )}
               
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <Label className="text-xs sm:text-sm font-medium text-black">
                   Data *
                 </Label>
                 
-                <Input
+                <LiquidGlassInput
                   type="date"
                   value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
                 onChange={(e) => {
@@ -1978,7 +1953,7 @@ export default function Pipeline() {
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <Label className="text-xs sm:text-sm font-medium text-black">
                   Horário *
                 </Label>
                 <select
@@ -2001,16 +1976,16 @@ export default function Pipeline() {
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-muted-foreground">
+                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-black">
                   Observações
                 </Label>
-                <Textarea
+                <LiquidGlassTextarea
                   id="observacoes-agendamento"
                   placeholder="Adicione observações sobre o agendamento..."
                   value={observacoesAgendamento}
                   onChange={(e) => setObservacoesAgendamento(e.target.value)}
                   rows={3}
-                  className="border-2 rounded-lg sm:rounded-xl resize-none focus:border-primary/50 transition-colors text-sm"
+                  className="border-2 rounded-lg sm:rounded-xl focus:border-primary/50 transition-colors text-sm"
                 />
               </div>
 

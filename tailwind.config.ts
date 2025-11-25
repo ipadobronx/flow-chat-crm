@@ -17,7 +17,7 @@ export default {
 				'2xl': '1400px'
 			}
 		},
-		extend: {
+			extend: {
 			fontFamily: {
 				inter: ['Inter', 'sans-serif'],
 			},
@@ -96,7 +96,7 @@ export default {
 				success: 'var(--shadow-success)',
 				card: 'var(--shadow-card)'
 			},
-			keyframes: {
+				keyframes: {
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -153,15 +153,20 @@ export default {
 						"background-position": "0% 0%",
 					},
 				}
-			},
-			animation: {
+				},
+				'gradient-shift': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' }
+				},
+				animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
 				'scale-in': 'scale-in 0.2s ease-out',
-				shimmer: 'shimmer 2s infinite',
-				"border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
-			},
+					shimmer: 'shimmer 2s infinite',
+					'gradient-shift': 'gradient-shift 3s ease infinite',
+					"border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
+				},
 			transitionProperty: {
 				smooth: 'var(--transition-smooth)'
 			},

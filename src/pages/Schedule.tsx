@@ -136,36 +136,28 @@ export default function Schedule() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Agendamentos</h1>
-            <p className="text-muted-foreground">
-              Gerencie suas ligações agendadas e sincronize com Google Calendar
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <GoogleCalendarConnect />
-            {isConnected && (
-              <Button
-                onClick={handleImportFromGoogle}
-                disabled={isImporting}
-                variant="outline"
-                size="sm"
-              >
-                {isImporting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importando...
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Importar do Google Calendar
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+        <div className="flex items-center justify-end gap-3">
+          <GoogleCalendarConnect />
+          {isConnected && (
+            <Button
+              onClick={handleImportFromGoogle}
+              disabled={isImporting}
+              variant="outline"
+              size="sm"
+            >
+              {isImporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Importando...
+                </>
+              ) : (
+                <>
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Importar do Google Calendar
+                </>
+              )}
+            </Button>
+          )}
         </div>
 
         {isConnected && agendamentos && agendamentos.length === 0 && !isLoading && (

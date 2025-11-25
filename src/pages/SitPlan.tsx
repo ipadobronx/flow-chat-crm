@@ -48,13 +48,7 @@ export default function SitPlan() {
         <div className={`p-6 space-y-6 transition-all duration-300 ${
           isDragging ? 'bg-gradient-to-br from-blue-50/30 to-purple-50/30' : ''
         }`}>
-          <div className="flex items-center justify-between">
-            <h1 className={`text-3xl font-bold tracking-tight transition-all duration-300 ${
-              isDragging ? 'text-blue-600 scale-105' : ''
-            }`}>
-              SIT PLAN
-            </h1>
-          </div>
+          
           
           {/* Grid com duas tabelas lado a lado */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

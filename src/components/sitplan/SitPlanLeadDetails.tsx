@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -235,7 +235,7 @@ export function SitPlanLeadDetails({ selectedLead, onLeadUpdated }: SitPlanLeadD
         {/* Observations */}
         <div className="space-y-2">
           <Label htmlFor="observations">Observações</Label>
-          <Textarea
+          <LiquidGlassTextarea
             id="observations"
             placeholder="Adicione observações sobre a ligação..."
             value={observations}

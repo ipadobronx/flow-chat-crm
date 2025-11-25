@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Calendar, Filter, ChevronDown, Users, CheckSquare } from "lucide-react";
+import { X, Calendar, Filter, ChevronDown, Users, CheckSquare, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useMultiSelect } from "@/hooks/useMultiSelect";
 import { Checkbox } from "@/components/ui/checkbox";
+import GlassProgressBar from "@/components/ui/glass-progress-bar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,21 +101,18 @@ function SortableSitPlanLeadItem({
             
             {lead.telefone && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span className="text-xs">📱</span>
                 <span className="truncate">{lead.telefone}</span>
               </div>
             )}
             
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span className="text-xs">👥</span>
                 <span className="truncate">{lead.recomendante.join(', ')}</span>
               </div>
             )}
             
             {lead.profissao && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span className="text-xs">💼</span>
                 <span className="truncate">{lead.profissao}</span>
               </div>
             )}
@@ -122,7 +120,6 @@ function SortableSitPlanLeadItem({
           
           {lead.data_sitplan && (
             <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-              <span className="text-xs">📅</span>
               <span>Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}</span>
             </div>
           )}
@@ -169,7 +166,7 @@ export function SelecionadosCard() {
     }
   });
 
-  const { data: leads = [], refetch } = useQuery({
+  const { data: leads = [], refetch, isLoading } = useQuery({
     queryKey: ["sitplan-selecionados"],
     queryFn: async () => {
       console.log('🔄 Buscando leads selecionados para SitPlan...');
@@ -517,11 +514,11 @@ export function SelecionadosCard() {
   
 
   return (
-    <Card>
+    <Card className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            📋 Selecionados para SitPlan
+            Selecionados para SitPlan
             {leads.length > 0 && (
               <Badge variant="secondary">{leads.length}</Badge>
             )}
@@ -533,18 +530,12 @@ export function SelecionadosCard() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className={`flex items-center gap-2 ${
+                  className={`h-6 w-6 p-0 rounded-full ${
                     hasActiveFilters ? 'border-blue-500 bg-blue-50 text-blue-700' : ''
                   }`}
+                  aria-label="Filtros"
                 >
-                  <Filter className="w-4 h-4" />
-                  Filtros
-                  {hasActiveFilters && (
-                    <Badge variant="secondary" className="ml-1">
-                      {activeFilters.profissoes.length + activeFilters.etapas.length}
-                    </Badge>
-                  )}
-                  <ChevronDown className="w-4 h-4" />
+                  <Menu className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
@@ -676,11 +667,17 @@ export function SelecionadosCard() {
       </CardHeader>
       
       <CardContent>
+        {isLoading && (
+          <div className="py-2">
+            <GlassProgressBar progress={65} />
+            <div className="mt-2 text-center text-sm text-muted-foreground">Carregando selecionados...</div>
+          </div>
+        )}
         {leads.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Nenhum lead selecionado para o próximo SitPlan</p>
-            <p className="text-sm mt-2">Use o botão "✅ Sim" em "Incluir no SitPlan" no Pipeline para adicionar leads aqui</p>
+            <p className="text-sm mt-2">Use o botão "Sim" em "Incluir no SitPlan" no Pipeline para adicionar leads aqui</p>
           </div>
         ) : filteredLeads.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
@@ -713,10 +710,10 @@ export function SelecionadosCard() {
       
       {/* Dialog de confirmação para mover todos */}
       <AlertDialog open={showConfirmAll} onOpenChange={setShowConfirmAll}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Mover todos para TA</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="font-inter font-normal tracking-tighter text-lg">Mover todos para TA</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-black">
               {hasActiveFilters 
                 ? `Você está prestes a mover ${filteredLeads.length} lead(s) filtrado(s) para o TA (Selecionados Sexta).`
                 : `Você está prestes a mover ${leads.length} lead(s) para o TA (Selecionados Sexta).`
@@ -725,12 +722,13 @@ export function SelecionadosCard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-full px-6 py-3 font-inter font-light bg-transparent border border-border/30 text-foreground hover:bg-white/10 transition-colors">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
                 await moveAllToTA();
                 setShowConfirmAll(false);
               }}
+              className="rounded-full px-6 py-3 font-inter font-light bg-black text-white hover:bg-black/80 transition-colors"
             >
               Mover para TA
             </AlertDialogAction>

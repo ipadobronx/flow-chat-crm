@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTACache } from "@/hooks/useTACache";
@@ -328,7 +328,7 @@ export function TAReportsUpdated() {
                   Qual a sua meta de OIs semanais?
                 </label>
                 <div className="flex gap-2">
-                  <Input
+                  <LiquidGlassInput
                     type="number"
                     min="0"
                     value={weeklyGoal}

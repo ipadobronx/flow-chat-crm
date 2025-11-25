@@ -97,15 +97,22 @@ export function ProfissaoCombobox({ value, onValueChange }: ProfissaoComboboxPro
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <button
+          type="button"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between h-10 sm:h-11"
+          className="bg-black text-white rounded-xl h-9 sm:h-10 px-3 flex items-center gap-1.5 hover:bg-black/80 transition-colors w-full justify-between text-sm shadow-sm"
         >
-          {value || "Selecione uma profissão..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+          <div className="flex items-center gap-1.5">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" strokeWidth="2"/>
+            </svg>
+            <span className="font-light">{value || "Selecionar profissão"}</span>
+          </div>
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="white" strokeWidth="2"/>
+          </svg>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>

@@ -38,38 +38,43 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
     }
   };
 
-  const getEtapaVariant = (etapa: string) => {
+  const getEtapaColor = (etapa: string) => {
     switch (etapa) {
-      case "Novo":
-        return "secondary";
-      case "Qualificado":
-        return "default";
-      case "Agendado":
-        return "outline";
-      case "Ligar Depois":
-        return "secondary";
-      case "TA":
-        return "destructive";
-      case "Não atendido":
-        return "destructive";
-      case "Marcar":
-        return "default";
-      default:
-        return "secondary";
+      case "Todos": return "bg-blue-500";
+      case "Novo": return "bg-sky-500";
+      case "TA": return "bg-purple-600";
+      case "Não atendido": return "bg-red-600";
+      case "Ligar Depois": return "bg-yellow-600";
+      case "Marcar": return "bg-green-600";
+      case "OI": return "bg-indigo-500";
+      case "Delay OI": return "bg-yellow-500";
+      case "PC": return "bg-orange-500";
+      case "Delay PC": return "bg-red-500";
+      case "Analisando Proposta": return "bg-orange-600";
+      case "N": return "bg-purple-500";
+      case "Proposta Não Apresentada": return "bg-gray-600";
+      case "Pendência de UW": return "bg-yellow-700";
+      case "Apólice Emitida": return "bg-green-500";
+      case "Apólice Entregue": return "bg-emerald-500";
+      case "Delay C2": return "bg-cyan-500";
+      case "Não": return "bg-gray-500";
+      case "Proposta Cancelada": return "bg-red-600";
+      case "Apólice Cancelada": return "bg-red-700";
+      default: return "bg-gray-500";
     }
   };
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
             <Clock className="w-4 h-4" />
             Histórico de Etapas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Carregando histórico...</p>
+          <p className="text-black">Carregando histórico...</p>
         </CardContent>
       </Card>
     );
@@ -77,53 +82,53 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
 
   if (historico.length === 0) {
     return (
-      <Card>
+      <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
             <Clock className="w-4 h-4" />
             Histórico de Etapas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Nenhuma mudança de etapa registrada.</p>
+          <p className="text-black">Nenhuma mudança de etapa registrada.</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
           <Clock className="w-4 h-4" />
           Histórico de Etapas
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {historico.map((item) => (
-          <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl border border-border/20 bg-white/30 dark:bg-white/10 backdrop-blur-md">
             <div className="flex items-center gap-3">
               {item.etapa_anterior && (
-                <Badge variant={getEtapaVariant(item.etapa_anterior)}>
+                <Badge className={`text-white text-xs ${getEtapaColor(item.etapa_anterior)}`}>
                   {item.etapa_anterior}
                 </Badge>
               )}
               
               {item.etapa_anterior && (
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                <ArrowRight className="w-4 h-4 text-black" />
               )}
               
-              <Badge variant={getEtapaVariant(item.etapa_nova)}>
+              <Badge className={`text-white text-xs ${getEtapaColor(item.etapa_nova)}`}>
                 {item.etapa_nova}
               </Badge>
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-black">
                 {format(new Date(item.data_mudanca), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               </p>
               {item.observacoes && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-black mt-1">
                   {item.observacoes}
                 </p>
               )}

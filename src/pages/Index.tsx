@@ -34,23 +34,17 @@ const Index = () => {
     <DashboardLayout>
       <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         <div className="space-y-2 sm:space-y-4">
-          <div className="space-y-1 sm:space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard de Vendas</h1>
-                <p className="text-sm sm:text-base text-muted-foreground">Insights em tempo real sobre seu desempenho de vendas</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="gap-2"
-              >
-                <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Atualizar
-              </Button>
-            </div>
+          <div className="flex items-center justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="gap-2"
+            >
+              <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
           </div>
           <DateFilter 
             startDate={startDate}

@@ -16,13 +16,13 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import LiquidGlassInput from "@/components/ui/liquid-input";
+import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, Plus, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   nome: z.string()
@@ -182,23 +182,24 @@ export default function NovaRec() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6">
-        <div className="text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Nova Recomendação</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Cadastre um novo lead no sistema
-          </p>
-        </div>
-
-        <Card className="w-full max-w-none">
-          <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
-            <CardTitle className="text-lg sm:text-xl">Dados do Lead</CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+      <div className="space-y-3 sm:space-y-4">
+        <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-2xl transition-all duration-300 hover:shadow-2xl">
+          <div className="flex items-center justify-between p-4 sm:p-6">
+            <div>
+              <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter">Dados do Lead</h3>
+              <p className="text-sm text-muted-foreground">Preencha os dados do lead</p>
+            </div>
+            <button type="submit" form="nova-rec-form" disabled={isLoading} className="bg-black text-white rounded-full p-3 sm:p-4 hover:bg-black/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-lg">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
+                <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2"/>
+              </svg>
+            </button>
+          </div>
+          <div className="p-6 pt-0">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+              <form id="nova-rec-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
                 {/* Dados Pessoais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                   <div className="sm:col-span-2 lg:col-span-1">
                     <FormField
                       control={form.control}
@@ -207,7 +208,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Nome *</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="Nome completo" 
                               className="h-10 sm:h-11"
                               {...field} 
@@ -231,7 +232,7 @@ export default function NovaRec() {
                               render={({ field }) => (
                                 <FormItem className="flex-1">
                                   <FormControl>
-                                    <Input 
+                                    <LiquidGlassInput 
                                       placeholder="Nome do recomendante" 
                                       className="h-10 sm:h-11"
                                       {...field} 
@@ -252,16 +253,13 @@ export default function NovaRec() {
                             </Button>
                           </div>
                         ))}
-                        <Button
+                        <button
                           type="button"
-                          variant="outline"
-                          size="sm"
-                          className="mt-2"
+                          className="inline-flex items-center justify-center bg-black text-white rounded-xl h-9 sm:h-10 px-4 text-sm font-light hover:bg-black/80 transition-colors mt-0 shadow-sm"
                           onClick={() => append({ nome: "" })}
                         >
-                          <Plus className="h-4 w-4 mr-2" />
                           Adicionar Recomendante
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -274,7 +272,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Celular Principal *</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="(11) 99999-9999" 
                               className="h-10 sm:h-11"
                               {...field} 
@@ -294,7 +292,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Celular Secundário</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="(11) 99999-9999" 
                               className="h-10 sm:h-11"
                               {...field} 
@@ -314,7 +312,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Email</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="email@exemplo.com" 
                               type="email" 
                               className="h-10 sm:h-11"
@@ -335,7 +333,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Idade</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="30" 
                               type="number" 
                               className="h-10 sm:h-11"
@@ -375,7 +373,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Renda Estimada</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="R$ 5.000,00" 
                               className="h-10 sm:h-11"
                               {...field} 
@@ -395,7 +393,7 @@ export default function NovaRec() {
                         <FormItem>
                           <FormLabel className="text-sm font-medium">Cidade</FormLabel>
                           <FormControl>
-                            <Input 
+                            <LiquidGlassInput 
                               placeholder="São Paulo - SP" 
                               className="h-10 sm:h-11"
                               {...field} 
@@ -461,33 +459,33 @@ export default function NovaRec() {
                               </div>
                             </RadioGroup>
                           </FormControl>
+                          {form.watch("tem_filhos") === "true" && (
+                            <FormField
+                              control={form.control}
+                              name="quantidade_filhos"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm font-medium">Quantos filhos?</FormLabel>
+                                  <FormControl>
+                                    <LiquidGlassInput
+                                      type="number"
+                                      min="1"
+                                      max="20"
+                                      placeholder="Ex: 2"
+                                      {...field}
+                                      className="w-24 sm:w-28 h-9 sm:h-10"
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    {form.watch("tem_filhos") === "true" && (
-                      <FormField
-                        control={form.control}
-                        name="quantidade_filhos"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium">Quantos filhos?</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="20"
-                                placeholder="Ex: 2"
-                                {...field}
-                                className="max-w-[100px]"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
 
                     <FormField
                       control={form.control}
@@ -553,9 +551,9 @@ export default function NovaRec() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium">Observações</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <LiquidGlassTextarea
                           placeholder="Observações adicionais sobre o lead..."
-                          className="min-h-[80px] sm:min-h-[100px] resize-y"
+                          className="min-h-[80px] sm:min-h-[100px]"
                           {...field}
                         />
                       </FormControl>
@@ -564,31 +562,11 @@ export default function NovaRec() {
                   )}
                 />
 
-                {/* Botões */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading} 
-                    className="flex-1 h-11 sm:h-12 text-sm sm:text-base animate-fade-in"
-                  >
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2 h-4 w-4" />
-                    Cadastrar Lead
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => form.reset()}
-                    disabled={isLoading}
-                    className="h-11 sm:h-12 text-sm sm:text-base sm:min-w-[120px]"
-                  >
-                    Limpar
-                  </Button>
-                </div>
+                {/* Botões removidos: ação no topo à direita */}
               </form>
             </Form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

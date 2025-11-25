@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,7 @@ export default function TAPresentation() {
   const filterEtapa = searchParams.get('etapa');
   const filterProfissao = searchParams.get('profissao');
   const isExclusivo = searchParams.get('exclusivo') === 'true';
+  const isPreviewMode = searchParams.get('preview') === 'true';
   const [stage, setStage] = useState<PresentationStage>('initial');
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
@@ -165,9 +166,10 @@ export default function TAPresentation() {
 
   const startPresentation = () => {
     if (leads.length === 0) return;
-    setStage('transition');
+    setStage('presenting');
     setCurrentLeadIndex(0);
     setTransitionStep(0);
+    console.log('🎯 TA: apresentação iniciada, indo direto para presenting');
   };
 
   const saveAndNext = async () => {
@@ -377,20 +379,29 @@ export default function TAPresentation() {
         
         <div className="min-h-screen flex flex-col items-center justify-center relative z-10">
           {leads.length > 0 ? (
-            <Button
-              onClick={startPresentation}
-              className="px-12 py-6 text-xl font-bold bg-white/5 backdrop-blur-md border border-[#00FFF0] text-[#00FFF0] hover:bg-[#00FFF0]/20 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,255,240,0.3)]"
-            >
-              <Play className="mr-3 h-6 w-6" />
-              INICIAR
-            </Button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={isPreviewMode ? undefined : () => navigate('/dashboard/ta')}
+                className="px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-white/30 text-white hover:bg-white/15 transition-colors shadow-2xl flex items-center"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </button>
+              <button
+                onClick={isPreviewMode ? undefined : startPresentation}
+                className="px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-[#00FFF0] text-[#00FFF0] hover:bg-white/15 transition-colors shadow-2xl flex items-center"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                Iniciar Apresentação
+              </button>
+            </div>
           ) : (
             <div className="text-center space-y-4">
               <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
               <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
               <Button
                 onClick={() => navigate('/dashboard/ta')}
-                className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
+                className="px-8 py-4 rounded-xl bg-border/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/15 transition-colors shadow-xl"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
@@ -434,68 +445,68 @@ export default function TAPresentation() {
     
     return (
       <div className="fixed inset-0 bg-[#0D0D0D] z-50 overflow-auto">
-        {/* Background image with overlay */}
-        <div className="absolute inset-0">
-          <img 
-            src={getLeadImageUrl(currentLead.nome)}
-            alt=""
-            className="w-full h-full object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/80 to-[#0D0D0D]/60" />
-        </div>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: "radial-gradient(circle at center, #6EC8FF 0%, transparent 70%)",
+            opacity: 0.6,
+            mixBlendMode: "screen",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-700/40 via-gray-600/30 to-gray-500/20" />
 
         <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
           <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Card 1 - Informações do Lead */}
-            <div className="bg-white/5 backdrop-blur-md border-2 border-[#00FFF0] rounded-2xl">
+            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
               <div className="p-6 h-full">
                 <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
                 
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-lg">
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Cidade:</span>
+                    <span className="text-white/80 font-semibold text-lg">Cidade:</span>
                     <p className="text-white/90 text-lg">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Etapa:</span>
+                    <span className="text-white/80 font-semibold text-lg">Etapa:</span>
                     <p className="text-white/90 text-lg">{currentLead.etapa}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Profissão:</span>
+                    <span className="text-white/80 font-semibold text-lg">Profissão:</span>
                     <p className="text-white/90 text-lg">{currentLead.profissao || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Telefone:</span>
+                    <span className="text-white/80 font-semibold text-lg">Telefone:</span>
                     <p className="text-white/90 text-lg">{currentLead.telefone || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Casado:</span>
+                    <span className="text-white/80 font-semibold text-lg">Casado:</span>
                     <p className="text-white/90 text-lg">{currentLead.casado ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Filhos:</span>
+                    <span className="text-white/80 font-semibold text-lg">Filhos:</span>
                     <p className="text-white/90 text-lg">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Recomendante:</span>
+                    <span className="text-white/80 font-semibold text-lg">Recomendante:</span>
                     <p className="text-white/90 text-lg">{currentLead.recomendante || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-[#00FFF0] font-semibold text-lg">Email:</span>
+                    <span className="text-white/80 font-semibold text-lg">Email:</span>
                     <p className="text-white/90 text-lg truncate">{currentLead.email || 'N/A'}</p>
                   </div>
                 </div>
 
                 {currentLead.observacoes && (
                   <div className="mt-6 pt-4 border-t border-white/10">
-                    <span className="text-[#00FFF0] font-semibold text-lg">Observações:</span>
+                    <span className="text-white/80 font-semibold text-lg">Observações:</span>
                     <p className="text-white/90 text-base mt-2">{currentLead.observacoes}</p>
                   </div>
                 )}
@@ -503,16 +514,16 @@ export default function TAPresentation() {
             </div>
 
             {/* Card 2 - Ações */}
-            <div className="bg-white/5 backdrop-blur-md border-2 border-[#FF00C8] rounded-2xl">
+            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
               <div className="p-6 h-full flex flex-col">
                 <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
                 <div className="space-y-4 flex-1">
                   {/* Seletor de Etapa */}
                   <div>
-                    <Label className="text-[#00FFF0] font-medium text-sm">Nova Etapa</Label>
+                    <Label className="text-white/80 font-medium text-sm">Nova Etapa</Label>
                     <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
-                      <SelectTrigger className="mt-1 bg-white/10 border-white/20 text-white h-9">
+                      <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9">
                         <SelectValue placeholder="Selecione a etapa" />
                       </SelectTrigger>
                       <SelectContent>
@@ -527,12 +538,12 @@ export default function TAPresentation() {
 
                   {/* Campo de Observações */}
                   <div>
-                    <Label className="text-[#00FFF0] font-medium text-sm">Observações</Label>
-                    <Textarea
+                    <Label className="text-white/80 font-medium text-sm">Observações</Label>
+                    <LiquidGlassTextarea
                       value={observacoes}
                       onChange={(e) => setObservacoes(e.target.value)}
                       placeholder="Notas sobre este contato..."
-                      className="mt-1 bg-white/10 border-white/20 text-white placeholder-white/50 min-h-[80px] text-sm"
+                      className="mt-1 text-white placeholder-white/50 min-h-[80px] text-sm"
                     />
                   </div>
 
@@ -540,10 +551,10 @@ export default function TAPresentation() {
                   {(selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (
                     <div className="space-y-2">
                       <div>
-                        <Label className="text-[#00FFF0] font-medium text-sm">
+                        <Label className="text-white/80 font-medium text-sm">
                           {selectedEtapa === "OI" ? "Data do Agendamento *" : "Data para Ligar *"}
                         </Label>
-                        <Input
+                        <LiquidGlassInput
                           type="date"
                           value={agendamentoDate ? format(agendamentoDate, "yyyy-MM-dd") : ""}
                           onChange={(e) => {
@@ -555,16 +566,16 @@ export default function TAPresentation() {
                             }
                           }}
                           min={format(new Date(), "yyyy-MM-dd")}
-                          className="w-full mt-1 h-10 border-2 rounded-lg transition-all duration-200 bg-white/10 border-white/20 text-white focus:border-[#00FFF0]/50"
+                          className="w-full mt-1 h-10 text-white placeholder:text-white/70"
                         />
                       </div>
                       
                       <div>
-                        <Label className="text-[#00FFF0] font-medium text-sm">Horário *</Label>
+                        <Label className="text-white/80 font-medium text-sm">Horário *</Label>
                         <select
                           value={agendamentoTime}
                           onChange={(e) => setAgendamentoTime(e.target.value)}
-                          className="w-full mt-1 h-10 rounded-lg border-2 border-white/20 bg-white/10 text-white px-3 transition-all duration-200 focus:border-[#00FFF0]/50 text-sm"
+                          className="w-full mt-1 h-10 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white px-3 text-sm"
                         >
                           <option value="">Selecione um horário</option>
                           {[
@@ -597,17 +608,19 @@ export default function TAPresentation() {
                 </div>
 
                 {/* Botão de Salvar */}
-                <Button
+                <button
                   onClick={saveAndNext}
                   disabled={
                     !selectedEtapa || 
                     ((selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (!agendamentoDate || !agendamentoTime))
                   }
-                  className="w-full py-3 text-lg font-bold bg-[#FF00C8]/20 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/40 hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(255,0,200,0.3)] disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                  aria-label="Salvar e próximo"
+                  className="h-10 w-10 mt-4 rounded-full bg-[#d4ff4a] text-black hover:bg-[#c9f035] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xl mx-auto flex items-center justify-center"
                 >
-                  <Save className="mr-2 h-5 w-5" />
-                  SALVAR E PRÓXIMO
-                </Button>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>

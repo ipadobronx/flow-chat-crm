@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
+import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, BarChart3, ArrowRight, Filter, Download, RefreshCw, User, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -146,18 +146,6 @@ export default function Reports() {
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
-              <BarChart3 className="h-8 w-8" />
-              Relatórios
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Métricas e histórico completo dos seus TAs
-            </p>
-          </div>
-        </div>
 
         <Tabs defaultValue="metricas" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
@@ -203,7 +191,7 @@ export default function Reports() {
               {/* Filtro por Lead */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Buscar Lead</label>
-                <Input
+                <LiquidGlassInput
                   placeholder="Nome do lead..."
                   value={filtroLead}
                   onChange={(e) => setFiltroLead(e.target.value)}

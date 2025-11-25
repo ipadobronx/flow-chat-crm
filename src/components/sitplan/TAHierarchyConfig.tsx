@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import OutlineButton from "@/components/ui/outline-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -118,20 +119,19 @@ export function TAHierarchyConfig({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 w-auto">
-          <Settings className="w-4 h-4 mr-1" />
-          {getDisplayText()}
-        </Button>
+        <OutlineButton aria-label="Configurar hierarquia" className="h-8 w-8 p-0 rounded-full">
+          <Settings className="w-4 h-4" />
+        </OutlineButton>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
         <DialogHeader>
           <DialogTitle>Configurar Hierarquia do TA</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Seleção de Categorias */}
-          <Card>
+          <Card className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-md">
             <CardHeader>
               <CardTitle className="text-base">Categorias Ativas</CardTitle>
             </CardHeader>
@@ -158,7 +158,7 @@ export function TAHierarchyConfig({
 
           {/* Configuração de Prioridades de Profissões */}
           {tempConfig.enabledCategories.includes('profissao') && (
-            <Card>
+            <Card className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-md">
               <CardHeader>
                 <CardTitle className="text-base flex items-center justify-between">
                   💼 Ordem de Prioridade - Profissões
@@ -166,7 +166,7 @@ export function TAHierarchyConfig({
                     onValueChange={(value) => addToPriority('profissoes', value)}
                     value=""
                   >
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-48 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md">
                       <SelectValue placeholder="Adicionar profissão" />
                     </SelectTrigger>
                     <SelectContent>
@@ -195,29 +195,26 @@ export function TAHierarchyConfig({
                           <span>{profissao}</span>
                         </div>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => movePriorityItem('profissoes', profissao, 'up')}
                             disabled={index === 0}
                           >
                             <ArrowUp className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          </OutlineButton>
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => movePriorityItem('profissoes', profissao, 'down')}
                             disabled={index === tempConfig.priorities.profissoes.length - 1}
                           >
                             <ArrowDown className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          </OutlineButton>
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => removeFromPriority('profissoes', profissao)}
                           >
                             <X className="w-4 h-4" />
-                          </Button>
+                          </OutlineButton>
                         </div>
                       </div>
                     ))}
@@ -229,7 +226,7 @@ export function TAHierarchyConfig({
 
           {/* Configuração de Prioridades de Etapas */}
           {tempConfig.enabledCategories.includes('etapa') && (
-            <Card>
+            <Card className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-md">
               <CardHeader>
                 <CardTitle className="text-base flex items-center justify-between">
                   🏷️ Ordem de Prioridade - Etapas
@@ -237,7 +234,7 @@ export function TAHierarchyConfig({
                     onValueChange={(value) => addToPriority('etapas', value)}
                     value=""
                   >
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-48 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md">
                       <SelectValue placeholder="Adicionar etapa" />
                     </SelectTrigger>
                     <SelectContent>
@@ -266,29 +263,26 @@ export function TAHierarchyConfig({
                           <span>{etapa}</span>
                         </div>
                         <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => movePriorityItem('etapas', etapa, 'up')}
                             disabled={index === 0}
                           >
                             <ArrowUp className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          </OutlineButton>
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => movePriorityItem('etapas', etapa, 'down')}
                             disabled={index === tempConfig.priorities.etapas.length - 1}
                           >
                             <ArrowDown className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          </OutlineButton>
+                          <OutlineButton
+                            className="h-8 px-2 py-2 bg-white/10 border-white/30 hover:bg-white/20"
                             onClick={() => removeFromPriority('etapas', etapa)}
                           >
                             <X className="w-4 h-4" />
-                          </Button>
+                          </OutlineButton>
                         </div>
                       </div>
                     ))}
@@ -299,7 +293,7 @@ export function TAHierarchyConfig({
           )}
 
           {tempConfig.enabledCategories.length > 1 && (
-            <Card className="border-amber-200 bg-amber-50">
+            <Card className="rounded-2xl border border-amber-200 bg-amber-50/30 backdrop-blur-md">
               <CardContent className="pt-4">
                 <p className="text-sm text-amber-800">
                   <strong>Como funciona com múltiplas categorias:</strong><br />
@@ -312,13 +306,13 @@ export function TAHierarchyConfig({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={resetConfig}>
+          <OutlineButton onClick={resetConfig} className="rounded-full px-6 py-3">
             Resetar
-          </Button>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          </OutlineButton>
+          <OutlineButton onClick={() => setIsOpen(false)} className="rounded-full px-6 py-3">
             Cancelar
-          </Button>
-          <Button onClick={saveConfig}>
+          </OutlineButton>
+          <Button onClick={saveConfig} className="rounded-full px-6 py-3 bg-black text-white hover:bg-black/80">
             Aplicar Configuração
           </Button>
         </DialogFooter>

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import OutlineButton from "@/components/ui/outline-button";
 import { Badge } from "@/components/ui/badge";
-import { X, ArrowUpDown, Users, PlayCircle } from "lucide-react";
+import { X, ArrowUpDown, Users, PlayCircle, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +15,7 @@ import { TAHierarchyConfig, HierarchyConfig } from "./TAHierarchyConfig";
 import { updateLeadPartialSchema } from "@/lib/schemas";
 import { sanitizeText } from "@/lib/validation";
 import { globalRateLimiter } from "@/lib/validation";
+import GlassProgressBar from "@/components/ui/glass-progress-bar";
 
 type Lead = Tables<"leads">;
 
@@ -101,21 +103,18 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
             
             {lead.telefone && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span>📱</span>
                 <span className="truncate">{lead.telefone}</span>
               </div>
             )}
             
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span>👥</span>
                 <span className="truncate">{lead.recomendante.join(', ')}</span>
               </div>
             )}
             
             {lead.profissao && (
               <div className="flex items-center gap-1 text-muted-foreground">
-                <span>💼</span>
                 <span className="truncate">{lead.profissao}</span>
               </div>
             )}
@@ -416,7 +415,7 @@ export function TALeadsCard() {
   return (
     <Card 
       ref={setNodeRef}
-      className={`transition-all duration-300 min-h-[200px] ${
+      className={`rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 min-h-[200px] ${
         isOver 
           ? 'ring-4 ring-purple-500 bg-gradient-to-br from-purple-50 to-purple-100/50 scale-[1.02] shadow-2xl' 
           : 'hover:ring-2 hover:ring-purple-200 hover:shadow-lg'
@@ -425,7 +424,7 @@ export function TALeadsCard() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            📅 Selecionados Sexta (TA)
+            Selecionados Sexta (TA)
             {localLeads.length > 0 && (
               <Badge variant="secondary">{localLeads.length}</Badge>
             )}
@@ -453,20 +452,25 @@ export function TALeadsCard() {
             )}
             
             {/* Botão para limpar todos os leads do TA */}
-            <Button
-              variant="outline"
-              size="sm"
+            <OutlineButton
               onClick={clearAllTA}
-              className="h-8 text-xs"
+              className="h-8 w-8 p-0 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={localLeads.length === 0}
+              aria-label="Limpar TA"
             >
-              Limpar TA
-            </Button>
+              <Trash2 className="w-4 h-4" />
+            </OutlineButton>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {isLoading && (
+          <div className="py-2">
+            <GlassProgressBar progress={65} />
+            <div className="mt-2 text-center text-sm text-muted-foreground">Carregando TA...</div>
+          </div>
+        )}
         {localLeads.length === 0 ? (
           <div className={`text-center py-6 transition-all duration-200 ${
             isOver 
@@ -475,7 +479,7 @@ export function TALeadsCard() {
           }`}>
             {isOver ? (
               <>
-                <div className="text-base font-medium mb-1">🎯 Solte aqui para mover para TA</div>
+                <div className="text-base font-medium mb-1">Solte aqui para mover para TA</div>
                 <div className="text-sm">Arraste leads do SitPlan para esta área</div>
               </>
             ) : (
@@ -531,12 +535,11 @@ export function TALeadsCard() {
                         <div className="flex items-center gap-2">
                           {hierarchyConfig.enabledCategories.map((category, index) => {
                             const value = keyParts[index];
-                            const icon = category === 'profissao' ? '💼' : '🏷️';
                             const colorClass = category === 'etapa' ? getEtapaColor(value) : 'bg-purple-600';
                             
                             return (
                               <Badge key={category} className={`text-white ${colorClass}`}>
-                                {icon} {value}
+                                {value}
                               </Badge>
                             );
                           })}
