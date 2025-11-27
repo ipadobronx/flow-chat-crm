@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, Phone, Calendar, ListTodo, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 export interface ScheduleEvent {
@@ -64,9 +65,9 @@ export const EventsList = ({
     : sortedEvents.length > 0 || filteredTasks.length > 0;
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px]">
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px] flex flex-col">
       {/* Header */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-4 sm:mb-6 flex-shrink-0">
         <h2 className="text-xl sm:text-2xl font-light text-white">
           {format(selectedDate, "d", { locale: ptBR })}
         </h2>
@@ -75,8 +76,9 @@ export const EventsList = ({
         </p>
       </div>
 
-      {/* Events/Tasks List */}
-      <div className="space-y-2 sm:space-y-3">
+      {/* Events/Tasks List with Liquid Glass Scroll */}
+      <ScrollArea className="flex-1 max-h-[350px] sm:max-h-[450px] md:max-h-[55vh] pr-2">
+        <div className="space-y-2 sm:space-y-3">
         {isLoading ? (
           <div className="flex items-center justify-center py-8 sm:py-12">
             <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/20 border-t-[#d4ff4a] rounded-full animate-spin" />
@@ -217,7 +219,8 @@ export const EventsList = ({
             ))}
           </>
         )}
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 };
