@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LiquidGlassInput from "@/components/ui/liquid-input";
@@ -8,9 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTACache } from "@/hooks/useTACache";
 import { TADateFilter } from "./TADateFilter";
-import { TAMetricCard } from "./TAMetricCard";
+import { TAMetricCardGlass } from "./TAMetricCardGlass";
+import { DonutChart, DonutChartSegment } from "@/components/ui/donut-chart";
+import { TAComparisonChart } from "./TAComparisonChart";
 import TADynamicChart from "./TADynamicChart";
-import { format, subDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format, subDays } from "date-fns";
 import { RefreshCw, Target } from "lucide-react";
 import { toast } from "sonner";
 import { useIsTablet } from "@/hooks/use-tablet";
@@ -43,6 +45,24 @@ interface ChartDataPoint {
   naoTemInteresse: number;
 }
 
+// Cores das etapas do funil (Pipeline)
+const STAGE_COLORS = {
+  contactados: "bg-blue-500",
+  naoAtendido: "bg-zinc-500",
+  ligarDepois: "bg-red-600",
+  marcar: "bg-orange-500",
+  naoTemInteresse: "bg-purple-500",
+  oi: "bg-indigo-500",
+};
+
+const DONUT_COLORS = {
+  naoAtendido: "#71717a", // zinc-500
+  ligarDepois: "#dc2626", // red-600
+  marcar: "#f97316", // orange-500
+  naoTemInteresse: "#a855f7", // purple-500
+  oi: "#6366f1", // indigo-500
+};
+
 export function TAReportsUpdated() {
   const { user } = useAuth();
   const { isTablet } = useIsTablet();
@@ -57,7 +77,12 @@ export function TAReportsUpdated() {
     return saved ? parseInt(saved) : 0;
   });
 
-  // Fetch TA dashboard data
+  // Calculate previous period dates
+  const periodFilter = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const previousStart = subDays(startDate, periodFilter);
+  const previousEnd = subDays(endDate, periodFilter);
+
+  // Fetch TA dashboard data - Current Period
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
     queryKey: ['ta-dashboard', user?.id, startDate, endDate],
     queryFn: async () => {
@@ -67,6 +92,24 @@ export function TAReportsUpdated() {
         p_user_id: user.id,
         p_start_date: format(startDate, 'yyyy-MM-dd'),
         p_end_date: format(endDate, 'yyyy-MM-dd')
+      });
+      
+      if (error) throw error;
+      return data?.[0] as TAMetrics;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch TA dashboard data - Previous Period
+  const { data: previousDashboardData } = useQuery({
+    queryKey: ['ta-dashboard-previous', user?.id, previousStart, previousEnd],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase.rpc('get_ta_dashboard_by_date_range', {
+        p_user_id: user.id,
+        p_start_date: format(previousStart, 'yyyy-MM-dd'),
+        p_end_date: format(previousEnd, 'yyyy-MM-dd')
       });
       
       if (error) throw error;
@@ -117,7 +160,6 @@ export function TAReportsUpdated() {
 
     const dateMap = new Map<string, ChartDataPoint>();
     
-    // Initialize all dates in the range
     const current = new Date(startDate);
     while (current <= endDate) {
       const dateKey = format(current, 'yyyy-MM-dd');
@@ -133,7 +175,6 @@ export function TAReportsUpdated() {
       current.setDate(current.getDate() + 1);
     }
 
-    // Fill with actual data
     temporalData.forEach((item: any) => {
       const existingData = dateMap.get(item.date);
       if (existingData) {
@@ -194,12 +235,20 @@ export function TAReportsUpdated() {
     if (!efficiencyData || !weeklyGoal || weeklyGoal === 0) return 0;
     if (efficiencyData.taxa_conversao_geral === 0) return 0;
     
-    // Cálculo: Meta de OIs / (Taxa de conversão / 100)
     const leadsNeeded = Math.ceil(weeklyGoal / (efficiencyData.taxa_conversao_geral / 100));
     return leadsNeeded;
   };
 
   const isLoading = isDashboardLoading || isTemporalLoading;
+
+  // Donut chart data
+  const donutData: DonutChartSegment[] = [
+    { value: dashboardData?.nao_atendeu || 0, color: DONUT_COLORS.naoAtendido, label: "Não Atendido" },
+    { value: dashboardData?.ligar_depois || 0, color: DONUT_COLORS.ligarDepois, label: "Ligar Depois" },
+    { value: dashboardData?.marcar_whatsapp || 0, color: DONUT_COLORS.marcar, label: "Marcar WhatsApp" },
+    { value: dashboardData?.nao_tem_interesse || 0, color: DONUT_COLORS.naoTemInteresse, label: "Não Tem Interesse" },
+    { value: dashboardData?.agendados || 0, color: DONUT_COLORS.oi, label: "OI Agendado" },
+  ];
 
   // Tablet liquid glass classes
   const cardClasses = cn(
@@ -210,6 +259,9 @@ export function TAReportsUpdated() {
   const titleClasses = cn(isTablet && "text-white");
   const subtitleClasses = cn(isTablet ? "text-white/50" : "text-muted-foreground");
 
+  const currentPeriod = `${format(startDate, 'dd/MM')} - ${format(endDate, 'dd/MM')}`;
+  const previousPeriod = `${format(previousStart, 'dd/MM')} - ${format(previousEnd, 'dd/MM')}`;
+
   if (isLoading) {
     return (
       <div className={cn("flex items-center justify-center h-64", titleClasses)}>
@@ -217,12 +269,6 @@ export function TAReportsUpdated() {
       </div>
     );
   }
-
-  const periodFilter = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const currentPeriod = `${format(startDate, 'dd/MM')} - ${format(endDate, 'dd/MM')}`;
-  const previousStart = subDays(startDate, periodFilter);
-  const previousEnd = subDays(endDate, periodFilter);
-  const previousPeriod = `${format(previousStart, 'dd/MM')} - ${format(previousEnd, 'dd/MM')}`;
 
   return (
     <div className="space-y-6">
@@ -243,10 +289,10 @@ export function TAReportsUpdated() {
             className={cn("flex items-center gap-2", isTablet && "bg-white/10 border-white/20 text-white hover:bg-white/20")}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
           </Button>
           <Badge variant="secondary" className={cn("text-sm", isTablet && "bg-white/10 text-white border-white/20")}>
-            {dashboardData?.total_contactados || 0} contatos no período
+            {dashboardData?.total_contactados || 0} contatos
           </Badge>
         </div>
       </div>
@@ -261,49 +307,110 @@ export function TAReportsUpdated() {
         onPresetChange={handlePresetChange}
       />
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <TAMetricCard
+      {/* Metrics Cards - Liquid Glass */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <TAMetricCardGlass
           title="Leads Contactados"
           value={dashboardData?.total_contactados || 0}
+          previousValue={previousDashboardData?.total_contactados}
+          stageColor={STAGE_COLORS.contactados}
           isActive={activeCard === 'leadsContactados'}
           onClick={() => setActiveCard('leadsContactados')}
-          gradient="bg-gradient-to-r from-blue-500 to-blue-600"
         />
-        <TAMetricCard
+        <TAMetricCardGlass
           title="Não Atendido"
           value={dashboardData?.nao_atendeu || 0}
+          previousValue={previousDashboardData?.nao_atendeu}
+          stageColor={STAGE_COLORS.naoAtendido}
           isActive={activeCard === 'naoAtendido'}
           onClick={() => setActiveCard('naoAtendido')}
-          gradient="bg-gradient-to-r from-gray-500 to-gray-600"
         />
-        <TAMetricCard
+        <TAMetricCardGlass
           title="Ligar Depois"
           value={dashboardData?.ligar_depois || 0}
+          previousValue={previousDashboardData?.ligar_depois}
+          stageColor={STAGE_COLORS.ligarDepois}
           isActive={activeCard === 'ligarDepois'}
           onClick={() => setActiveCard('ligarDepois')}
-          gradient="bg-gradient-to-r from-red-500 to-red-600"
         />
-        <TAMetricCard
+        <TAMetricCardGlass
           title="Marcar no WhatsApp"
           value={dashboardData?.marcar_whatsapp || 0}
+          previousValue={previousDashboardData?.marcar_whatsapp}
+          stageColor={STAGE_COLORS.marcar}
           isActive={activeCard === 'marcarWhatsapp'}
           onClick={() => setActiveCard('marcarWhatsapp')}
-          gradient="bg-gradient-to-r from-orange-500 to-orange-600"
         />
-        <TAMetricCard
+        <TAMetricCardGlass
           title="Não Tem Interesse"
           value={dashboardData?.nao_tem_interesse || 0}
+          previousValue={previousDashboardData?.nao_tem_interesse}
+          stageColor={STAGE_COLORS.naoTemInteresse}
           isActive={activeCard === 'naoTemInteresse'}
           onClick={() => setActiveCard('naoTemInteresse')}
-          gradient="bg-gradient-to-r from-purple-500 to-purple-600"
         />
-        <TAMetricCard
+        <TAMetricCardGlass
           title="OI Agendado"
           value={dashboardData?.agendados || 0}
+          previousValue={previousDashboardData?.agendados}
+          stageColor={STAGE_COLORS.oi}
           isActive={activeCard === 'resultadoGeral'}
           onClick={() => setActiveCard('resultadoGeral')}
-          gradient="bg-gradient-to-r from-green-500 to-green-600"
+        />
+      </div>
+
+      {/* DonutChart + Comparison Side by Side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* DonutChart */}
+        <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md p-6">
+          <div className="mb-4">
+            <h3 className="text-lg font-inter font-normal tracking-tight text-foreground">
+              Distribuição de Resultados
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Visualização por etapa de atendimento
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <DonutChart
+              data={donutData}
+              size={220}
+              strokeWidth={28}
+              centerContent={
+                <div className="text-center">
+                  <p className="text-3xl font-inter font-bold tracking-tighter text-foreground">
+                    {dashboardData?.total_contactados || 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Leads</p>
+                </div>
+              }
+            />
+
+            {/* Legend */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 w-full">
+              {donutData.map((item) => (
+                <div key={item.label} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full shrink-0" 
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground truncate">{item.label}</p>
+                    <p className="text-sm font-medium text-foreground">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Comparison Chart */}
+        <TAComparisonChart
+          currentOIs={dashboardData?.agendados || 0}
+          previousOIs={previousDashboardData?.agendados || 0}
+          currentPeriod={currentPeriod}
+          previousPeriod={previousPeriod}
         />
       </div>
 
