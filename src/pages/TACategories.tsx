@@ -40,6 +40,11 @@ export default function TACategories() {
   const [currentEtapaIndex, setCurrentEtapaIndex] = useState(0);
   const [totalEtapaSlides, setTotalEtapaSlides] = useState(0);
 
+  // Carousel state para Profissões
+  const [profissaoApi, setProfissaoApi] = useState<CarouselApi>();
+  const [currentProfissaoIndex, setCurrentProfissaoIndex] = useState(0);
+  const [totalProfissaoSlides, setTotalProfissaoSlides] = useState(0);
+
   // Effect para rastrear mudanças no carousel de etapas
   useEffect(() => {
     if (!etapaApi) return;
@@ -51,6 +56,18 @@ export default function TACategories() {
       setCurrentEtapaIndex(etapaApi.selectedScrollSnap());
     });
   }, [etapaApi]);
+
+  // Effect para rastrear mudanças no carousel de profissões
+  useEffect(() => {
+    if (!profissaoApi) return;
+    
+    setTotalProfissaoSlides(profissaoApi.scrollSnapList().length);
+    setCurrentProfissaoIndex(profissaoApi.selectedScrollSnap());
+    
+    profissaoApi.on("select", () => {
+      setCurrentProfissaoIndex(profissaoApi.selectedScrollSnap());
+    });
+  }, [profissaoApi]);
 
   // Carregar leads selecionados para TA
   const { data: leads = [], isLoading } = useQuery({
@@ -343,7 +360,8 @@ export default function TACategories() {
             setApi={setEtapaApi}
             opts={{
               align: "start",
-              slidesToScroll: 4,
+              dragFree: true,
+              containScroll: "trimSnaps",
             }}
             className="w-full"
           >
@@ -433,73 +451,96 @@ export default function TACategories() {
         {/* Seção por Profissão */}
         <div>
           <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Profissão</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Object.entries(leadsByProfissao).map(([profissao, leadsInProfissao]) => {
-              const { conflitos } = detectarConflitos(profissao, 'profissao');
-              
-              const CardComponent = () => (
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#FF00C8]/10 overflow-hidden cursor-pointer">
-                  <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                        PROFISSÃO
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
-                    <p className="text-sm text-muted-foreground mb-4 font-inter">
-                      Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
-                    </p>
-                    
-                    {/* Barra de Progresso */}
-                    {(() => {
-                      const progresso = calcularProgresso(leadsInProfissao);
-                      return (
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
-                          </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
-                            <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
-                          </div>
+          <Carousel
+            setApi={setProfissaoApi}
+            opts={{
+              align: "start",
+              dragFree: true,
+              containScroll: "trimSnaps",
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {Object.entries(leadsByProfissao).map(([profissao, leadsInProfissao]) => {
+                const { conflitos } = detectarConflitos(profissao, 'profissao');
+                
+                return (
+                  <CarouselItem key={profissao} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div 
+                      onClick={() => acessarCategoria(profissao, 'profissao')}
+                      className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#FF00C8]/10 overflow-hidden cursor-pointer"
+                    >
+                      <div className={`h-32 bg-gradient-to-r ${getProfissaoColor(profissao)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                        <div className="absolute top-4 left-4">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                            PROFISSÃO
+                          </span>
                         </div>
-                      );
-                    })()}
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{profissao}</h3>
+                        <p className="text-sm text-muted-foreground mb-4 font-inter">
+                          Categoria com {leadsInProfissao.length} lead{leadsInProfissao.length !== 1 ? 's' : ''} selecionado{leadsInProfissao.length !== 1 ? 's' : ''}
+                        </p>
+                        
+                        {/* Barra de Progresso */}
+                        {(() => {
+                          const progresso = calcularProgresso(leadsInProfissao);
+                          return (
+                            <div className="mb-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
+                              </div>
+                              <div className="w-full bg-white/10 rounded-full h-2">
+                                <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-inter font-semibold tracking-tight text-white">
-                        {leadsInProfissao.length}
-                      </span>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          acessarCategoria(profissao, 'profissao');
-                        }}
-                        className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
-                      >
-                        Acessar
-                      </button>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-inter font-semibold tracking-tight text-white">
+                            {leadsInProfissao.length}
+                          </span>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              acessarCategoria(profissao, 'profissao');
+                            }}
+                            className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
+                          >
+                            Acessar
+                          </button>
+                        </div>
+                        
+                        <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                          <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                          Espaço privado
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
-                      <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
-                      Espaço privado
-                    </div>
-                  </div>
-                </div>
-              );
-
-              return (
-                <div 
-                  key={profissao}
-                  onClick={() => acessarCategoria(profissao, 'profissao')}
-                >
-                  <CardComponent />
-                </div>
-              );
-            })}
-          </div>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+          </Carousel>
+          
+          {/* Dots de Paginação */}
+          {totalProfissaoSlides > 1 && (
+            <div className="flex justify-center mt-4">
+              <div className="flex gap-1">
+                {Array.from({ length: totalProfissaoSlides }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => profissaoApi?.scrollTo(idx)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      idx === currentProfissaoIndex ? 'bg-white' : 'bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Dialog de Confirmação */}
