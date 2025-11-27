@@ -218,9 +218,9 @@ export default function Schedule() {
         </div>
 
         {/* Main Content - Responsive Split View */}
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(240px,300px)_1fr] lg:grid-cols-[minmax(280px,350px)_1fr] gap-4 sm:gap-5 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(240px,300px)_1fr] lg:grid-cols-[minmax(280px,350px)_1fr] gap-4 sm:gap-5 md:gap-6 md:items-start">
           {/* Left: Compact Calendar */}
-          <div className="order-2 md:order-1">
+          <div className="order-2 md:order-1 md:h-[480px]">
             <LiquidGlassCalendar
               selected={selectedDate}
               onSelect={(date) => date && setSelectedDate(date)}
