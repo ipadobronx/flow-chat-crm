@@ -58,10 +58,8 @@ export const EventsList = ({
     );
   });
 
-  const showTasks = activeView === "tasks";
-  const hasContent = showTasks 
-    ? filteredTasks.length > 0 || sortedEvents.some(e => e.google_task_id)
-    : sortedEvents.length > 0;
+  // Always show both tasks and events
+  const hasContent = sortedEvents.length > 0 || filteredTasks.length > 0;
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px]">
@@ -84,20 +82,16 @@ export const EventsList = ({
         ) : !hasContent ? (
           <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 flex items-center justify-center mb-3 sm:mb-4">
-              {showTasks ? (
-                <ListTodo className="h-6 w-6 sm:h-8 sm:w-8 text-white/30" />
-              ) : (
-                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-white/30" />
-              )}
+              <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-white/30" />
             </div>
             <p className="text-white/50 text-xs sm:text-sm">
-              {showTasks ? "Nenhuma tarefa para este dia" : "Nenhum agendamento para este dia"}
+              Nenhum agendamento ou tarefa para este dia
             </p>
           </div>
         ) : (
           <>
-            {/* Google Tasks (when in tasks view) */}
-            {showTasks && filteredTasks.map((task, index) => (
+            {/* Google Tasks - Always visible */}
+            {filteredTasks.map((task, index) => (
               <div
                 key={task.id}
                 onClick={() => onTaskClick?.(task)}
@@ -135,21 +129,17 @@ export const EventsList = ({
               </div>
             ))}
 
-            {/* Regular Events */}
-            {sortedEvents.map((event, index) => {
-              // In tasks view, only show events with google_task_id
-              if (showTasks && !event.google_task_id) return null;
-              
-              return (
+            {/* Regular Events - Always visible */}
+            {sortedEvents.map((event, index) => (
                 <div
                   key={event.id}
                   onClick={() => onEventClick(event)}
-                  className={cn(
-                    "group relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20",
-                    "rounded-xl sm:rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-300",
-                    "animate-fade-in"
-                  )}
-                  style={{ animationDelay: `${(showTasks ? filteredTasks.length : 0 + index) * 50}ms` }}
+                className={cn(
+                  "group relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20",
+                  "rounded-xl sm:rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-300",
+                  "animate-fade-in"
+                )}
+                style={{ animationDelay: `${(filteredTasks.length + index) * 50}ms` }}
                 >
                   <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 min-w-0">
@@ -222,8 +212,7 @@ export const EventsList = ({
                     </div>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </>
         )}
       </div>

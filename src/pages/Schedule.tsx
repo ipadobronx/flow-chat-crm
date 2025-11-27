@@ -70,19 +70,12 @@ export default function Schedule() {
     }).filter(Boolean) as ScheduleEvent[];
   }, [agendamentos]);
 
-  // Filter events based on view and selected date
+  // Filter events by selected date (show all events regardless of view)
   const filteredEvents = useMemo(() => {
-    let events = allEvents.filter((event) =>
+    return allEvents.filter((event) =>
       isSameDay(parseISO(event.datetime), selectedDate)
     );
-
-    // In tasks view, only show events with google_task_id
-    if (activeView === "tasks") {
-      events = events.filter((event) => event.google_task_id);
-    }
-
-    return events;
-  }, [allEvents, selectedDate, activeView]);
+  }, [allEvents, selectedDate]);
 
   // Get dates with events for calendar dots
   const datesWithEvents = useMemo(() => {
@@ -186,7 +179,7 @@ export default function Schedule() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {isConnected && activeView === "tasks" && (
+            {isConnected && (
               <Button
                 onClick={() => refetchTasks()}
                 disabled={isLoadingTasks}
