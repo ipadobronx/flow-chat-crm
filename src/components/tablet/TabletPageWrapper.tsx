@@ -15,7 +15,7 @@ export function TabletPageWrapper({ children, className }: TabletPageWrapperProp
       {/* Back button header */}
       <header className="flex items-center gap-4 px-4 py-4">
         <Link 
-          to="/dashboard"
+          to="/"
           className={cn(
             "group flex items-center gap-2 px-4 py-2 rounded-full",
             "bg-white/5 backdrop-blur-xl border border-white/10",
