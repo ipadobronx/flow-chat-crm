@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useIsTablet } from "@/hooks/use-tablet";
 
 interface TAHistorico {
   id: string;
@@ -33,6 +34,7 @@ interface TAHistorico {
 export default function Reports() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { isTablet } = useIsTablet();
   const [historico, setHistorico] = useState<TAHistorico[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroLead, setFiltroLead] = useState("");
@@ -143,14 +145,37 @@ export default function Reports() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Tablet liquid glass classes
+  const cardClasses = cn(
+    "rounded-[20px]",
+    isTablet && "bg-white/5 backdrop-blur-md border-white/10"
+  );
+
+  const titleClasses = cn(isTablet && "text-white");
+  const subtitleClasses = cn(isTablet ? "text-white/50" : "text-muted-foreground");
+  const buttonOutlineClasses = cn(isTablet && "bg-white/10 border-white/20 text-white hover:bg-white/20");
+
   return (
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
 
         <Tabs defaultValue="metricas" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="metricas">Métricas de TA</TabsTrigger>
-            <TabsTrigger value="historico">Histórico Detalhado</TabsTrigger>
+          <TabsList className={cn(
+            "grid w-full grid-cols-2 max-w-md",
+            isTablet && "bg-white/10 border-white/20"
+          )}>
+            <TabsTrigger 
+              value="metricas"
+              className={cn(isTablet && "data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black text-white")}
+            >
+              Métricas de TA
+            </TabsTrigger>
+            <TabsTrigger 
+              value="historico"
+              className={cn(isTablet && "data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black text-white")}
+            >
+              Histórico Detalhado
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="metricas" className="space-y-6">
@@ -160,18 +185,18 @@ export default function Reports() {
           <TabsContent value="historico" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Histórico de Mudanças no TA</h2>
-                <p className="text-muted-foreground">
+                <h2 className={cn("text-xl font-semibold", titleClasses)}>Histórico de Mudanças no TA</h2>
+                <p className={subtitleClasses}>
                   Histórico detalhado de mudanças de etapa dos leads no TA
                 </p>
               </div>
               
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="flex items-center gap-1">
+                <Badge variant="secondary" className={cn("flex items-center gap-1", isTablet && "bg-white/10 text-white border-white/20")}>
                   <Clock className="w-3 h-3" />
                   {historicoGrouped.length} registro{historicoGrouped.length !== 1 ? 's' : ''}
                 </Badge>
-                <Button variant="outline" size="sm" onClick={fetchHistorico} disabled={loading}>
+                <Button variant="outline" size="sm" onClick={fetchHistorico} disabled={loading} className={buttonOutlineClasses}>
                   <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
                   Atualizar
                 </Button>
@@ -179,9 +204,9 @@ export default function Reports() {
             </div>
 
         {/* Filtros */}
-        <Card>
+        <Card className={cardClasses}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className={cn("flex items-center gap-2", titleClasses)}>
               <Filter className="w-5 h-5" />
               Filtros
             </CardTitle>
@@ -190,7 +215,7 @@ export default function Reports() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Filtro por Lead */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Buscar Lead</label>
+                <label className={cn("text-sm font-medium", titleClasses)}>Buscar Lead</label>
                 <LiquidGlassInput
                   placeholder="Nome do lead..."
                   value={filtroLead}
@@ -201,36 +226,37 @@ export default function Reports() {
 
               {/* Tipo de Mudança */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo de Mudança</label>
+                <label className={cn("text-sm font-medium", titleClasses)}>Tipo de Mudança</label>
                 <Select value={tipoMudanca} onValueChange={setTipoMudanca}>
-                  <SelectTrigger>
+                  <SelectTrigger className={cn(isTablet && "bg-white/10 border-white/20 text-white")}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas</SelectItem>
-                    <SelectItem value="etapa">Apenas Etapas</SelectItem>
-                    <SelectItem value="ordem">Apenas Reordenação</SelectItem>
+                  <SelectContent className={cn(isTablet && "bg-black/90 border-white/20")}>
+                    <SelectItem value="todas" className={cn(isTablet && "text-white focus:bg-white/10")}>Todas</SelectItem>
+                    <SelectItem value="etapa" className={cn(isTablet && "text-white focus:bg-white/10")}>Apenas Etapas</SelectItem>
+                    <SelectItem value="ordem" className={cn(isTablet && "text-white focus:bg-white/10")}>Apenas Reordenação</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Data Início */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Data Início</label>
+                <label className={cn("text-sm font-medium", titleClasses)}>Data Início</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dataInicio && "text-muted-foreground"
+                        !dataInicio && (isTablet ? "text-white/50" : "text-muted-foreground"),
+                        buttonOutlineClasses
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dataInicio ? format(dataInicio, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className={cn("w-auto p-0", isTablet && "bg-black/90 border-white/20")}>
                     <Calendar
                       mode="single"
                       selected={dataInicio}
@@ -243,21 +269,22 @@ export default function Reports() {
 
               {/* Data Fim */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Data Fim</label>
+                <label className={cn("text-sm font-medium", titleClasses)}>Data Fim</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dataFim && "text-muted-foreground"
+                        !dataFim && (isTablet ? "text-white/50" : "text-muted-foreground"),
+                        buttonOutlineClasses
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {dataFim ? format(dataFim, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className={cn("w-auto p-0", isTablet && "bg-black/90 border-white/20")}>
                     <Calendar
                       mode="single"
                       selected={dataFim}
@@ -280,6 +307,7 @@ export default function Reports() {
                   setDataFim(undefined);
                   setTipoMudanca("todas");
                 }}
+                className={buttonOutlineClasses}
               >
                 Limpar Filtros
               </Button>
@@ -289,6 +317,7 @@ export default function Reports() {
                 size="sm"
                 onClick={exportarRelatorio}
                 disabled={historicoGrouped.length === 0}
+                className={buttonOutlineClasses}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Exportar CSV
@@ -298,18 +327,18 @@ export default function Reports() {
         </Card>
 
         {/* Tabela de Histórico */}
-        <Card>
+        <Card className={cardClasses}>
           <CardHeader>
-            <CardTitle>Histórico de Mudanças</CardTitle>
+            <CardTitle className={titleClasses}>Histórico de Mudanças</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex items-center justify-center py-8">
+              <div className={cn("flex items-center justify-center py-8", titleClasses)}>
                 <RefreshCw className="w-6 h-6 animate-spin" />
                 <span className="ml-2">Carregando histórico...</span>
               </div>
             ) : historicoGrouped.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className={cn("text-center py-8", subtitleClasses)}>
                 <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p>Nenhum registro encontrado</p>
                 <p className="text-sm mt-2">Tente ajustar os filtros ou verifique se há leads no TA</p>
@@ -318,21 +347,21 @@ export default function Reports() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Lead</TableHead>
-                      <TableHead>Mudança</TableHead>
-                      <TableHead>Data/Hora</TableHead>
-                      <TableHead>Observações</TableHead>
-                      <TableHead>Ordem</TableHead>
+                    <TableRow className={cn(isTablet && "border-white/10")}>
+                      <TableHead className={cn(isTablet && "text-white/70")}>Lead</TableHead>
+                      <TableHead className={cn(isTablet && "text-white/70")}>Mudança</TableHead>
+                      <TableHead className={cn(isTablet && "text-white/70")}>Data/Hora</TableHead>
+                      <TableHead className={cn(isTablet && "text-white/70")}>Observações</TableHead>
+                      <TableHead className={cn(isTablet && "text-white/70")}>Ordem</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {historicoGrouped.map((item) => (
-                      <TableRow key={item.id}>
+                      <TableRow key={item.id} className={cn(isTablet && "border-white/10 hover:bg-white/5")}>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-muted-foreground" />
-                            <span className="font-medium">{item.lead_nome}</span>
+                            <User className={cn("w-4 h-4", isTablet ? "text-white/50" : "text-muted-foreground")} />
+                            <span className={cn("font-medium", titleClasses)}>{item.lead_nome}</span>
                           </div>
                         </TableCell>
                         
@@ -343,24 +372,24 @@ export default function Reports() {
                                 {item.etapa_anterior}
                               </Badge>
                             )}
-                            <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                            <ArrowRight className={cn("w-3 h-3", isTablet ? "text-white/50" : "text-muted-foreground")} />
                             <Badge className={`text-white text-xs ${getEtapaColor(item.etapa_nova)}`}>
                               {item.etapa_nova}
                             </Badge>
                           </div>
                         </TableCell>
                         
-                        <TableCell className="text-sm">
+                        <TableCell className={cn("text-sm", isTablet && "text-white/70")}>
                           {format(new Date(item.data_mudanca), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
                         
-                        <TableCell className="text-sm text-muted-foreground max-w-xs">
+                        <TableCell className={cn("text-sm max-w-xs", subtitleClasses)}>
                           <span className="truncate block" title={item.observacoes || ""}>
                             {item.observacoes || "-"}
                           </span>
                         </TableCell>
                         
-                        <TableCell className="text-sm">
+                        <TableCell className={cn("text-sm", isTablet && "text-white/70")}>
                           {item.ta_order_anterior !== item.ta_order_nova ? (
                             <div className="flex items-center gap-1 text-xs">
                               <span>{item.ta_order_anterior || 0}</span>
@@ -368,7 +397,7 @@ export default function Reports() {
                               <span>{item.ta_order_nova || 0}</span>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">-</span>
+                            <span className={subtitleClasses}>-</span>
                           )}
                         </TableCell>
                       </TableRow>

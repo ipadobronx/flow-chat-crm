@@ -13,6 +13,8 @@ import TADynamicChart from "./TADynamicChart";
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { RefreshCw, Target } from "lucide-react";
 import { toast } from "sonner";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 
 interface TAMetrics {
   total_contactados: number;
@@ -43,6 +45,7 @@ interface ChartDataPoint {
 
 export function TAReportsUpdated() {
   const { user } = useAuth();
+  const { isTablet } = useIsTablet();
   const { invalidateTAData } = useTACache();
   const [startDate, setStartDate] = useState(subDays(new Date(), 6));
   const [endDate, setEndDate] = useState(new Date());
@@ -198,10 +201,19 @@ export function TAReportsUpdated() {
 
   const isLoading = isDashboardLoading || isTemporalLoading;
 
+  // Tablet liquid glass classes
+  const cardClasses = cn(
+    "rounded-[20px]",
+    isTablet && "bg-white/5 backdrop-blur-md border-white/10"
+  );
+
+  const titleClasses = cn(isTablet && "text-white");
+  const subtitleClasses = cn(isTablet ? "text-white/50" : "text-muted-foreground");
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className={cn("flex items-center justify-center h-64", titleClasses)}>
+        <div className={cn("animate-spin rounded-full h-8 w-8 border-b-2", isTablet ? "border-[#d4ff4a]" : "border-primary")}></div>
       </div>
     );
   }
@@ -217,8 +229,8 @@ export function TAReportsUpdated() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relatórios TA</h1>
-          <p className="text-muted-foreground">
+          <h1 className={cn("text-3xl font-bold tracking-tight", titleClasses)}>Relatórios TA</h1>
+          <p className={subtitleClasses}>
             Análise detalhada das atividades de telemarketing e atendimento
           </p>
         </div>
@@ -228,12 +240,12 @@ export function TAReportsUpdated() {
             size="sm"
             onClick={handleRefreshData}
             disabled={isRefreshing}
-            className="flex items-center gap-2"
+            className={cn("flex items-center gap-2", isTablet && "bg-white/10 border-white/20 text-white hover:bg-white/20")}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Atualizando...' : 'Atualizar Dados'}
           </Button>
-          <Badge variant="secondary" className="text-sm">
+          <Badge variant="secondary" className={cn("text-sm", isTablet && "bg-white/10 text-white border-white/20")}>
             {dashboardData?.total_contactados || 0} contatos no período
           </Badge>
         </div>
@@ -315,16 +327,16 @@ export function TAReportsUpdated() {
       {/* Efficiency Metrics */}
       {efficiencyData && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card className={cardClasses}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Target className="h-4 w-4" />
+              <CardTitle className={cn("text-sm font-medium flex items-center gap-2", titleClasses)}>
+                <Target className={cn("h-4 w-4", isTablet && "text-[#d4ff4a]")} />
                 Calculadora de Meta
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label className={cn("text-sm font-medium", titleClasses)}>
                   Qual a sua meta de OIs semanais?
                 </label>
                 <div className="flex gap-2">
@@ -336,82 +348,82 @@ export function TAReportsUpdated() {
                     placeholder="Digite sua meta"
                     className="flex-1"
                   />
-                  <Button onClick={handleSaveGoal} size="sm">
+                  <Button onClick={handleSaveGoal} size="sm" className={cn(isTablet && "bg-[#d4ff4a] text-black hover:bg-[#c9f035]")}>
                     Salvar
                   </Button>
                 </div>
               </div>
               
               {weeklyGoal > 0 && efficiencyData.taxa_conversao_geral > 0 && (
-                <div className="pt-2 border-t">
-                  <p className="text-xs text-muted-foreground mb-1">
+                <div className={cn("pt-2 border-t", isTablet && "border-white/10")}>
+                  <p className={cn("text-xs mb-1", subtitleClasses)}>
                     Para alcançar sua meta:
                   </p>
-                  <div className="text-2xl font-bold text-primary">
+                  <div className={cn("text-2xl font-bold", isTablet ? "text-[#d4ff4a]" : "text-primary")}>
                     {calculateLeadsNeeded()}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className={cn("text-xs", subtitleClasses)}>
                     leads precisam ser contactados por semana
                   </p>
                 </div>
               )}
               
               {weeklyGoal > 0 && efficiencyData.taxa_conversao_geral === 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className={cn("text-xs", subtitleClasses)}>
                   Sem dados de conversão suficientes para calcular
                 </p>
               )}
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className={cardClasses}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-center">Taxa de Conversão</CardTitle>
+              <CardTitle className={cn("text-sm font-medium text-center", titleClasses)}>Taxa de Conversão</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-2xl font-bold">
+              <div className={cn("text-2xl font-bold", titleClasses)}>
                 {efficiencyData.taxa_conversao_marcar_oi || 0}%
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className={cn("text-xs", subtitleClasses)}>
                 Conversão De: OI → Leads Contactados
               </p>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className={cardClasses}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Taxa de Conversão por Etapa</CardTitle>
+              <CardTitle className={cn("text-sm font-medium", titleClasses)}>Taxa de Conversão por Etapa</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {dashboardData && dashboardData.total_contactados > 0 && (
                 <>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Não Atendido:</span>
-                    <span className="text-sm font-semibold">
+                    <span className={cn("text-xs", subtitleClasses)}>Não Atendido:</span>
+                    <span className={cn("text-sm font-semibold", titleClasses)}>
                       {((dashboardData.nao_atendeu / dashboardData.total_contactados) * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Ligar Depois:</span>
-                    <span className="text-sm font-semibold">
+                    <span className={cn("text-xs", subtitleClasses)}>Ligar Depois:</span>
+                    <span className={cn("text-sm font-semibold", titleClasses)}>
                       {((dashboardData.ligar_depois / dashboardData.total_contactados) * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Marcar WhatsApp:</span>
-                    <span className="text-sm font-semibold">
+                    <span className={cn("text-xs", subtitleClasses)}>Marcar WhatsApp:</span>
+                    <span className={cn("text-sm font-semibold", titleClasses)}>
                       {((dashboardData.marcar_whatsapp / dashboardData.total_contactados) * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Não Tem Interesse:</span>
-                    <span className="text-sm font-semibold">
+                    <span className={cn("text-xs", subtitleClasses)}>Não Tem Interesse:</span>
+                    <span className={cn("text-sm font-semibold", titleClasses)}>
                       {((dashboardData.nao_tem_interesse / dashboardData.total_contactados) * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t">
-                    <span className="text-xs font-medium">OI Agendado:</span>
-                    <span className="text-sm font-bold text-primary">
+                  <div className={cn("flex justify-between items-center pt-2 border-t", isTablet && "border-white/10")}>
+                    <span className={cn("text-xs font-medium", titleClasses)}>OI Agendado:</span>
+                    <span className={cn("text-sm font-bold", isTablet ? "text-[#d4ff4a]" : "text-primary")}>
                       {((dashboardData.agendados / dashboardData.total_contactados) * 100).toFixed(1)}%
                     </span>
                   </div>
