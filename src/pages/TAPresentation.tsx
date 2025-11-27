@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useTAActions, TAActionType } from "@/hooks/useTAActions";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
-import { Play, Save, ArrowLeft, CalendarIcon } from "lucide-react";
+import { Play, Save, ArrowLeft, CalendarIcon, Pause } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -639,8 +639,15 @@ export default function TAPresentation() {
             </div>
           </div>
 
-          {/* Progress indicator */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          {/* Progress indicator + Botão Pausar */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-3">
+            <button
+              onClick={() => navigate('/dashboard/ta')}
+              className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              <Pause className="h-4 w-4" />
+              Pausar
+            </button>
             <div className="text-[#A9A9A9] text-sm">
               Lead {currentLeadIndex + 1} de {leads.length}
             </div>

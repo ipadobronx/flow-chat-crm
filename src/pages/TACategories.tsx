@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 type Lead = Tables<"leads">;
 
@@ -43,6 +43,29 @@ export default function TACategories() {
       return data as Lead[];
     },
   });
+
+  // Buscar leads que já foram apresentados (têm ações em ta_actions)
+  const { data: leadsApresentados = [] } = useQuery({
+    queryKey: ["ta-leads-apresentados"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ta_actions")
+        .select("lead_id");
+      
+      if (error) throw error;
+      // Retornar IDs únicos
+      return [...new Set(data?.map(a => a.lead_id) || [])];
+    },
+  });
+
+  // Helper para calcular progresso de uma categoria
+  const calcularProgresso = useMemo(() => {
+    return (leadsNaCategoria: Lead[]) => {
+      if (leadsNaCategoria.length === 0) return 0;
+      const apresentados = leadsNaCategoria.filter(l => leadsApresentados.includes(l.id)).length;
+      return Math.round((apresentados / leadsNaCategoria.length) * 100);
+    };
+  }, [leadsApresentados]);
 
   // Detectar conflitos entre categorias
   const detectarConflitos = (categoria: string, tipo: 'etapa' | 'profissao') => {
@@ -291,14 +314,19 @@ export default function TACategories() {
                     </p>
                     
                     {/* Barra de Progresso */}
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
-                      </div>
-                    </div>
+                    {(() => {
+                      const progresso = calcularProgresso(leadsInEtapa);
+                      return (
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2">
+                            <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex items-center justify-between">
                       <span className="text-2xl font-inter font-semibold tracking-tight text-white">
@@ -358,14 +386,19 @@ export default function TACategories() {
                     </p>
                     
                     {/* Barra de Progresso */}
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-white/70 font-inter">0% Concluído</span>
-                      </div>
-                      <div className="w-full bg-white/10 rounded-full h-2">
-                        <div className="bg-white/30 h-2 rounded-full" style={{ width: '0%' }}></div>
-                      </div>
-                    </div>
+                    {(() => {
+                      const progresso = calcularProgresso(leadsInProfissao);
+                      return (
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2">
+                            <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div className="flex items-center justify-between">
                       <span className="text-2xl font-inter font-semibold tracking-tight text-white">
