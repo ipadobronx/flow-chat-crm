@@ -7,7 +7,7 @@ import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import LiquidGlassInput from "@/components/ui/liquid-input";
-import { Calendar } from "@/components/ui/calendar";
+import { LiquidGlassCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -590,20 +590,32 @@ export default function TAPresentation() {
                         <Label className="text-white/70 font-medium text-xs">
                           {selectedEtapa === "OI" ? "Data *" : "Data *"}
                         </Label>
-                        <LiquidGlassInput
-                          type="date"
-                          value={agendamentoDate ? format(agendamentoDate, "yyyy-MM-dd") : ""}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const [year, month, day] = e.target.value.split('-').map(Number);
-                              setAgendamentoDate(new Date(year, month - 1, day));
-                            } else {
-                              setAgendamentoDate(undefined);
-                            }
-                          }}
-                          min={format(new Date(), "yyyy-MM-dd")}
-                          className="w-full mt-1 h-9 text-white placeholder:text-white/70"
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              className={cn(
+                                "w-full mt-1 h-9 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white px-3 text-xs flex items-center justify-between",
+                                !agendamentoDate && "text-white/50"
+                              )}
+                            >
+                              {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione"}
+                              <CalendarIcon className="h-3.5 w-3.5 opacity-70" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent 
+                            className="w-auto p-0 border-0 bg-transparent" 
+                            align="start"
+                            sideOffset={4}
+                          >
+                            <LiquidGlassCalendar
+                              mode="single"
+                              selected={agendamentoDate}
+                              onSelect={setAgendamentoDate}
+                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       
                       <div>
