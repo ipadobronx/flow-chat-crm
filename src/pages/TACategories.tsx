@@ -266,7 +266,7 @@ export default function TACategories() {
     <div className="min-h-screen bg-[#0D0D0D] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2 font-inter tracking-tight">Apresentação TA</h1>
             <p className="text-[#A9A9A9] font-inter">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
@@ -290,6 +290,30 @@ export default function TACategories() {
             </button>
           </div>
         </div>
+
+        {/* Barra de Progresso Global */}
+        {(() => {
+          const progressoGlobal = leads.length > 0 
+            ? Math.round((leadsApresentados.filter(id => leads.some(l => l.id === id)).length / leads.length) * 100)
+            : 0;
+          const totalApresentados = leadsApresentados.filter(id => leads.some(l => l.id === id)).length;
+          
+          return (
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-white/70 font-inter">
+                  Progresso Total: {totalApresentados} de {leads.length} leads ({progressoGlobal}%)
+                </span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-3">
+                <div 
+                  className="bg-[#d4ff4a] h-3 rounded-full transition-all duration-500" 
+                  style={{ width: `${progressoGlobal}%` }}
+                ></div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Seção por Etapa */}
         <div className="mb-12">
