@@ -58,8 +58,10 @@ export const EventsList = ({
     );
   });
 
-  // Always show both tasks and events
-  const hasContent = sortedEvents.length > 0 || filteredTasks.length > 0;
+  const showOnlyTasks = activeView === "tasks";
+  const hasContent = showOnlyTasks 
+    ? filteredTasks.length > 0 
+    : sortedEvents.length > 0 || filteredTasks.length > 0;
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px]">
@@ -129,8 +131,8 @@ export const EventsList = ({
               </div>
             ))}
 
-            {/* Regular Events - Always visible */}
-            {sortedEvents.map((event, index) => (
+            {/* Regular Events - Only in calendar view */}
+            {!showOnlyTasks && sortedEvents.map((event, index) => (
                 <div
                   key={event.id}
                   onClick={() => onEventClick(event)}
