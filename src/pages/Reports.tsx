@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TAReportsUpdated } from "@/components/reports/TAReportsUpdated";
+import { TADateFilter } from "@/components/reports/TADateFilter";
+import { KPICardGlass } from "@/components/reports/KPICardGlass";
+import { SalesFunnelChartGlass } from "@/components/reports/SalesFunnelChartGlass";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,11 +13,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, BarChart3, ArrowRight, Filter, Download, RefreshCw, User, Clock } from "lucide-react";
+import { 
+  CalendarIcon, BarChart3, ArrowRight, Filter, Download, RefreshCw, User, Clock,
+  Users, Phone, Calendar as CalendarLucide, FileText, CheckCircle, Award
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+import { useKPIMetrics } from "@/hooks/dashboard/useKPIMetrics";
+import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsTablet } from "@/hooks/use-tablet";
@@ -41,6 +48,13 @@ export default function Reports() {
   const [dataInicio, setDataInicio] = useState<Date>();
   const [dataFim, setDataFim] = useState<Date>();
   const [tipoMudanca, setTipoMudanca] = useState<string>("todas");
+
+  // Dashboard states
+  const [dashboardPeriod, setDashboardPeriod] = useState("7dias");
+  const [dashboardStartDate, setDashboardStartDate] = useState<Date>(subDays(new Date(), 7));
+  const [dashboardEndDate, setDashboardEndDate] = useState<Date>(new Date());
+
+  const { data: kpiData, isLoading: kpiLoading } = useKPIMetrics(dashboardStartDate, dashboardEndDate);
 
   const fetchHistorico = async () => {
     if (!user) return;
@@ -145,6 +159,64 @@ export default function Reports() {
     window.URL.revokeObjectURL(url);
   };
 
+  // KPI Cards config
+  const kpiCards = [
+    { 
+      title: "Nº de rec", 
+      key: "total_rec", 
+      taxaKey: "taxa_conversao_ligacao",
+      icon: Users, 
+      iconColor: "text-blue-400",
+      iconBgColor: "bg-blue-500/20",
+      subtitle: "total de recomendações"
+    },
+    { 
+      title: "Ligações", 
+      key: "total_ligacoes", 
+      taxaKey: "taxa_conversao_ligacao",
+      icon: Phone, 
+      iconColor: "text-green-400",
+      iconBgColor: "bg-green-500/20",
+      subtitle: "taxa de conversão"
+    },
+    { 
+      title: "OIs Agendados", 
+      key: "total_oi_agendados", 
+      taxaKey: "taxa_conversao_oi",
+      icon: CalendarLucide, 
+      iconColor: "text-amber-400",
+      iconBgColor: "bg-amber-500/20",
+      subtitle: "taxa de conversão"
+    },
+    { 
+      title: "Proposta apresentada", 
+      key: "total_proposta_apresentada", 
+      taxaKey: "taxa_conversao_proposta",
+      icon: FileText, 
+      iconColor: "text-purple-400",
+      iconBgColor: "bg-purple-500/20",
+      subtitle: "taxa de conversão"
+    },
+    { 
+      title: "N Realizado", 
+      key: "total_n_realizado", 
+      taxaKey: "taxa_conversao_n",
+      icon: CheckCircle, 
+      iconColor: "text-cyan-400",
+      iconBgColor: "bg-cyan-500/20",
+      subtitle: "taxa de conversão"
+    },
+    { 
+      title: "Apólice Emitida", 
+      key: "total_apolice_emitida", 
+      taxaKey: "taxa_conversao_apolice",
+      icon: Award, 
+      iconColor: "text-yellow-400",
+      iconBgColor: "bg-yellow-500/20",
+      subtitle: "taxa de conversão"
+    },
+  ];
+
   // Tablet liquid glass classes
   const cardClasses = cn(
     "rounded-[20px]",
@@ -159,24 +231,68 @@ export default function Reports() {
     <DashboardLayout>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
 
-        <Tabs defaultValue="metricas" className="space-y-6">
-          <TabsList className={cn(
-            "grid w-full grid-cols-2 max-w-md",
-            isTablet && "bg-white/10 border-white/20"
-          )}>
+        <Tabs defaultValue="dashboard" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg rounded-2xl p-1.5 bg-white/5 backdrop-blur-md border border-white/10">
+            <TabsTrigger 
+              value="dashboard"
+              className="rounded-xl px-4 py-2 text-sm font-inter font-normal text-white/60 
+                data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black 
+                data-[state=active]:font-medium transition-all duration-300"
+            >
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger 
               value="metricas"
-              className={cn(isTablet && "data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black text-white")}
+              className="rounded-xl px-4 py-2 text-sm font-inter font-normal text-white/60 
+                data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black 
+                data-[state=active]:font-medium transition-all duration-300"
             >
               Métricas de TA
             </TabsTrigger>
             <TabsTrigger 
               value="historico"
-              className={cn(isTablet && "data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black text-white")}
+              className="rounded-xl px-4 py-2 text-sm font-inter font-normal text-white/60 
+                data-[state=active]:bg-[#d4ff4a] data-[state=active]:text-black 
+                data-[state=active]:font-medium transition-all duration-300"
             >
-              Histórico Detalhado
+              Histórico
             </TabsTrigger>
           </TabsList>
+
+          {/* Nova Tab Dashboard */}
+          <TabsContent value="dashboard" className="space-y-6">
+            {/* Date Filter */}
+            <TADateFilter
+              startDate={dashboardStartDate}
+              endDate={dashboardEndDate}
+              preset={dashboardPeriod}
+              onStartDateChange={(date) => date && setDashboardStartDate(date)}
+              onEndDateChange={(date) => date && setDashboardEndDate(date)}
+              onPresetChange={setDashboardPeriod}
+            />
+
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {kpiCards.map(card => (
+                <KPICardGlass
+                  key={card.key}
+                  title={card.title}
+                  value={(kpiData as any)?.[card.key] || 0}
+                  percentageChange={(kpiData as any)?.[card.taxaKey] || 0}
+                  icon={card.icon}
+                  iconColor={card.iconColor}
+                  iconBgColor={card.iconBgColor}
+                  subtitle={card.subtitle}
+                />
+              ))}
+            </div>
+
+            {/* Funnel Chart */}
+            <SalesFunnelChartGlass 
+              startDate={dashboardStartDate} 
+              endDate={dashboardEndDate} 
+            />
+          </TabsContent>
 
           <TabsContent value="metricas" className="space-y-6">
             <TAReportsUpdated />
