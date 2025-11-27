@@ -19,10 +19,9 @@ import { ProfissaoCombobox } from "@/components/ui/profissao-combobox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import LiquidGlassInput from "@/components/ui/liquid-input";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import CheckedSwitch from "@/components/ui/checked-switch";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, Plus, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Plus, X } from "lucide-react";
 
 const formSchema = z.object({
   nome: z.string()
@@ -48,15 +47,15 @@ const formSchema = z.object({
   idade: z.string().optional(),
   profissao: z.string().max(100, "Profissão não pode exceder 100 caracteres").optional(),
   renda_estimada: z.string().optional(),
-  casado: z.enum(["true", "false"]),
-  tem_filhos: z.enum(["true", "false"]),
+  casado: z.boolean(),
+  tem_filhos: z.boolean(),
   quantidade_filhos: z.string().optional(),
   cidade: z.string().max(100, "Cidade não pode exceder 100 caracteres").optional(),
   observacoes: z.string()
     .optional()
     .refine((val) => !val || validateObservations(val).isValid, "Observações muito longas ou contêm conteúdo inválido"),
-  avisado: z.enum(["true", "false"]),
-  incluir_sitplan: z.enum(["true", "false"]),
+  avisado: z.boolean(),
+  incluir_sitplan: z.boolean(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -77,13 +76,13 @@ export default function NovaRec() {
       idade: "",
       profissao: "",
       renda_estimada: "",
-      casado: "false",
-      tem_filhos: "false",
+      casado: false,
+      tem_filhos: false,
       quantidade_filhos: "",
       cidade: "",
       observacoes: "",
-      avisado: "false",
-      incluir_sitplan: "false",
+      avisado: false,
+      incluir_sitplan: false,
     },
   });
 
@@ -138,13 +137,13 @@ export default function NovaRec() {
         idade: data.idade ? parseInt(data.idade) : null,
         profissao: data.profissao || null,
         renda_estimada: data.renda_estimada || null,
-        casado: data.casado === "true",
-        tem_filhos: data.tem_filhos === "true",
-        quantidade_filhos: data.tem_filhos === "true" && data.quantidade_filhos ? parseInt(data.quantidade_filhos) : null,
+        casado: data.casado,
+        tem_filhos: data.tem_filhos,
+        quantidade_filhos: data.tem_filhos && data.quantidade_filhos ? parseInt(data.quantidade_filhos) : null,
         cidade: data.cidade || null,
         observacoes: observationsValidation.sanitized || null,
-        avisado: data.avisado === "true",
-        incluir_sitplan: data.incluir_sitplan === "true",
+        avisado: data.avisado,
+        incluir_sitplan: data.incluir_sitplan,
         user_id: user.id,
         etapa: "Novo" as const,
       };
@@ -182,161 +181,114 @@ export default function NovaRec() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-3 sm:space-y-4">
-        <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-2xl transition-all duration-300 hover:shadow-2xl">
-          <div className="flex items-center justify-between p-4 sm:p-6">
-            <div>
-              <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter">Dados do Lead</h3>
-              <p className="text-sm text-muted-foreground">Preencha os dados do lead</p>
-            </div>
-            <button type="submit" form="nova-rec-form" disabled={isLoading} className="bg-black text-white rounded-full p-3 sm:p-4 hover:bg-black/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-lg">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2"/>
-              </svg>
-            </button>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-inter font-normal tracking-tighter">Nova Recomendação</h2>
+            <p className="text-sm text-muted-foreground">Cadastre um novo lead no sistema</p>
           </div>
-          <div className="p-6 pt-0">
-            <Form {...form}>
-              <form id="nova-rec-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
-                {/* Dados Pessoais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Nome *</FormLabel>
-                          <FormControl>
-                            <LiquidGlassInput 
-                              placeholder="Nome completo" 
-                              className="h-10 sm:h-11"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+          <button 
+            type="submit" 
+            form="nova-rec-form" 
+            disabled={isLoading}
+            className="bg-black text-white rounded-full p-3 sm:p-4 hover:bg-black/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
+              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2"/>
+            </svg>
+          </button>
+        </div>
 
-                  <div className="sm:col-span-2 lg:col-span-3">
-                    <div>
-                      <FormLabel className="text-sm font-medium mb-3 block">Recomendantes</FormLabel>
-                      <div className="space-y-2">
-                        {fields.map((field, index) => (
-                          <div key={field.id} className="flex gap-2">
-                            <FormField
-                              control={form.control}
-                              name={`recomendantes.${index}.nome`}
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <LiquidGlassInput 
-                                      placeholder="Nome do recomendante" 
-                                      className="h-10 sm:h-11"
-                                      {...field} 
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-10 sm:h-11 px-3"
-                              onClick={() => remove(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center bg-black text-white rounded-xl h-9 sm:h-10 px-4 text-sm font-light hover:bg-black/80 transition-colors mt-0 shadow-sm"
-                          onClick={() => append({ nome: "" })}
-                        >
-                          Adicionar Recomendante
-                        </button>
-                      </div>
+        <Form {...form}>
+          <form id="nova-rec-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Layout em 2 colunas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              
+              {/* Coluna 1 */}
+              <div className="space-y-4">
+                {/* Card: Dados Principais */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter">Dados Principais</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="nome"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm">Nome *</Label>
+                        <FormControl>
+                          <LiquidGlassInput 
+                            variant="light"
+                            placeholder="Nome completo" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div>
+                    <Label className="text-sm mb-2 block">Recomendantes</Label>
+                    <div className="space-y-2">
+                      {fields.map((field, index) => (
+                        <div key={field.id} className="flex gap-2">
+                          <FormField
+                            control={form.control}
+                            name={`recomendantes.${index}.nome`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormControl>
+                                  <LiquidGlassInput 
+                                    variant="light"
+                                    placeholder="Nome do recomendante" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-10 px-3 rounded-xl"
+                            onClick={() => remove(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 bg-black text-white rounded-xl h-9 px-4 text-sm font-light hover:bg-black/80 transition-colors shadow-sm"
+                        onClick={() => append({ nome: "" })}
+                      >
+                        <Plus className="h-4 w-4" />
+                        Adicionar
+                      </button>
                     </div>
                   </div>
+                </div>
 
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="telefone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Celular Principal *</FormLabel>
-                          <FormControl>
-                            <LiquidGlassInput 
-                              placeholder="(11) 99999-9999" 
-                              className="h-10 sm:h-11"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="celular_secundario"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Celular Secundário</FormLabel>
-                          <FormControl>
-                            <LiquidGlassInput 
-                              placeholder="(11) 99999-9999" 
-                              className="h-10 sm:h-11"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Email</FormLabel>
-                          <FormControl>
-                            <LiquidGlassInput 
-                              placeholder="email@exemplo.com" 
-                              type="email" 
-                              className="h-10 sm:h-11"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-1 lg:col-span-1">
+                {/* Card: Informações Pessoais */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter">Informações Pessoais</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="idade"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Idade</FormLabel>
+                          <Label className="text-sm">Idade</Label>
                           <FormControl>
                             <LiquidGlassInput 
+                              variant="light"
                               placeholder="30" 
                               type="number" 
-                              className="h-10 sm:h-11"
                               {...field} 
                             />
                           </FormControl>
@@ -344,58 +296,17 @@ export default function NovaRec() {
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="profissao"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Profissão</FormLabel>
-                          <FormControl>
-                            <ProfissaoCombobox
-                              value={field.value}
-                              onValueChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <FormField
-                      control={form.control}
-                      name="renda_estimada"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium">Renda Estimada</FormLabel>
-                          <FormControl>
-                            <LiquidGlassInput 
-                              placeholder="R$ 5.000,00" 
-                              className="h-10 sm:h-11"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2 lg:col-span-2 xl:col-span-1">
                     <FormField
                       control={form.control}
                       name="cidade"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium">Cidade</FormLabel>
+                          <Label className="text-sm">Cidade</Label>
                           <FormControl>
                             <LiquidGlassInput 
+                              variant="light"
                               placeholder="São Paulo - SP" 
-                              className="h-10 sm:h-11"
                               {...field} 
                             />
                           </FormControl>
@@ -404,110 +315,63 @@ export default function NovaRec() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="profissao"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm">Profissão</Label>
+                        <FormControl>
+                          <ProfissaoCombobox
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="renda_estimada"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm">Renda Estimada</Label>
+                        <FormControl>
+                          <LiquidGlassInput 
+                            variant="light"
+                            placeholder="R$ 5.000,00" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
+              </div>
 
-                {/* Seção de Radio Buttons */}
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-medium text-foreground border-b pb-2">Informações Adicionais</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Coluna 2 */}
+              <div className="space-y-4">
+                {/* Card: Contato */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter">Informações de Contato</h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
-                      name="casado"
+                      name="telefone"
                       render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-sm font-medium">Casado(a)</FormLabel>
+                        <FormItem>
+                          <Label className="text-sm">Celular Principal *</Label>
                           <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="true" id="casado-sim" />
-                                <Label htmlFor="casado-sim" className="text-sm">Sim</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="false" id="casado-nao" />
-                                <Label htmlFor="casado-nao" className="text-sm">Não</Label>
-                              </div>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="tem_filhos"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-sm font-medium">Tem Filhos</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="true" id="filhos-sim" />
-                                <Label htmlFor="filhos-sim" className="text-sm">Sim</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="false" id="filhos-nao" />
-                                <Label htmlFor="filhos-nao" className="text-sm">Não</Label>
-                              </div>
-                            </RadioGroup>
-                          </FormControl>
-                          {form.watch("tem_filhos") === "true" && (
-                            <FormField
-                              control={form.control}
-                              name="quantidade_filhos"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-sm font-medium">Quantos filhos?</FormLabel>
-                                  <FormControl>
-                                    <LiquidGlassInput
-                                      type="number"
-                                      min="1"
-                                      max="20"
-                                      placeholder="Ex: 2"
-                                      {...field}
-                                      className="w-24 sm:w-28 h-9 sm:h-10"
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
+                            <LiquidGlassInput 
+                              variant="light"
+                              placeholder="(11) 99999-9999" 
+                              {...field} 
                             />
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-
-                    <FormField
-                      control={form.control}
-                      name="avisado"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-sm font-medium">Avisado</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="true" id="avisado-sim" />
-                                <Label htmlFor="avisado-sim" className="text-sm">Sim</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="false" id="avisado-nao" />
-                                <Label htmlFor="avisado-nao" className="text-sm">Não</Label>
-                              </div>
-                            </RadioGroup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -516,57 +380,153 @@ export default function NovaRec() {
 
                     <FormField
                       control={form.control}
-                      name="incluir_sitplan"
+                      name="celular_secundario"
                       render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-sm font-medium">Incluir no Próximo SitPlan</FormLabel>
+                        <FormItem>
+                          <Label className="text-sm">Celular Secundário</Label>
                           <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="true" id="sitplan-sim" />
-                                <Label htmlFor="sitplan-sim" className="text-sm">Sim</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="false" id="sitplan-nao" />
-                                <Label htmlFor="sitplan-nao" className="text-sm">Não</Label>
-                              </div>
-                            </RadioGroup>
+                            <LiquidGlassInput 
+                              variant="light"
+                              placeholder="(11) 99999-9999" 
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Label className="text-sm">Email</Label>
+                        <FormControl>
+                          <LiquidGlassInput 
+                            variant="light"
+                            placeholder="email@exemplo.com" 
+                            type="email" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
-                {/* Observações */}
-                <FormField
-                  control={form.control}
-                  name="observacoes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium">Observações</FormLabel>
-                      <FormControl>
-                        <LiquidGlassTextarea
-                          placeholder="Observações adicionais sobre o lead..."
-                          className="min-h-[80px] sm:min-h-[100px]"
-                          {...field}
+                {/* Card: Configurações (Switches) */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-2">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter mb-4">Configurações</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="casado"
+                    render={({ field }) => (
+                      <div className="flex items-center justify-between py-3 border-b border-border/30">
+                        <span className="text-sm">Casado(a)</span>
+                        <CheckedSwitch
+                          checked={field.value}
+                          onChange={field.onChange}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      </div>
+                    )}
+                  />
 
-                {/* Botões removidos: ação no topo à direita */}
-              </form>
-            </Form>
-          </div>
-        </div>
+                  <FormField
+                    control={form.control}
+                    name="tem_filhos"
+                    render={({ field }) => (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between py-3 border-b border-border/30">
+                          <span className="text-sm">Tem Filhos</span>
+                          <CheckedSwitch
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                        </div>
+                        
+                        {/* Campo condicional: Quantidade de Filhos */}
+                        {field.value && (
+                          <FormField
+                            control={form.control}
+                            name="quantidade_filhos"
+                            render={({ field: qtyField }) => (
+                              <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-xl">
+                                <span className="text-sm">Quantos filhos?</span>
+                                <LiquidGlassInput 
+                                  variant="light"
+                                  type="number"
+                                  min="1"
+                                  max="20"
+                                  placeholder="Ex: 2"
+                                  className="max-w-[100px]"
+                                  {...qtyField}
+                                />
+                              </div>
+                            )}
+                          />
+                        )}
+                      </div>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="avisado"
+                    render={({ field }) => (
+                      <div className="flex items-center justify-between py-3 border-b border-border/30">
+                        <span className="text-sm">Avisado</span>
+                        <CheckedSwitch
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      </div>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="incluir_sitplan"
+                    render={({ field }) => (
+                      <div className="flex items-center justify-between py-3">
+                        <span className="text-sm">Incluir no SitPlan</span>
+                        <CheckedSwitch
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      </div>
+                    )}
+                  />
+                </div>
+
+                {/* Card: Observações */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter">Observações</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="observacoes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <LiquidGlassTextarea
+                            placeholder="Observações adicionais sobre o lead..."
+                            className="min-h-[100px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </form>
+        </Form>
       </div>
     </DashboardLayout>
   );
