@@ -1,4 +1,4 @@
-// Google Calendar & Tasks OAuth Integration - v1.3
+// Google Calendar & Tasks OAuth Integration - v1.4
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.4";
 
@@ -267,6 +267,65 @@ serve(async (req) => {
       }
 
       return user;
+    }
+
+    // Listar Google Tasks
+    if (action === 'list-tasks' && req.method === 'POST') {
+      try {
+        const user = await authenticateUser(req, supabase);
+        const accessToken = await getValidAccessToken(supabase, user.id);
+
+        console.log('📋 Buscando tarefas do Google Tasks...');
+
+        // Buscar tarefas não completadas, com due date
+        const tasksResponse = await fetch(
+          'https://tasks.googleapis.com/tasks/v1/lists/@default/tasks?maxResults=100&showCompleted=false&showHidden=false',
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const tasksData = await tasksResponse.json();
+
+        if (tasksData.error) {
+          console.error('❌ Google Tasks API error:', tasksData.error);
+          return new Response(
+            JSON.stringify({ error: 'Erro ao buscar tarefas do Google Tasks', details: tasksData.error }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        const tasks = (tasksData.items || []).map((task: any) => ({
+          id: task.id,
+          title: task.title,
+          notes: task.notes || null,
+          due: task.due || null,
+          status: task.status, // "needsAction" or "completed"
+        }));
+
+        console.log(`✅ ${tasks.length} tarefas encontradas`);
+
+        return new Response(JSON.stringify({ tasks }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+
+      } catch (error) {
+        console.error('❌ Erro ao listar tarefas:', error);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        const status = message === 'Missing authorization' || message === 'Unauthorized' ? 401 : 
+                       message === 'Google Calendar not connected' ? 400 : 500;
+        return new Response(JSON.stringify({ error: message }), {
+          status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Criar Tarefa no Google Tasks

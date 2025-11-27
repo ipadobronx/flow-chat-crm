@@ -28,7 +28,7 @@ export const LiquidGlassCalendar = ({
   return (
     <div
       className={cn(
-        "bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4",
+        "bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-3 sm:p-4 md:p-5",
         className
       )}
     >
@@ -38,27 +38,27 @@ export const LiquidGlassCalendar = ({
         onSelect={onSelect}
         className="w-full pointer-events-auto"
         classNames={{
-          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-          month: "space-y-4 w-full",
-          caption: "flex justify-center pt-1 relative items-center mb-4",
-          caption_label: "text-base font-medium text-white",
+          months: "flex flex-col w-full",
+          month: "space-y-3 sm:space-y-4 w-full",
+          caption: "flex justify-center pt-1 relative items-center mb-3 sm:mb-4",
+          caption_label: "text-sm sm:text-base font-medium text-white",
           nav: "space-x-1 flex items-center",
           nav_button: cn(
-            "h-8 w-8 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-all duration-200 border border-white/10"
+            "h-7 w-7 sm:h-8 sm:w-8 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-all duration-200 border border-white/10"
           ),
-          nav_button_previous: "absolute left-1",
-          nav_button_next: "absolute right-1",
+          nav_button_previous: "absolute left-0 sm:left-1",
+          nav_button_next: "absolute right-0 sm:right-1",
           table: "w-full border-collapse",
-          head_row: "flex justify-between w-full mb-2",
-          head_cell: "text-white/50 rounded-md w-10 font-normal text-[0.75rem] uppercase tracking-wide",
-          row: "flex w-full mt-1 justify-between",
+          head_row: "flex justify-between w-full mb-1 sm:mb-2",
+          head_cell: "text-white/50 rounded-md flex-1 font-normal text-[0.65rem] sm:text-[0.75rem] uppercase tracking-wide text-center",
+          row: "flex w-full mt-0.5 sm:mt-1 justify-between",
           cell: cn(
-            "relative h-10 w-10 text-center text-sm p-0",
+            "relative text-center text-xs sm:text-sm p-0 flex-1 aspect-square",
             "focus-within:relative focus-within:z-20"
           ),
           day: cn(
-            "h-10 w-10 p-0 font-normal rounded-full flex items-center justify-center transition-all duration-200",
-            "text-white/80 hover:bg-white/10 hover:text-white",
+            "h-full w-full p-0 font-normal rounded-full flex items-center justify-center transition-all duration-200",
+            "text-white/80 hover:bg-white/10 hover:text-white text-xs sm:text-sm",
             "aria-selected:opacity-100"
           ),
           day_range_end: "day-range-end",
@@ -75,16 +75,16 @@ export const LiquidGlassCalendar = ({
         components={{
           Chevron: ({ orientation }) => {
             const Icon = orientation === "left" ? ChevronLeft : ChevronRight;
-            return <Icon className="h-4 w-4 text-white" />;
+            return <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />;
           },
           DayButton: ({ day, modifiers, ...props }) => {
             const dateHasEvent = hasEvent(day.date);
             return (
-              <button {...props}>
+              <button {...props} className={cn(props.className, "relative")}>
                 <span className="relative flex items-center justify-center w-full h-full">
                   {day.date.getDate()}
                   {dateHasEvent && !modifiers.selected && (
-                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4ff4a]" />
+                    <span className="absolute bottom-0 sm:bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#d4ff4a]" />
                   )}
                 </span>
               </button>

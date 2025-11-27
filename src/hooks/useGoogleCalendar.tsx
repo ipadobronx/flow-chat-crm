@@ -9,6 +9,14 @@ interface CreateTaskParams {
   dueDate?: string;
 }
 
+interface GoogleTask {
+  id: string;
+  title: string;
+  notes?: string;
+  due?: string;
+  status: "needsAction" | "completed";
+}
+
 export const useGoogleCalendar = () => {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
@@ -33,6 +41,42 @@ export const useGoogleCalendar = () => {
       return !!data && data.sync_enabled;
     },
     enabled: !!user,
+  });
+
+  // Buscar Google Tasks
+  const { 
+    data: googleTasks, 
+    isLoading: isLoadingTasks,
+    refetch: refetchTasks 
+  } = useQuery({
+    queryKey: ['google-tasks', user?.id],
+    queryFn: async () => {
+      if (!user || !session) return [];
+      
+      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
+        body: { action: 'list-tasks' },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error fetching Google Tasks:', error);
+        return [];
+      }
+
+      if (data?.error) {
+        console.error('Google Tasks API error:', data.error);
+        return [];
+      }
+
+      return (data?.tasks || []).map((task: GoogleTask) => ({
+        ...task,
+        isGoogleTask: true,
+      }));
+    },
+    enabled: !!user && !!session && !!isConnected,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Iniciar OAuth
@@ -64,6 +108,7 @@ export const useGoogleCalendar = () => {
           clearInterval(checkInterval);
           if (popup && !popup.closed) popup.close();
           queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
+          queryClient.invalidateQueries({ queryKey: ['google-tasks'] });
           toast.success('Google Calendar e Tasks conectados com sucesso!');
         }
       }, 1000);
@@ -97,6 +142,7 @@ export const useGoogleCalendar = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
+      queryClient.invalidateQueries({ queryKey: ['google-tasks'] });
       toast.success('Google Calendar desconectado');
     },
     onError: (error) => {
@@ -125,6 +171,7 @@ export const useGoogleCalendar = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['google-tasks'] });
       const message = data?.taskId 
         ? 'Sincronizado com Google Calendar e Tasks!' 
         : 'Sincronizado com Google Calendar!';
@@ -166,6 +213,7 @@ export const useGoogleCalendar = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['google-tasks'] });
       toast.success('Tarefa criada no Google Tasks!');
     },
     onError: (error: any) => {
@@ -181,6 +229,9 @@ export const useGoogleCalendar = () => {
   return {
     isConnected: !!isConnected,
     isLoading,
+    googleTasks: googleTasks || [],
+    isLoadingTasks,
+    refetchTasks,
     connect: connectMutation.mutate,
     disconnect: disconnectMutation.mutate,
     syncAgendamento: (agendamentoId: string, createTask: boolean = false) => 
