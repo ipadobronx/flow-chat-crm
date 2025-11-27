@@ -273,6 +273,7 @@ export default function Pipeline() {
   });
   const [isGlobalSelectionMode, setIsGlobalSelectionMode] = useState(false);
   const [stageToInclude, setStageToInclude] = useState<string | null>(null);
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
   
   // Estados para o popup de "Ligar Depois"
   const [showLigarDepoisDialog, setShowLigarDepoisDialog] = useState(false);
@@ -1197,9 +1198,14 @@ export default function Pipeline() {
         </AlertDialog>
 
         {/* Dialog com informações detalhadas do lead */}
-        <Dialog open={!!selectedLead} onOpenChange={() => {
-          setSelectedLead(null);
-          setEditingLead(null);
+        <Dialog open={!!selectedLead} onOpenChange={(open) => {
+          if (!open && editingLead) {
+            // Se há alterações não salvas, mostrar confirmação
+            setShowCloseConfirmation(true);
+          } else if (!open) {
+            setSelectedLead(null);
+            setEditingLead(null);
+          }
         }}>
           <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
               <ScrollArea className="max-h-[80vh] w-full">
@@ -2121,6 +2127,49 @@ export default function Pipeline() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Dialog de confirmação para fechar sem salvar */}
+        <AlertDialog open={showCloseConfirmation} onOpenChange={setShowCloseConfirmation}>
+          <AlertDialogContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-inter font-normal tracking-tighter text-lg sm:text-xl text-white">
+                Alterações não salvas
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-white/70">
+                Você tem alterações que ainda não foram salvas. O que deseja fazer?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+              <AlertDialogCancel 
+                onClick={() => setShowCloseConfirmation(false)}
+                className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                Voltar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setShowCloseConfirmation(false);
+                  setSelectedLead(null);
+                  setEditingLead(null);
+                }}
+                className="rounded-xl bg-destructive/80 text-white hover:bg-destructive"
+              >
+                Descartar
+              </AlertDialogAction>
+              <AlertDialogAction
+                onClick={async () => {
+                  if (editingLead) {
+                    await handleSaveLead();
+                  }
+                  setShowCloseConfirmation(false);
+                }}
+                className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Salvar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
