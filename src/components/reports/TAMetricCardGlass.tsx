@@ -35,7 +35,7 @@ export function TAMetricCardGlass({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-inter font-normal text-muted-foreground truncate pr-2">
+        <span className="text-xs font-inter font-normal text-white/60 truncate pr-2">
           {title}
         </span>
         <div className={cn("w-3 h-3 rounded-full shrink-0", stageColor)} />
@@ -43,7 +43,7 @@ export function TAMetricCardGlass({
 
       {/* Value */}
       <div className="space-y-2">
-        <p className="text-3xl font-inter font-normal tracking-tighter text-foreground">
+        <p className="text-3xl font-inter font-normal tracking-tighter text-white">
           {value.toLocaleString('pt-BR')}
         </p>
 
@@ -52,21 +52,21 @@ export function TAMetricCardGlass({
           <div className="flex items-center gap-1.5 text-xs">
             {isNeutral ? (
               <>
-                <Minus className="h-3 w-3 text-muted-foreground" />
-                <span className="text-muted-foreground">0%</span>
+                <Minus className="h-3 w-3 text-white/50" />
+                <span className="text-white/50">0%</span>
               </>
             ) : isPositive ? (
               <>
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+{percentageChange.toFixed(0)}%</span>
+                <TrendingUp className="h-3 w-3 text-green-400" />
+                <span className="text-green-400">+{percentageChange.toFixed(0)}%</span>
               </>
             ) : (
               <>
-                <TrendingDown className="h-3 w-3 text-red-500" />
-                <span className="text-red-500">{percentageChange.toFixed(0)}%</span>
+                <TrendingDown className="h-3 w-3 text-red-400" />
+                <span className="text-red-400">{percentageChange.toFixed(0)}%</span>
               </>
             )}
-            <span className="text-muted-foreground/70 text-[10px]">vs anterior</span>
+            <span className="text-white/40 text-[10px]">vs anterior</span>
           </div>
         )}
       </div>

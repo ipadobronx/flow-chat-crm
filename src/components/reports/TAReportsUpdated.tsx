@@ -364,10 +364,10 @@ export function TAReportsUpdated() {
         {/* DonutChart */}
         <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-inter font-normal tracking-tight text-foreground">
+            <h3 className="text-lg font-inter font-normal tracking-tight text-white">
               Distribuição de Resultados
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-white/60 mt-1">
               Visualização por etapa de atendimento
             </p>
           </div>
@@ -379,10 +379,10 @@ export function TAReportsUpdated() {
               strokeWidth={28}
               centerContent={
                 <div className="text-center">
-                  <p className="text-3xl font-inter font-bold tracking-tighter text-foreground">
+                  <p className="text-3xl font-inter font-bold tracking-tighter text-white">
                     {dashboardData?.total_contactados || 0}
                   </p>
-                  <p className="text-xs text-muted-foreground">Leads</p>
+                  <p className="text-xs text-white/60">Leads</p>
                 </div>
               }
             />
@@ -396,8 +396,8 @@ export function TAReportsUpdated() {
                     style={{ backgroundColor: item.color }}
                   />
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground truncate">{item.label}</p>
-                    <p className="text-sm font-medium text-foreground">{item.value}</p>
+                    <p className="text-xs text-white/60 truncate">{item.label}</p>
+                    <p className="text-sm font-medium text-white">{item.value}</p>
                   </div>
                 </div>
               ))}
