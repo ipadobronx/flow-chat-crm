@@ -29,7 +29,7 @@ export const LiquidGlassCalendar = ({
   return (
     <div
       className={cn(
-        "bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-3 sm:p-4 md:p-5",
+        "bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-3 sm:p-4 md:p-5 h-full",
         className
       )}
     >

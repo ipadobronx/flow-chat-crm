@@ -65,7 +65,7 @@ export const EventsList = ({
     : sortedEvents.length > 0 || filteredTasks.length > 0;
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px] flex flex-col">
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px] md:h-[480px] flex flex-col">
       {/* Header */}
       <div className="mb-4 sm:mb-6 flex-shrink-0">
         <h2 className="text-xl sm:text-2xl font-light text-white">
