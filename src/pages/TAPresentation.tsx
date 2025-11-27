@@ -30,7 +30,9 @@ export default function TAPresentation() {
   const filterProfissao = searchParams.get('profissao');
   const isExclusivo = searchParams.get('exclusivo') === 'true';
   const isPreviewMode = searchParams.get('preview') === 'true';
+  const shouldStartImmediately = searchParams.get('start') === 'true';
   const [stage, setStage] = useState<PresentationStage>('initial');
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
   const [currentLeadIndex, setCurrentLeadIndex] = useState(0);
   const [countdown, setCountdown] = useState(5);
   const [transitionStep, setTransitionStep] = useState(0);
@@ -141,6 +143,16 @@ export default function TAPresentation() {
       supabase.removeChannel(channel);
     };
   }, [refetch]);
+
+  // Auto-start presentation if ?start=true
+  useEffect(() => {
+    if (shouldStartImmediately && leads.length > 0 && stage === 'initial' && !hasAutoStarted) {
+      setHasAutoStarted(true);
+      setStage('presenting');
+      setCurrentLeadIndex(0);
+      console.log('🎯 TA: auto-start ativado, iniciando apresentação');
+    }
+  }, [shouldStartImmediately, leads.length, stage, hasAutoStarted]);
 
   // Transition effect
   useEffect(() => {
