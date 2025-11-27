@@ -278,6 +278,7 @@ export default function Pipeline() {
   const [isGlobalSelectionMode, setIsGlobalSelectionMode] = useState(false);
   const [stageToInclude, setStageToInclude] = useState<string | null>(null);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Estados para o popup de "Ligar Depois"
   const [showLigarDepoisDialog, setShowLigarDepoisDialog] = useState(false);
@@ -323,8 +324,14 @@ export default function Pipeline() {
         data_callback: dataAgendamento.toISOString(),
         hora_callback: format(dataAgendamento, 'HH:mm')
       });
+      // Não marcar como unsaved changes pois é preenchimento automático
     }
   }, [agendamentoMaisRecente, selectedLead, editingLead]);
+
+  // Reset hasUnsavedChanges quando muda de lead
+  useEffect(() => {
+    setHasUnsavedChanges(false);
+  }, [selectedLead?.id]);
 
   useEffect(() => {
     try {
@@ -784,6 +791,7 @@ export default function Pipeline() {
       }
 
        setSelectedLead(editingLead);
+       setHasUnsavedChanges(false); // Limpar flag após salvar com sucesso
        
        // Invalidar cache do SitPlan se incluir_sitplan foi alterado
        if (editingLead.incluir_sitplan !== undefined) {
@@ -1307,12 +1315,13 @@ export default function Pipeline() {
 
         {/* Dialog com informações detalhadas do lead */}
         <Dialog open={!!selectedLead} onOpenChange={(open) => {
-          if (!open && editingLead) {
+          if (!open && hasUnsavedChanges) {
             // Se há alterações não salvas, mostrar confirmação
             setShowCloseConfirmation(true);
           } else if (!open) {
             setSelectedLead(null);
             setEditingLead(null);
+            setHasUnsavedChanges(false);
           }
         }}>
           <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
@@ -1397,6 +1406,7 @@ export default function Pipeline() {
 
                         setSelectedLead(null);
                         setEditingLead(null);
+                        setHasUnsavedChanges(false);
                         
                       } catch (error) {
                         console.error('💥 Erro inesperado:', error);
@@ -1444,6 +1454,7 @@ export default function Pipeline() {
                       onValueChange={(value) => {
                         const updatedLead = { ...(editingLead || selectedLead), etapa: value as Database["public"]["Enums"]["etapa_funil"] };
                         setEditingLead(updatedLead);
+                        setHasUnsavedChanges(true);
                       }}
                     >
                       <SelectTrigger className="rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15">
@@ -1550,6 +1561,7 @@ export default function Pipeline() {
                                   hora_callback: currentTime,
                                 };
                                 setEditingLead(updatedLead);
+                                setHasUnsavedChanges(true);
                               }}
                               style={{ cursor: 'pointer' }}
                             >
@@ -1597,6 +1609,7 @@ export default function Pipeline() {
                                     hora_callback: currentTime,
                                   };
                                   setEditingLead(updatedLead);
+                                  setHasUnsavedChanges(true);
                                   setShowCalendarDrawer(false);
                                 }}
                                 className="h-auto p-2 max-w-[280px]"
@@ -1618,6 +1631,7 @@ export default function Pipeline() {
                             hora_callback: e.target.value,
                           };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15"
                       >
@@ -1690,6 +1704,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), celular_secundario: e.target.value };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="(11) 99999-9999"
                       />
@@ -1706,6 +1721,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), email: e.target.value };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="email@exemplo.com"
                       />
@@ -1720,6 +1736,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), idade: parseInt(e.target.value) || null };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="30"
                         min="0"
@@ -1738,6 +1755,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), data_nascimento: e.target.value };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                       />
                     </div>
@@ -1749,6 +1767,7 @@ export default function Pipeline() {
                         onValueChange={(value) => {
                           const updatedLead = { ...(editingLead || selectedLead), profissao: value };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                       />
                     </div>
@@ -1769,6 +1788,7 @@ export default function Pipeline() {
                             : '';
                           const updatedLead = { ...(editingLead || selectedLead), renda_estimada: formatted };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="R$ 5.000,00"
                       />
@@ -1782,6 +1802,7 @@ export default function Pipeline() {
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), cidade: e.target.value };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="São Paulo - SP"
                       />
@@ -1798,6 +1819,7 @@ export default function Pipeline() {
                       onChange={(value) => {
                         const updatedLead = { ...(editingLead || selectedLead), high_ticket: value };
                         setEditingLead(updatedLead);
+                        setHasUnsavedChanges(true);
                       }}
                     />
                   </div>
@@ -1808,6 +1830,7 @@ export default function Pipeline() {
                       onChange={(value) => {
                         const updatedLead = { ...(editingLead || selectedLead), casado: value };
                         setEditingLead(updatedLead);
+                        setHasUnsavedChanges(true);
                       }}
                     />
                   </div>
@@ -1818,6 +1841,7 @@ export default function Pipeline() {
                       onChange={(value) => {
                         const updatedLead = { ...(editingLead || selectedLead), tem_filhos: value, quantidade_filhos: value ? (editingLead?.quantidade_filhos ?? selectedLead.quantidade_filhos ?? null) : null };
                         setEditingLead(updatedLead);
+                        setHasUnsavedChanges(true);
                       }}
                     />
                   </div>
@@ -1838,6 +1862,7 @@ export default function Pipeline() {
                             quantidade_filhos: parseInt(e.target.value) || null 
                           };
                           setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
                         }}
                         placeholder="Ex: 2"
                         className="max-w-[100px]"
@@ -1851,6 +1876,7 @@ export default function Pipeline() {
                       onChange={(value) => {
                         const updatedLead = { ...(editingLead || selectedLead), avisado: value };
                         setEditingLead(updatedLead);
+                        setHasUnsavedChanges(true);
                       }}
                     />
                   </div>
@@ -1964,6 +1990,7 @@ export default function Pipeline() {
                             // Close modal
                             setSelectedLead(null);
                             setEditingLead(null);
+                            setHasUnsavedChanges(false);
                             
                           } catch (error) {
                             console.error('💥 Erro inesperado:', error);
@@ -2102,6 +2129,7 @@ export default function Pipeline() {
                     onChange={(e) => {
                       const updatedLead = { ...(editingLead || selectedLead), observacoes: e.target.value };
                       setEditingLead(updatedLead);
+                      setHasUnsavedChanges(true);
                     }}
                     placeholder="Adicione observações sobre o lead..."
                     className="mt-1"
@@ -2123,6 +2151,7 @@ export default function Pipeline() {
                         : '';
                       const updatedLead = { ...(editingLead || selectedLead), pa_estimado: formatted };
                       setEditingLead(updatedLead);
+                      setHasUnsavedChanges(true);
                     }}
                     placeholder="R$ 10.000,00"
                   />
@@ -2144,6 +2173,7 @@ export default function Pipeline() {
                     onClick={() => {
                       setSelectedLead(null);
                       setEditingLead(null);
+                      setHasUnsavedChanges(false);
                     }}
                     className="w-full sm:w-auto rounded-full px-6 py-3 font-inter font-light bg-transparent border border-border/30 text-foreground hover:bg-white/10 transition-colors"
                   >
@@ -2180,6 +2210,7 @@ export default function Pipeline() {
                 hora_callback: data.time,
               };
               setEditingLead(updatedLead);
+              setHasUnsavedChanges(true);
               toast({
                 title: "Agendamento criado!",
                 description: "Sincronizado com Google Calendar",
@@ -2341,6 +2372,7 @@ export default function Pipeline() {
                   setShowCloseConfirmation(false);
                   setSelectedLead(null);
                   setEditingLead(null);
+                  setHasUnsavedChanges(false);
                 }}
                 className="rounded-xl bg-destructive/80 text-white hover:bg-destructive"
               >
@@ -2352,6 +2384,9 @@ export default function Pipeline() {
                     await handleSaveLead();
                   }
                   setShowCloseConfirmation(false);
+                  setSelectedLead(null);
+                  setEditingLead(null);
+                  setHasUnsavedChanges(false);
                 }}
                 className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               >
