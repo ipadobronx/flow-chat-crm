@@ -1307,11 +1307,11 @@ export default function Pipeline() {
                 {/* Informações básicas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                  <Label className="text-sm text-black">Nome</Label>
+                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome</Label>
                     <p className="font-medium">{selectedLead.nome}</p>
                   </div>
                   <div>
-                  <Label className="text-sm text-black">Recomendante(s)</Label>
+                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Recomendante(s)</Label>
                     <p className="font-medium">
                       {selectedLead.recomendante && selectedLead.recomendante.length > 0 
                         ? selectedLead.recomendante.join(', ')
@@ -1323,7 +1323,7 @@ export default function Pipeline() {
 
                 {/* Etapa Funil */}
                 <div>
-                  <Label className="text-sm text-black">Etapa Funil *</Label>
+                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Etapa Funil *</Label>
                   <Select 
                     value={editingLead?.etapa || selectedLead.etapa}
                     onValueChange={(value) => {
@@ -1349,7 +1349,7 @@ export default function Pipeline() {
                   <div className="flex items-center justify-between p-6">
                     <div className="flex flex-col space-y-1.5">
                       <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter">Agendamento</h3>
-                      <p className="text-sm text-black">Selecione a data e horário</p>
+                      <p className={`text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Selecione a data e horário</p>
                     </div>
                     {agendamentoMaisRecente && (
                       <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
@@ -1367,7 +1367,7 @@ export default function Pipeline() {
                           return (
                             <div
                               key={`${dayNum}-${weekLabel}`}
-                              className={`text-center p-3 rounded-2xl ${isSelected ? 'bg-black text-white' : 'bg-white/50 text-black/60'}`}
+                              className={`text-center p-3 rounded-2xl ${isSelected ? 'bg-black text-white' : isTablet ? 'bg-white/10 text-white/60' : 'bg-white/50 text-black/60'}`}
                               onClick={() => {
                                 const dateStr = format(dayDate, 'yyyy-MM-dd');
                                 const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
@@ -1426,7 +1426,7 @@ export default function Pipeline() {
                       </div>
                     </div>
                     <div>
-                      <Label className="text-xs text-black">Horário</Label>
+                      <Label className={`text-xs ${isTablet ? 'text-white' : 'text-black'}`}>Horário</Label>
                       <select
                         value={editingLead?.hora_callback || selectedLead.hora_callback || ''}
                         onChange={(e) => {
@@ -1452,7 +1452,7 @@ export default function Pipeline() {
                       </select>
                     </div>
                     {(editingLead?.data_callback || selectedLead.data_callback) && (
-                      <div className="flex items-center gap-2 text-xs text-black">
+                      <div className={`flex items-center gap-2 text-xs ${isTablet ? 'text-white/70' : 'text-black'}`}>
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         <span>Será sincronizado com Google Calendar ao salvar</span>
                       </div>
@@ -1462,11 +1462,11 @@ export default function Pipeline() {
 
                 {/* Seção: Dados Pessoais */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-black border-b pb-2">Dados Pessoais</h3>
+                  <h3 className={`text-sm font-semibold ${isTablet ? 'text-white border-white/20' : 'text-black'} border-b pb-2`}>Dados Pessoais</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-black">Celular Principal</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Celular Principal</Label>
                       <div className="flex items-center space-x-2">
                         <LiquidGlassInput value={selectedLead.telefone || ""} readOnly className="flex-1" />
                         <Button 
@@ -1500,7 +1500,7 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-black">Celular Secundário</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Celular Secundário</Label>
                       <LiquidGlassInput 
                         value={editingLead?.celular_secundario || selectedLead.celular_secundario || ""} 
                         onChange={(e) => {
@@ -1514,7 +1514,7 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-black">Email</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Email</Label>
                       <LiquidGlassInput 
                         type="email"
                         value={editingLead?.email || selectedLead.email || ""} 
@@ -1527,7 +1527,7 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-black">Idade</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Idade</Label>
                       <LiquidGlassInput 
                         type="number"
                         value={editingLead?.idade || selectedLead.idade || ""} 
@@ -1544,7 +1544,7 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-black">Data de Nascimento</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Data de Nascimento</Label>
                       <LiquidGlassInput 
                         type="date" 
                         value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
@@ -1556,7 +1556,7 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-black">Profissão</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Profissão</Label>
                       <ProfissaoCombobox
                         value={editingLead?.profissao || selectedLead.profissao || ""}
                         onValueChange={(value) => {
@@ -1569,7 +1569,7 @@ export default function Pipeline() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm text-black">Renda Estimada</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Renda Estimada</Label>
                       <LiquidGlassInput 
                         value={editingLead?.renda_estimada || selectedLead.renda_estimada || ""} 
                         onChange={(e) => {
@@ -1581,7 +1581,7 @@ export default function Pipeline() {
                     </div>
                     
                     <div>
-                      <Label className="text-sm text-black">Cidade</Label>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Cidade</Label>
                       <LiquidGlassInput 
                         value={editingLead?.cidade || selectedLead.cidade || ""} 
                         onChange={(e) => {
@@ -1597,7 +1597,7 @@ export default function Pipeline() {
                 {/* Campos Yes/No */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-black">HighTicket</span>
+                    <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>HighTicket</span>
                     <CheckedSwitch
                       checked={!!(editingLead?.high_ticket ?? selectedLead.high_ticket)}
                       onChange={(value) => {
@@ -1607,7 +1607,7 @@ export default function Pipeline() {
                     />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-black">Casado(a)</span>
+                    <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Casado(a)</span>
                     <CheckedSwitch
                       checked={!!(editingLead?.casado ?? selectedLead.casado)}
                       onChange={(value) => {
@@ -1617,7 +1617,7 @@ export default function Pipeline() {
                     />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-black">Filhos</span>
+                    <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Filhos</span>
                     <CheckedSwitch
                       checked={!!(editingLead?.tem_filhos ?? selectedLead.tem_filhos)}
                       onChange={(value) => {
@@ -1630,7 +1630,7 @@ export default function Pipeline() {
                   {/* Campo condicional: Quantidade de Filhos */}
                   {(editingLead?.tem_filhos || selectedLead.tem_filhos) && (
                     <div className="flex items-center justify-between py-2 border-b bg-muted/30 px-3 rounded">
-                      <span className="text-sm text-black">Quantidade de filhos</span>
+                      <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Quantidade de filhos</span>
                       <LiquidGlassInput 
                         type="number"
                         min="1"
@@ -1649,7 +1649,7 @@ export default function Pipeline() {
                     </div>
                   )}
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-black">Avisado</span>
+                    <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Avisado</span>
                     <CheckedSwitch
                       checked={!!(editingLead?.avisado ?? selectedLead.avisado)}
                       onChange={(value) => {
@@ -1659,7 +1659,7 @@ export default function Pipeline() {
                     />
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-black">Incluir no SitPlan?</span>
+                    <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Incluir no SitPlan?</span>
                     <CheckedSwitch
                       checked={!!(editingLead?.incluir_sitplan ?? selectedLead.incluir_sitplan)}
                       onChange={async (value) => {
@@ -1786,7 +1786,7 @@ export default function Pipeline() {
                 {/* Histórico de Ligações */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm text-black flex items-center gap-2">
+                    <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'} flex items-center gap-2`}>
                       <Clock className="w-4 h-4" />
                       Histórico de Ligações
                     </Label>
@@ -1797,7 +1797,7 @@ export default function Pipeline() {
                   
                   <div className="max-h-40 overflow-y-auto border rounded-lg">
                     {loadingHistorico ? (
-                      <div className="p-4 text-center text-sm text-black">
+                      <div className={`p-4 text-center text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>
                         Carregando histórico...
                       </div>
                      ) : ligacoesHistorico.length > 0 ? (
@@ -1853,7 +1853,7 @@ export default function Pipeline() {
                              </div>
                              
                              <div className="flex items-center gap-2">
-                               <span className="text-black text-xs">
+                               <span className={`${isTablet ? 'text-white/70' : 'text-black'} text-xs`}>
                                  {new Date(ligacao.data_ligacao).toLocaleString('pt-BR', {
                                    day: '2-digit',
                                    month: '2-digit',
@@ -1891,7 +1891,7 @@ export default function Pipeline() {
                          ))}
                        </div>
                     ) : (
-                      <div className="p-4 text-center text-sm text-black">
+                      <div className={`p-4 text-center text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>
                         Nenhuma ligação registrada ainda
                       </div>
                     )}
@@ -1900,7 +1900,7 @@ export default function Pipeline() {
 
                 {/* Observações */}
                 <div>
-                  <Label className="text-sm text-black">Observações</Label>
+                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Observações</Label>
                   <LiquidGlassTextarea 
                     value={editingLead?.observacoes || selectedLead.observacoes || ""} 
                     onChange={(e) => {
@@ -1914,7 +1914,7 @@ export default function Pipeline() {
 
                 {/* PA Estimado */}
                 <div>
-                  <Label className="text-sm text-black">PA Estimado</Label>
+                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>PA Estimado</Label>
                   <LiquidGlassInput 
                     value={editingLead?.pa_estimado || selectedLead.pa_estimado || ""} 
                     onChange={(e) => {
@@ -1967,20 +1967,20 @@ export default function Pipeline() {
               <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
                 Agendar Ligação
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-black">
+              <DialogDescription className={`text-xs sm:text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>
                 Selecione uma data para agendar a ligação com este lead
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 sm:space-y-6">
               {leadParaLigarDepois && (
                 <div className="text-center">
-                  <p className="text-xs sm:text-sm text-black">Lead:</p>
+                  <p className={`text-xs sm:text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Lead:</p>
                   <p className="font-medium text-base sm:text-lg truncate">{leadParaLigarDepois.nome}</p>
                 </div>
               )}
               
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-black">
+                <Label className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
                   Data *
                 </Label>
                 
@@ -2002,7 +2002,7 @@ export default function Pipeline() {
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-black">
+                <Label className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
                   Horário *
                 </Label>
                 <select
@@ -2025,7 +2025,7 @@ export default function Pipeline() {
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-black">
+                <Label htmlFor="observacoes-agendamento" className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
                   Observações
                 </Label>
                 <LiquidGlassTextarea
