@@ -49,7 +49,7 @@ export const EventsList = ({
   const sortedEvents = [...events].sort((a, b) => a.horario.localeCompare(b.horario));
   
   // Filter google tasks for the selected date
-  const filteredTasks = googleTasks.filter((task) => {
+  const filteredGoogleTasks = googleTasks.filter((task) => {
     if (!task.due) return false;
     const taskDate = new Date(task.due);
     return (
@@ -58,11 +58,30 @@ export const EventsList = ({
       taskDate.getFullYear() === selectedDate.getFullYear()
     );
   });
+  
+  // Also include local agendamentos that have google_task_id (tasks created locally)
+  const localTaskEvents = events.filter(e => e.google_task_id);
+  
+  // Combine Google Tasks with local tasks, avoiding duplicates
+  const allTasks: GoogleTask[] = [...filteredGoogleTasks];
+  localTaskEvents.forEach(localTask => {
+    const alreadyExists = allTasks.some(t => t.id === localTask.google_task_id);
+    if (!alreadyExists) {
+      allTasks.push({
+        id: localTask.google_task_id!,
+        title: localTask.lead_nome,
+        notes: localTask.observacoes || undefined,
+        due: localTask.datetime,
+        status: localTask.status === 'realizado' ? 'completed' : 'needsAction',
+        isGoogleTask: true,
+      });
+    }
+  });
 
   const showOnlyTasks = activeView === "tasks";
   const hasContent = showOnlyTasks 
-    ? filteredTasks.length > 0 
-    : sortedEvents.length > 0 || filteredTasks.length > 0;
+    ? allTasks.length > 0 
+    : sortedEvents.length > 0 || allTasks.length > 0;
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 sm:p-5 md:p-6 h-full min-h-[300px] md:h-[480px] flex flex-col">
@@ -95,7 +114,7 @@ export const EventsList = ({
         ) : (
           <>
             {/* Google Tasks - Always visible */}
-            {filteredTasks.map((task, index) => (
+            {allTasks.map((task, index) => (
               <div
                 key={task.id}
                 onClick={() => onTaskClick?.(task)}
@@ -143,7 +162,7 @@ export const EventsList = ({
                   "rounded-xl sm:rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-300",
                   "animate-fade-in"
                 )}
-                style={{ animationDelay: `${(filteredTasks.length + index) * 50}ms` }}
+                style={{ animationDelay: `${(allTasks.length + index) * 50}ms` }}
                 >
                   <div className="flex items-start justify-between gap-3 sm:gap-4">
                     <div className="flex-1 min-w-0">

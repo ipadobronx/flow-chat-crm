@@ -40,7 +40,14 @@ export default function Schedule() {
   } = useGoogleCalendar();
   const queryClient = useQueryClient();
 
-  // Refetch tasks when switching to tasks view
+  // Refetch tasks when component mounts or switching views
+  useEffect(() => {
+    if (isConnected) {
+      refetchTasks();
+    }
+  }, [isConnected, refetchTasks]);
+  
+  // Also refetch when switching to tasks view
   useEffect(() => {
     if (activeView === "tasks" && isConnected) {
       refetchTasks();

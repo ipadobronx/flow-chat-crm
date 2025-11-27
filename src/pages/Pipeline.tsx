@@ -862,6 +862,7 @@ export default function Pipeline() {
             }
 
             queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+            queryClient.invalidateQueries({ queryKey: ['google-tasks'] });
             toast({
               title: "Task criada!",
               description: isConnected ? "Sincronizada com Google Tasks" : "Salva localmente"
