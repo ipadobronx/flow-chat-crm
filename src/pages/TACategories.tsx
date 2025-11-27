@@ -16,7 +16,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselApi,
+} from "@/components/ui/carousel";
 
 type Lead = Tables<"leads">;
 
@@ -28,6 +34,23 @@ export default function TACategories() {
     tipo: 'etapa' | 'profissao';
     conflitos: any[];
   }>({ open: false, categoria: '', tipo: 'etapa', conflitos: [] });
+
+  // Carousel state para Etapas
+  const [etapaApi, setEtapaApi] = useState<CarouselApi>();
+  const [currentEtapaIndex, setCurrentEtapaIndex] = useState(0);
+  const [totalEtapaSlides, setTotalEtapaSlides] = useState(0);
+
+  // Effect para rastrear mudanças no carousel de etapas
+  useEffect(() => {
+    if (!etapaApi) return;
+    
+    setTotalEtapaSlides(etapaApi.scrollSnapList().length);
+    setCurrentEtapaIndex(etapaApi.selectedScrollSnap());
+    
+    etapaApi.on("select", () => {
+      setCurrentEtapaIndex(etapaApi.selectedScrollSnap());
+    });
+  }, [etapaApi]);
 
   // Carregar leads selecionados para TA
   const { data: leads = [], isLoading } = useQuery({
@@ -316,73 +339,95 @@ export default function TACategories() {
         {/* Seção por Etapa */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6 font-inter tracking-tight">Por Etapa do Funil</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Object.entries(leadsByEtapa).map(([etapa, leadsInEtapa]) => {
-              const { conflitos } = detectarConflitos(etapa, 'etapa');
-              
-              const CardComponent = () => (
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#00FFF0]/10 overflow-hidden cursor-pointer">
-                  <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
-                        ETAPA
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
-                    <p className="text-sm text-muted-foreground mb-4 font-inter">
-                      Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
-                    </p>
-                    
-                    {/* Barra de Progresso */}
-                    {(() => {
-                      const progresso = calcularProgresso(leadsInEtapa);
-                      return (
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
-                          </div>
-                          <div className="w-full bg-white/10 rounded-full h-2">
-                            <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
-                          </div>
+          <Carousel
+            setApi={setEtapaApi}
+            opts={{
+              align: "start",
+              slidesToScroll: 4,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4">
+              {Object.entries(leadsByEtapa).map(([etapa, leadsInEtapa]) => {
+                const { conflitos } = detectarConflitos(etapa, 'etapa');
+                
+                return (
+                  <CarouselItem key={etapa} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <div 
+                      onClick={() => acessarCategoria(etapa, 'etapa')}
+                      className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#00FFF0]/10 overflow-hidden cursor-pointer"
+                    >
+                      <div className={`h-32 bg-gradient-to-r ${getEtapaColor(etapa)} animate-gradient-shift bg-[length:400%_400%] relative overflow-hidden`}>
+                        <div className="absolute top-4 left-4">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                            ETAPA
+                          </span>
                         </div>
-                      );
-                    })()}
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-inter font-semibold text-xl mb-2 text-white tracking-tight">{etapa}</h3>
+                        <p className="text-sm text-muted-foreground mb-4 font-inter">
+                          Categoria com {leadsInEtapa.length} lead{leadsInEtapa.length !== 1 ? 's' : ''} selecionado{leadsInEtapa.length !== 1 ? 's' : ''}
+                        </p>
+                        
+                        {/* Barra de Progresso */}
+                        {(() => {
+                          const progresso = calcularProgresso(leadsInEtapa);
+                          return (
+                            <div className="mb-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-white/70 font-inter">{progresso}% Concluído</span>
+                              </div>
+                              <div className="w-full bg-white/10 rounded-full h-2">
+                                <div className="bg-[#d4ff4a] h-2 rounded-full transition-all duration-300" style={{ width: `${progresso}%` }}></div>
+                              </div>
+                            </div>
+                          );
+                        })()}
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-inter font-semibold tracking-tight text-white">
-                        {leadsInEtapa.length}
-                      </span>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          acessarCategoria(etapa, 'etapa');
-                        }}
-                        className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
-                      >
-                        Acessar
-                      </button>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-inter font-semibold tracking-tight text-white">
+                            {leadsInEtapa.length}
+                          </span>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              acessarCategoria(etapa, 'etapa');
+                            }}
+                            className="inline-flex items-center justify-center rounded-xl text-sm font-inter font-medium h-9 px-4 bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-300 hover:scale-105 hover:bg-white/20 active:scale-95"
+                          >
+                            Acessar
+                          </button>
+                        </div>
+                        
+                        <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
+                          <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
+                          Espaço privado
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="mt-3 flex items-center text-xs text-white/50 font-inter">
-                      <div className="w-2 h-2 rounded-full bg-white/30 mr-2"></div>
-                      Espaço privado
-                    </div>
-                  </div>
-                </div>
-              );
-
-              return (
-                <div 
-                  key={etapa}
-                  onClick={() => acessarCategoria(etapa, 'etapa')}
-                >
-                  <CardComponent />
-                </div>
-              );
-            })}
-          </div>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+          </Carousel>
+          
+          {/* Dots de Paginação */}
+          {totalEtapaSlides > 1 && (
+            <div className="flex justify-center mt-4">
+              <div className="flex gap-1">
+                {Array.from({ length: totalEtapaSlides }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => etapaApi?.scrollTo(idx)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      idx === currentEtapaIndex ? 'bg-white' : 'bg-white/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Seção por Profissão */}
