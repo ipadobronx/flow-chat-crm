@@ -639,8 +639,8 @@ export default function TAPresentation() {
             </div>
           </div>
 
-          {/* Progress indicator + Botão Pausar */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-3">
+          {/* Botão Pausar - canto inferior esquerdo */}
+          <div className="absolute bottom-4 left-4">
             <button
               onClick={() => navigate('/dashboard/ta')}
               className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
@@ -648,6 +648,10 @@ export default function TAPresentation() {
               <Pause className="h-4 w-4" />
               Pausar
             </button>
+          </div>
+
+          {/* Progress indicator - centro inferior */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
             <div className="text-[#A9A9A9] text-sm">
               Lead {currentLeadIndex + 1} de {leads.length}
             </div>
