@@ -590,32 +590,20 @@ export default function TAPresentation() {
                         <Label className="text-white/70 font-medium text-xs">
                           {selectedEtapa === "OI" ? "Data *" : "Data *"}
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              className={cn(
-                                "w-full mt-1 h-9 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white px-3 text-xs flex items-center justify-between",
-                                !agendamentoDate && "text-white/50"
-                              )}
-                            >
-                              {agendamentoDate ? format(agendamentoDate, "dd/MM/yyyy") : "Selecione"}
-                              <CalendarIcon className="h-3.5 w-3.5 opacity-70" />
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent 
-                            className="w-auto p-0 rounded-2xl border border-white/20 bg-black/60 backdrop-blur-xl shadow-2xl" 
-                            align="start"
-                            sideOffset={4}
-                          >
-                            <Calendar
-                              mode="single"
-                              selected={agendamentoDate}
-                              onSelect={setAgendamentoDate}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <LiquidGlassInput
+                          type="date"
+                          value={agendamentoDate ? format(agendamentoDate, "yyyy-MM-dd") : ""}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const [year, month, day] = e.target.value.split('-').map(Number);
+                              setAgendamentoDate(new Date(year, month - 1, day));
+                            } else {
+                              setAgendamentoDate(undefined);
+                            }
+                          }}
+                          min={format(new Date(), "yyyy-MM-dd")}
+                          className="w-full mt-1 h-9 text-white placeholder:text-white/70"
+                        />
                       </div>
                       
                       <div>
