@@ -192,10 +192,10 @@ export default function NovaRec() {
             type="submit" 
             form="nova-rec-form" 
             disabled={isLoading}
-            className="bg-black text-white rounded-full p-3 sm:p-4 hover:bg-black/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
+            className="bg-[#d4ff4a] text-black rounded-full p-3 sm:p-4 hover:bg-[#c9f035] transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="white" strokeWidth="2"/>
+              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
             </svg>
           </button>
         </div>
