@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -286,6 +287,7 @@ export default function Pipeline() {
   
   // Estado para o popup de agendamento responsivo
   const [showAgendamentoPopup, setShowAgendamentoPopup] = useState(false);
+  const [showCalendarDrawer, setShowCalendarDrawer] = useState(false);
 
   // Buscar agendamento mais recente para o lead selecionado
   const { data: agendamentoMaisRecente } = useQuery({
@@ -1424,42 +1426,47 @@ export default function Pipeline() {
                         })}
                       </div>
                       <div className="flex justify-end mt-4">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              type="button"
-                              className="rounded-full p-2 bg-white/20 backdrop-blur-md border border-white/30 text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl active:scale-95"
-                              aria-label="Abrir calendário"
-                            >
-                              <CalendarIcon className="w-4 h-4" />
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
-                              onSelect={(date) => {
-                                if (!date) return;
-                                const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
-                                const dateStr = format(date, 'yyyy-MM-dd');
-                                const updatedLead = {
-                                  ...(editingLead || selectedLead),
-                                  data_callback: `${dateStr}T${currentTime}:00`,
-                                  hora_callback: currentTime,
-                                };
-                                setEditingLead(updatedLead);
-                              }}
-                              locale={ptBR}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                              className="pointer-events-auto"
-                              classNames={{
-                                day_selected:
-                                  "bg-black text-white hover:bg-black hover:text-white focus:bg-black focus:text-white",
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <button
+                          type="button"
+                          onClick={() => setShowCalendarDrawer(true)}
+                          className="rounded-full p-2 bg-white/20 backdrop-blur-md border border-white/30 text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:bg-white/30 hover:shadow-2xl active:scale-95"
+                          aria-label="Abrir calendário"
+                        >
+                          <CalendarIcon className="w-4 h-4" />
+                        </button>
+                        
+                        <Drawer open={showCalendarDrawer} onOpenChange={setShowCalendarDrawer}>
+                          <DrawerContent className="px-4 pb-6 bg-background">
+                            <DrawerHeader className="text-left">
+                              <DrawerTitle>Selecionar Data</DrawerTitle>
+                            </DrawerHeader>
+                            <div className="flex justify-center">
+                              <Calendar
+                                mode="single"
+                                selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
+                                onSelect={(date) => {
+                                  if (!date) return;
+                                  const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                                  const dateStr = format(date, 'yyyy-MM-dd');
+                                  const updatedLead = {
+                                    ...(editingLead || selectedLead),
+                                    data_callback: `${dateStr}T${currentTime}:00`,
+                                    hora_callback: currentTime,
+                                  };
+                                  setEditingLead(updatedLead);
+                                  setShowCalendarDrawer(false);
+                                }}
+                                locale={ptBR}
+                                disabled={(date) => date < new Date()}
+                                className="pointer-events-auto"
+                                classNames={{
+                                  day_selected:
+                                    "bg-black text-white hover:bg-black hover:text-white focus:bg-black focus:text-white",
+                                }}
+                              />
+                            </div>
+                          </DrawerContent>
+                        </Drawer>
                       </div>
                     </div>
                     <div>
