@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
 
+interface CreateTaskParams {
+  title: string;
+  notes?: string;
+  dueDate?: string;
+}
+
 export const useGoogleCalendar = () => {
   const { user, session } = useAuth();
   const queryClient = useQueryClient();
@@ -58,7 +64,7 @@ export const useGoogleCalendar = () => {
           clearInterval(checkInterval);
           if (popup && !popup.closed) popup.close();
           queryClient.invalidateQueries({ queryKey: ['google-calendar-connected'] });
-          toast.success('Google Calendar conectado com sucesso!');
+          toast.success('Google Calendar e Tasks conectados com sucesso!');
         }
       }, 1000);
 
@@ -99,13 +105,13 @@ export const useGoogleCalendar = () => {
     },
   });
 
-  // Sincronizar agendamento específico
+  // Sincronizar agendamento específico (com opção de criar tarefa)
   const syncAgendamentoMutation = useMutation({
-    mutationFn: async (agendamentoId: string) => {
+    mutationFn: async ({ agendamentoId, createTask = false }: { agendamentoId: string; createTask?: boolean }) => {
       if (!user || !session) throw new Error('User not authenticated');
 
       const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: { agendamentoId },
+        body: { agendamentoId, createTask },
       });
 
       if (error) throw error;
@@ -117,9 +123,12 @@ export const useGoogleCalendar = () => {
       
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      toast.success('Sincronizado com Google Calendar!');
+      const message = data?.taskId 
+        ? 'Sincronizado com Google Calendar e Tasks!' 
+        : 'Sincronizado com Google Calendar!';
+      toast.success(message);
     },
     onError: (error: any) => {
       console.error('Error syncing with Google Calendar:', error);
@@ -131,14 +140,55 @@ export const useGoogleCalendar = () => {
     },
   });
 
+  // Criar tarefa no Google Tasks
+  const createTaskMutation = useMutation({
+    mutationFn: async ({ title, notes, dueDate }: CreateTaskParams) => {
+      if (!user || !session) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
+        body: { 
+          action: 'create-task',
+          title, 
+          notes, 
+          dueDate 
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Tarefa criada no Google Tasks!');
+    },
+    onError: (error: any) => {
+      console.error('Error creating Google Task:', error);
+      if (error.message?.includes('not connected')) {
+        toast.error('Conecte sua conta Google primeiro');
+      } else {
+        toast.error('Erro ao criar tarefa no Google Tasks');
+      }
+    },
+  });
+
   return {
     isConnected: !!isConnected,
     isLoading,
     connect: connectMutation.mutate,
     disconnect: disconnectMutation.mutate,
-    syncAgendamento: syncAgendamentoMutation.mutate,
+    syncAgendamento: (agendamentoId: string, createTask: boolean = false) => 
+      syncAgendamentoMutation.mutate({ agendamentoId, createTask }),
+    createTask: createTaskMutation.mutate,
     isConnecting: connectMutation.isPending,
     isDisconnecting: disconnectMutation.isPending,
     isSyncing: syncAgendamentoMutation.isPending,
+    isCreatingTask: createTaskMutation.isPending,
   };
 };
