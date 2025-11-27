@@ -451,19 +451,6 @@ export function TALeadsCard() {
               onConfigChange={setHierarchyConfig}
             />
             
-            {/* Botão para ir para o menu TA - Verde Elétrico */}
-            {localLeads.length > 0 && (
-              <button 
-                onClick={() => window.location.href = '/dashboard/ta'}
-                className="bg-[#d4ff4a] text-black rounded-full p-2 hover:bg-[#c9f035] transition-colors"
-                title="Ir para TA"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </button>
-            )}
-            
             {/* Botão para limpar todos os leads do TA */}
             <OutlineButton
               onClick={() => setShowClearConfirmation(true)}
@@ -473,6 +460,17 @@ export function TALeadsCard() {
             >
               <Trash2 className="w-4 h-4 text-white" />
             </OutlineButton>
+            
+            {/* Botão para ir para o menu TA - Verde Elétrico (sempre visível) */}
+            <button 
+              onClick={() => window.location.href = '/dashboard/ta'}
+              className="bg-[#d4ff4a] text-black rounded-full p-2 hover:bg-[#c9f035] transition-colors"
+              title="Ir para TA"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </button>
           </div>
         </div>
       </CardHeader>
