@@ -1,6 +1,7 @@
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ptBR } from "date-fns/locale";
 
 interface LiquidGlassCalendarProps {
   selected?: Date;
@@ -36,6 +37,7 @@ export const LiquidGlassCalendar = ({
         mode="single"
         selected={selected}
         onSelect={onSelect}
+        locale={ptBR}
         className="w-full pointer-events-auto"
         classNames={{
           // Main structure - v9 API
