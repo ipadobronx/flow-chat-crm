@@ -153,7 +153,7 @@ export const EventsList = ({
             ))}
 
             {/* Regular Events - Only in calendar view */}
-            {!showOnlyTasks && sortedEvents.map((event, index) => (
+            {!showOnlyTasks && sortedEvents.filter(event => !event.google_task_id).map((event, index) => (
                 <div
                   key={event.id}
                   onClick={() => onEventClick(event)}
