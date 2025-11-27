@@ -1129,19 +1129,19 @@ export default function Pipeline() {
 
           {/* Fixed Action Bar - Modo Seleção */}
           {isGlobalSelectionMode && multiSelect.selectedCount > 0 && (
-            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
-              <div className={`flex items-center gap-3 p-4 backdrop-blur-md rounded-xl shadow-xl ${
+            <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300 w-[90vw] max-w-md sm:w-auto">
+              <div className={`flex items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 backdrop-blur-md rounded-2xl shadow-xl ${
                 isTablet 
                   ? 'bg-white/10 border border-white/20' 
                   : 'bg-card/95 border-2 border-primary/20'
               }`}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className={`w-2 h-2 rounded-full animate-pulse ${isTablet ? 'bg-[#d4ff4a]' : 'bg-primary'}`}></div>
-                  <Badge variant="secondary" className={`text-base font-semibold ${isTablet ? 'bg-white/10 text-white border-white/20' : ''}`}>
-                    {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
-                  </Badge>
+                  <span className={`text-sm sm:text-base font-semibold ${isTablet ? 'text-white' : ''}`}>
+                    {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2 ml-2">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1149,20 +1149,24 @@ export default function Pipeline() {
                       multiSelect.clearSelections();
                       setIsGlobalSelectionMode(false);
                     }}
-                    className={`h-8 ${isTablet ? 'border-white/30 text-white hover:bg-white/10' : ''}`}
+                    className={`h-8 px-3 rounded-full text-xs sm:text-sm ${
+                      isTablet 
+                        ? 'border-white/40 text-white bg-white/10 hover:bg-white/20' 
+                        : 'border-border'
+                    }`}
                   >
                     Cancelar
                   </Button>
                   <Button
                     size="sm"
                     onClick={multiSelect.confirmSelection}
-                    className={`h-8 rounded-full px-4 font-inter font-light transition-colors ${
+                    className={`h-8 rounded-full px-3 sm:px-4 font-inter font-light transition-colors text-xs sm:text-sm ${
                       isTablet 
                         ? 'bg-[#d4ff4a] text-black hover:bg-[#c9f035]' 
                         : 'bg-black text-white hover:bg-black/80'
                     }`}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     Incluir ({multiSelect.selectedCount})
                   </Button>
                 </div>
