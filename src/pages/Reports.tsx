@@ -232,7 +232,7 @@ export default function Reports() {
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg rounded-2xl p-1.5 bg-white/5 backdrop-blur-md border border-white/10">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto rounded-2xl p-1.5 bg-white/5 backdrop-blur-md border border-white/10">
             <TabsTrigger 
               value="dashboard"
               className="rounded-xl px-4 py-2 text-sm font-inter font-normal text-white/60 
