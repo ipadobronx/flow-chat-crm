@@ -358,6 +358,13 @@ export default function TAPresentation() {
       setAgendamentoTime("");
   };
 
+  const handleWhatsApp = (telefone: string | null) => {
+    if (!telefone) return;
+    const cleanPhone = telefone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+    window.open(`https://wa.me/${formattedPhone}`, '_blank');
+  };
+
   
   const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar", "OI", "Não Tem Interesse"];
 
@@ -458,7 +465,7 @@ export default function TAPresentation() {
     const currentLead = leads[currentLeadIndex];
     
     return (
-      <div className="fixed inset-0 bg-[#0D0D0D] z-50 overflow-auto">
+      <div className="fixed inset-0 bg-[#0D0D0D] z-50 overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -469,59 +476,74 @@ export default function TAPresentation() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-700/40 via-gray-600/30 to-gray-500/20" />
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="relative z-10 h-screen flex items-center justify-center p-3">
+          <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Card 1 - Informações do Lead */}
             <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
-              <div className="p-6 h-full">
-                <h2 className="text-4xl font-bold text-white mb-6">{currentLead.nome}</h2>
+              <div className="p-4 h-full">
+                {/* Header com nome e botão WhatsApp */}
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-2xl font-bold text-white">{currentLead.nome}</h2>
+                  
+                  {/* Botão WhatsApp */}
+                  <button
+                    onClick={() => handleWhatsApp(currentLead.telefone)}
+                    disabled={!currentLead.telefone}
+                    className="bg-[#25D366] text-white rounded-full p-2.5 hover:bg-[#20BD5A] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    title="Abrir WhatsApp"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                  </button>
+                </div>
                 
-                <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-lg">
+                <div className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Cidade:</span>
-                    <p className="text-white/90 text-lg">{currentLead.cidade || 'N/A'}</p>
+                    <span className="text-white/70 font-medium text-xs">Cidade</span>
+                    <p className="text-white/90">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Etapa:</span>
-                    <p className="text-white/90 text-lg">{currentLead.etapa}</p>
+                    <span className="text-white/70 font-medium text-xs">Etapa</span>
+                    <p className="text-white/90">{currentLead.etapa}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Profissão:</span>
-                    <p className="text-white/90 text-lg">{currentLead.profissao || 'N/A'}</p>
+                    <span className="text-white/70 font-medium text-xs">Telefone</span>
+                    <p className="text-white/90">{currentLead.telefone || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Telefone:</span>
-                    <p className="text-white/90 text-lg">{currentLead.telefone || 'N/A'}</p>
+                    <span className="text-white/70 font-medium text-xs">Profissão</span>
+                    <p className="text-white/90">{currentLead.profissao || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Casado:</span>
-                    <p className="text-white/90 text-lg">{currentLead.casado ? 'Sim' : 'Não'}</p>
+                    <span className="text-white/70 font-medium text-xs">Casado</span>
+                    <p className="text-white/90">{currentLead.casado ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Filhos:</span>
-                    <p className="text-white/90 text-lg">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
+                    <span className="text-white/70 font-medium text-xs">Filhos</span>
+                    <p className="text-white/90">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
+                  </div>
+
+                  <div className="col-span-2">
+                    <span className="text-white/70 font-medium text-xs">Recomendante</span>
+                    <p className="text-white/90 truncate">{currentLead.recomendante || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/80 font-semibold text-lg">Recomendante:</span>
-                    <p className="text-white/90 text-lg">{currentLead.recomendante || 'N/A'}</p>
-                  </div>
-
-                  <div>
-                    <span className="text-white/80 font-semibold text-lg">Email:</span>
-                    <p className="text-white/90 text-lg truncate">{currentLead.email || 'N/A'}</p>
+                    <span className="text-white/70 font-medium text-xs">Email</span>
+                    <p className="text-white/90 truncate">{currentLead.email || 'N/A'}</p>
                   </div>
                 </div>
 
                 {currentLead.observacoes && (
-                  <div className="mt-6 pt-4 border-t border-white/10">
-                    <span className="text-white/80 font-semibold text-lg">Observações:</span>
-                    <p className="text-white/90 text-base mt-2">{currentLead.observacoes}</p>
+                  <div className="mt-3 pt-2 border-t border-white/10">
+                    <span className="text-white/70 font-medium text-xs">Observações</span>
+                    <p className="text-white/90 text-xs mt-1 line-clamp-2">{currentLead.observacoes}</p>
                   </div>
                 )}
               </div>
@@ -529,13 +551,13 @@ export default function TAPresentation() {
 
             {/* Card 2 - Ações */}
             <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
-              <div className="p-6 h-full flex flex-col">
-                <h3 className="text-xl font-bold text-white mb-4">Ações do TA</h3>
+              <div className="p-4 h-full flex flex-col">
+                <h3 className="text-lg font-bold text-white mb-3">Ações do TA</h3>
                 
-                <div className="space-y-4 flex-1">
+                <div className="space-y-3 flex-1">
                   {/* Seletor de Etapa */}
                   <div>
-                    <Label className="text-white/80 font-medium text-sm">Nova Etapa</Label>
+                    <Label className="text-white/70 font-medium text-xs">Nova Etapa</Label>
                     <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
                       <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9">
                         <SelectValue placeholder="Selecione a etapa" />
@@ -552,21 +574,21 @@ export default function TAPresentation() {
 
                   {/* Campo de Observações */}
                   <div>
-                    <Label className="text-white/80 font-medium text-sm">Observações</Label>
+                    <Label className="text-white/70 font-medium text-xs">Observações</Label>
                     <LiquidGlassTextarea
                       value={observacoes}
                       onChange={(e) => setObservacoes(e.target.value)}
                       placeholder="Notas sobre este contato..."
-                      className="mt-1 text-white placeholder-white/50 min-h-[80px] text-sm"
+                      className="mt-1 text-white placeholder-white/50 min-h-[60px] text-sm"
                     />
                   </div>
 
                   {/* Agendamento para Ligar Depois e OI */}
                   {(selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label className="text-white/80 font-medium text-sm">
-                          {selectedEtapa === "OI" ? "Data do Agendamento *" : "Data para Ligar *"}
+                        <Label className="text-white/70 font-medium text-xs">
+                          {selectedEtapa === "OI" ? "Data *" : "Data *"}
                         </Label>
                         <LiquidGlassInput
                           type="date"
@@ -580,16 +602,16 @@ export default function TAPresentation() {
                             }
                           }}
                           min={format(new Date(), "yyyy-MM-dd")}
-                          className="w-full mt-1 h-10 text-white placeholder:text-white/70"
+                          className="w-full mt-1 h-9 text-white placeholder:text-white/70"
                         />
                       </div>
                       
                       <div>
-                        <Label className="text-white/80 font-medium text-sm">Horário *</Label>
+                        <Label className="text-white/70 font-medium text-xs">Horário *</Label>
                         <select
                           value={agendamentoTime}
                           onChange={(e) => setAgendamentoTime(e.target.value)}
-                          className="w-full mt-1 h-10 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white px-3 text-sm"
+                          className="w-full mt-1 h-9 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white px-3 text-xs"
                         >
                           <option value="">Selecione um horário</option>
                           {[
