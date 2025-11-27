@@ -519,12 +519,13 @@ serve(async (req) => {
         }
       }
 
-      // Atualizar agendamento com ID do evento
+      // Atualizar agendamento com ID do evento e tarefa
       await supabase
         .from('agendamentos_ligacoes')
         .update({
           google_event_id: calendarData.id,
           synced_with_google: true,
+          google_task_id: taskId,
         })
         .eq('id', agendamentoId);
 
