@@ -1334,10 +1334,9 @@ export default function Pipeline() {
                     <SelectTrigger className="rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15">
                       <SelectValue>
                         {(editingLead?.etapa || selectedLead.etapa) && (
-                          <div className="flex items-center gap-2">
-                            <span className={`w-3 h-3 rounded-full ${stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.color}`}></span>
-                            <span>{stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.label}</span>
-                          </div>
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.color}`}>
+                            {stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.label}
+                          </span>
                         )}
                       </SelectValue>
                     </SelectTrigger>
@@ -1348,10 +1347,9 @@ export default function Pipeline() {
                           value={stage.name}
                           className="focus:bg-white/10 focus:text-white data-[highlighted]:bg-white/10 text-white"
                         >
-                          <div className="flex items-center gap-2">
-                            <span className={`w-3 h-3 rounded-full ${stage.color}`}></span>
-                            <span>{stage.label}</span>
-                          </div>
+                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stage.color}`}>
+                            {stage.label}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
