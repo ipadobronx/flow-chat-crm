@@ -68,6 +68,7 @@ export default function Schedule() {
         id: agendamento.id,
         lead_nome: lead.nome,
         lead_telefone: lead.telefone,
+        lead_recomendante: lead.recomendante || null,
         horario: format(date, "HH:mm"),
         datetime: agendamento.data_agendamento,
         observacoes: agendamento.observacoes,

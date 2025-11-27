@@ -9,6 +9,7 @@ export interface ScheduleEvent {
   id: string;
   lead_nome: string;
   lead_telefone: string | null;
+  lead_recomendante: string[] | null;
   horario: string;
   datetime: string;
   observacoes: string | null;
@@ -114,43 +115,64 @@ export const EventsList = ({
         ) : (
           <>
             {/* Google Tasks - Always visible */}
-            {allTasks.map((task, index) => (
-              <div
-                key={task.id}
-                onClick={() => onTaskClick?.(task)}
-                className={cn(
-                  "group relative bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/30",
-                  "rounded-xl sm:rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-300",
-                  "animate-fade-in"
-                )}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-start justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
-                      <div className="flex items-center gap-1.5 text-amber-400">
-                        <ListTodo className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                        <span className="text-[10px] sm:text-xs font-medium">Google Task</span>
+            {allTasks.map((task, index) => {
+              // Find local event to get extra info (telefone, recomendante)
+              const localEvent = events.find(e => e.google_task_id === task.id);
+              
+              return (
+                <div
+                  key={task.id}
+                  onClick={() => onTaskClick?.(task)}
+                  className={cn(
+                    "group relative bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/30",
+                    "rounded-xl sm:rounded-2xl p-3 sm:p-4 cursor-pointer transition-all duration-300",
+                    "animate-fade-in"
+                  )}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5 sm:mb-2">
+                        <div className="flex items-center gap-1.5 text-amber-400">
+                          <ListTodo className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <span className="text-[10px] sm:text-xs font-medium">Google Task</span>
+                        </div>
                       </div>
+                      <h3 className="text-white font-medium text-sm sm:text-base truncate mb-1">
+                        {task.title}
+                      </h3>
+                      
+                      {/* Recomendante + Telefone */}
+                      <div className="flex items-center gap-2 text-white/50 text-[10px] sm:text-xs flex-wrap">
+                        {localEvent?.lead_recomendante?.[0] && (
+                          <span className="text-amber-400/70">
+                            Rec: {localEvent.lead_recomendante[0]}
+                          </span>
+                        )}
+                        {localEvent?.lead_telefone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <span>{localEvent.lead_telefone}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {task.notes && (
+                        <p className="text-white/40 text-[10px] sm:text-xs line-clamp-1 mt-1">
+                          {task.notes}
+                        </p>
+                      )}
                     </div>
-                    <h3 className="text-white font-medium text-sm sm:text-base truncate mb-1">
-                      {task.title}
-                    </h3>
-                    {task.notes && (
-                      <p className="text-white/40 text-[10px] sm:text-xs line-clamp-1">
-                        {task.notes}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {task.status === "completed" && (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    )}
-                    <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+                    <div className="flex items-center gap-2">
+                      {task.status === "completed" && (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      )}
+                      <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Regular Events - Only in calendar view */}
             {!showOnlyTasks && sortedEvents.filter(event => !event.google_task_id).map((event, index) => (
