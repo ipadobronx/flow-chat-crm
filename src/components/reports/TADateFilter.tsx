@@ -137,7 +137,7 @@ export function TADateFilter({
       return (
         <Drawer open={startDrawerOpen} onOpenChange={setStartDrawerOpen}>
           <DrawerTrigger asChild>{StartDateButton}</DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[50vh]">
+          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[70vh]">
             <DrawerHeader className="text-center py-3">
               <DrawerTitle className="text-white font-inter font-normal">
                 Selecionar Data Inicial
@@ -187,7 +187,7 @@ export function TADateFilter({
       return (
         <Drawer open={endDrawerOpen} onOpenChange={setEndDrawerOpen}>
           <DrawerTrigger asChild>{EndDateButton}</DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[50vh]">
+          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[70vh]">
             <DrawerHeader className="text-center py-3">
               <DrawerTitle className="text-white font-inter font-normal">
                 Selecionar Data Final
