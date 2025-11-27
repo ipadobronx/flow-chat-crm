@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 import { GoogleCalendarConnect } from "@/components/calendar/GoogleCalendarConnect";
 import { CalendarToggle, CalendarViewType } from "@/components/calendar/CalendarToggle";
 import { LiquidGlassCalendar } from "@/components/calendar/LiquidGlassCalendar";
@@ -171,7 +172,7 @@ export default function Schedule() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black p-3 sm:p-4 md:p-6 -m-4 md:-m-6">
+      <AuroraBackground className="min-h-screen p-3 sm:p-4 md:p-6 -m-4 md:-m-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -378,7 +379,7 @@ export default function Schedule() {
             )}
           </DialogContent>
         </Dialog>
-      </div>
+      </AuroraBackground>
     </DashboardLayout>
   );
 }
