@@ -1188,7 +1188,8 @@ export default function Pipeline() {
                             </div>
                           )}
                         </div>
-                        <div className="p-6 pt-0 space-y-2 sm:space-y-3 h-[400px] sm:h-[500px] lg:h-[600px] overflow-y-auto">
+                        <ScrollArea className="h-[400px] sm:h-[500px] lg:h-[600px]">
+                          <div className="p-6 pt-0 space-y-2 sm:space-y-3 pr-3">
                           {stageLeads.map((lead) => (
                             <DraggableLeadCard
                               key={lead.id}
@@ -1206,7 +1207,8 @@ export default function Pipeline() {
                               Nenhum lead nesta etapa
                             </div>
                           )}
-                        </div>
+                          </div>
+                        </ScrollArea>
                       </div>
                     </DroppableColumn>
                   );
