@@ -20,29 +20,35 @@ interface TADateFilterProps {
   onPresetChange: (preset: string) => void;
 }
 
-// Liquid glass calendar classNames
+// Liquid glass calendar classNames (react-day-picker v9 API)
 const liquidGlassCalendarClassNames = {
-  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-  month: "space-y-4",
-  caption: "flex justify-center pt-1 relative items-center text-white",
+  // Main structure - v9 API
+  months: "flex flex-col w-full",
+  month: "space-y-4 w-full",
+  month_caption: "flex justify-center pt-1 relative items-center mb-4",
   caption_label: "text-sm font-medium text-white",
+  
+  // Navigation - v9 API
   nav: "space-x-1 flex items-center",
-  nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 text-white border border-white/20 rounded-lg hover:bg-white/10 transition-colors inline-flex items-center justify-center",
-  nav_button_previous: "absolute left-1",
-  nav_button_next: "absolute right-1",
-  table: "w-full border-collapse space-y-1",
-  head_row: "flex w-full",
-  head_cell: "text-white/50 rounded-md w-9 font-normal text-[0.8rem] flex items-center justify-center",
-  row: "flex w-full mt-2",
-  cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-  day: "h-9 w-9 p-0 font-normal text-white hover:bg-white/10 rounded-lg transition-colors inline-flex items-center justify-center",
-  day_range_end: "day-range-end",
-  day_selected: "bg-[#d4ff4a] text-black hover:bg-[#d4ff4a] hover:text-black focus:bg-[#d4ff4a] focus:text-black rounded-lg",
-  day_today: "border border-white/40 text-white rounded-lg",
-  day_outside: "text-white/30 opacity-50",
-  day_disabled: "text-white/20 opacity-50",
-  day_range_middle: "aria-selected:bg-white/10 aria-selected:text-white",
-  day_hidden: "invisible",
+  button_previous: "absolute left-1 h-7 w-7 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
+  button_next: "absolute right-1 h-7 w-7 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
+  
+  // Calendar grid - v9 API
+  month_grid: "w-full border-collapse",
+  weekdays: "flex justify-between w-full mb-2",
+  weekday: "text-white/50 flex-1 font-normal text-[0.75rem] uppercase tracking-wide text-center",
+  week: "flex w-full mt-1 justify-between",
+  day: "relative text-center text-sm p-0 flex-1 aspect-square focus-within:relative focus-within:z-20",
+  day_button: "h-full w-full p-0 font-normal rounded-full flex items-center justify-center transition-colors text-white/80 hover:bg-white/10 hover:text-white",
+  
+  // Day states - v9 API
+  range_end: "day-range-end",
+  selected: "bg-[#d4ff4a] text-black hover:bg-[#c9f035] hover:text-black focus:bg-[#d4ff4a] focus:text-black font-semibold",
+  today: "bg-white/10 text-white font-semibold border border-white/20",
+  outside: "text-white/20 opacity-50",
+  disabled: "text-white/20 opacity-30",
+  range_middle: "aria-selected:bg-white/10 aria-selected:text-white",
+  hidden: "invisible",
 };
 
 export function TADateFilter({
