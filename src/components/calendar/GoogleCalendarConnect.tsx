@@ -31,10 +31,10 @@ export const GoogleCalendarConnect = () => {
               disabled={isConnecting || isDisconnecting}
               variant={isConnected ? "outline" : "ghost"}
               size="icon"
-              className="relative h-24 w-24 p-2 hover:bg-accent"
+              className="relative h-8 w-8 sm:h-9 sm:w-9 p-1.5 hover:bg-white/10 bg-white/5 border-white/10"
             >
               {(isConnecting || isDisconnecting) ? (
-                <Loader2 className="h-12 w-12 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
                 <img 
                   src={googleCalendarLogo} 
@@ -44,7 +44,7 @@ export const GoogleCalendarConnect = () => {
               )}
             </Button>
             {isConnected && (
-              <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
+              <div className="absolute -top-0.5 -right-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-emerald-500 border border-background" />
             )}
           </div>
         </TooltipTrigger>
