@@ -35,7 +35,7 @@ export function TabletPageWrapper({ children, className }: TabletPageWrapperProp
       <main className="flex-1 overflow-y-auto">
         <div className={cn(
           "mx-auto p-4 animate-fade-in",
-          "rounded-t-[20px] bg-background/95 backdrop-blur-sm",
+          "rounded-t-[20px]",
           "min-h-[calc(100vh-80px)]",
           className
         )}>
