@@ -4,6 +4,7 @@ import { GoogleCalendarConnect } from "@/components/calendar/GoogleCalendarConne
 import { CalendarToggle, CalendarViewType } from "@/components/calendar/CalendarToggle";
 import { LiquidGlassCalendar } from "@/components/calendar/LiquidGlassCalendar";
 import { EventsList, ScheduleEvent, GoogleTask } from "@/components/calendar/EventsList";
+import { LiquidGlassActionButton } from "@/components/ui/liquid-glass-action-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { useAgendamentos } from "@/hooks/useAgendamentos";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { format, isSameDay, parseISO, startOfToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Phone, Loader2, CheckCircle2, ListTodo, Download, RefreshCw } from "lucide-react";
+import { Calendar, Clock, Phone, Loader2, CheckCircle2, ListTodo, Plus, RefreshCw } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -133,11 +134,15 @@ export default function Schedule() {
     refetch();
   };
 
-  const handleImportFromGoogle = async () => {
+  const handleSyncAll = async () => {
     if (!user) return;
     setIsImporting(true);
 
     try {
+      // Atualiza tasks
+      await refetchTasks();
+
+      // Importa eventos do Google
       const today = new Date();
       const nextMonth = new Date(today);
       nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -152,22 +157,24 @@ export default function Schedule() {
 
       if (error) throw error;
 
-      toast.success(`✅ ${data.imported} eventos importados do Google Calendar!`, {
-        description: data.skipped > 0 ? `${data.skipped} eventos já existentes foram ignorados` : undefined,
+      toast.success(`Sincronizado! ${data.imported} eventos importados`, {
+        description: data.skipped > 0 ? `${data.skipped} já existentes` : undefined,
       });
 
       await refetch();
-      await refetchTasks();
       queryClient.invalidateQueries({ queryKey: ["agendamentos"] });
       queryClient.invalidateQueries({ queryKey: ["scheduled-calls"] });
     } catch (error) {
-      console.error("❌ Erro ao importar:", error);
-      toast.error("Erro ao importar eventos do Google Calendar", {
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-      });
+      console.error("Erro ao sincronizar:", error);
+      toast.error("Erro ao sincronizar com Google Calendar");
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const handleCreateNew = () => {
+    // TODO: Abrir modal de criar novo agendamento/task
+    toast.info("Em breve: criar novo agendamento");
   };
 
   return (
@@ -180,39 +187,28 @@ export default function Schedule() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Botão + para criar novo */}
+            <LiquidGlassActionButton
+              icon={Plus}
+              variant="electric"
+              size="sm"
+              onClick={handleCreateNew}
+              aria-label="Criar novo agendamento"
+            />
+            
+            {/* Botão de sync unificado */}
             {isConnected && (
-              <Button
-                onClick={() => refetchTasks()}
-                disabled={isLoadingTasks}
-                variant="ghost"
+              <LiquidGlassActionButton
+                icon={RefreshCw}
+                variant="default"
                 size="sm"
-                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white rounded-full px-3 sm:px-4 h-8 sm:h-9"
-              >
-                <RefreshCw className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isLoadingTasks && "animate-spin")} />
-                <span className="hidden sm:inline ml-2">Atualizar Tasks</span>
-              </Button>
+                onClick={handleSyncAll}
+                disabled={isImporting || isLoadingTasks}
+                className={cn(isImporting && "[&_svg]:animate-spin")}
+                aria-label="Sincronizar com Google"
+              />
             )}
-            {isConnected && (
-              <Button
-                onClick={handleImportFromGoogle}
-                disabled={isImporting}
-                variant="ghost"
-                size="sm"
-                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white rounded-full px-3 sm:px-4 h-8 sm:h-9"
-              >
-                {isImporting ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
-                    <span className="hidden sm:inline ml-2">Importando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline ml-2">Importar</span>
-                  </>
-                )}
-              </Button>
-            )}
+            
             <GoogleCalendarConnect />
           </div>
         </div>
