@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useIsTablet } from "@/hooks/use-tablet";
 
 type HistoricoEtapa = Tables<"historico_etapas_funil">;
 
@@ -16,6 +17,7 @@ interface LeadHistoryProps {
 export function LeadHistory({ leadId }: LeadHistoryProps) {
   const [historico, setHistorico] = useState<HistoricoEtapa[]>([]);
   const [loading, setLoading] = useState(true);
+  const isTablet = useIsTablet();
 
   useEffect(() => {
     fetchHistory();
@@ -68,13 +70,13 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
     return (
       <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
+          <CardTitle className={`flex items-center gap-2 font-inter font-normal tracking-tighter ${isTablet ? 'text-white' : ''}`}>
             <Clock className="w-4 h-4" />
             Histórico de Etapas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-black">Carregando histórico...</p>
+          <p className={isTablet ? 'text-white' : 'text-black'}>Carregando histórico...</p>
         </CardContent>
       </Card>
     );
@@ -84,13 +86,13 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
     return (
       <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
+          <CardTitle className={`flex items-center gap-2 font-inter font-normal tracking-tighter ${isTablet ? 'text-white' : ''}`}>
             <Clock className="w-4 h-4" />
             Histórico de Etapas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-black">Nenhuma mudança de etapa registrada.</p>
+          <p className={isTablet ? 'text-white' : 'text-black'}>Nenhuma mudança de etapa registrada.</p>
         </CardContent>
       </Card>
     );
@@ -99,10 +101,10 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
   return (
     <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-inter font-normal tracking-tighter">
-          <Clock className="w-4 h-4" />
-          Histórico de Etapas
-        </CardTitle>
+          <CardTitle className={`flex items-center gap-2 font-inter font-normal tracking-tighter ${isTablet ? 'text-white' : ''}`}>
+            <Clock className="w-4 h-4" />
+            Histórico de Etapas
+          </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {historico.map((item) => (
@@ -115,7 +117,7 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
               )}
               
               {item.etapa_anterior && (
-                <ArrowRight className="w-4 h-4 text-black" />
+                <ArrowRight className={`w-4 h-4 ${isTablet ? 'text-white' : 'text-black'}`} />
               )}
               
               <Badge className={`text-white text-xs ${getEtapaColor(item.etapa_nova)}`}>
@@ -124,11 +126,11 @@ export function LeadHistory({ leadId }: LeadHistoryProps) {
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-black">
+              <p className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>
                 {format(new Date(item.data_mudanca), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               </p>
               {item.observacoes && (
-                <p className="text-xs text-black mt-1">
+                <p className={`text-xs mt-1 ${isTablet ? 'text-white/70' : 'text-black'}`}>
                   {item.observacoes}
                 </p>
               )}
