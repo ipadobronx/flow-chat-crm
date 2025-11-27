@@ -1478,9 +1478,11 @@ export default function Pipeline() {
                   </div>
                 </div>
 
-                {/* Seção: Dados Pessoais */}
-                <div className="space-y-4">
-                  <h3 className={`text-sm font-semibold ${isTablet ? 'text-white border-white/20' : 'text-black'} border-b pb-2`}>Dados Pessoais</h3>
+                {/* Seção: Dados Pessoais - Container Liquid Glass */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-6 space-y-4">
+                  <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter ${isTablet ? 'text-white' : ''}`}>
+                    Dados Pessoais
+                  </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
