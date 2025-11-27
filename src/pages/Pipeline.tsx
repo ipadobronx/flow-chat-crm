@@ -56,6 +56,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { updateLeadPartialSchema } from "@/lib/schemas";
 import { globalRateLimiter } from "@/lib/validation";
 import { z } from "zod";
+import { useIsTablet } from "@/hooks/use-tablet";
 
 const stages = [
   { name: "Todos", label: "Todos", color: "bg-blue-500" },
@@ -119,7 +120,8 @@ const DraggableLeadCard = ({
   isSelectionMode,
   isSelected,
   onToggleSelection,
-  stageName
+  stageName,
+  isTabletMode = false
 }: { 
   lead: Lead; 
   onClick: () => void;
@@ -127,6 +129,7 @@ const DraggableLeadCard = ({
   isSelected: boolean;
   onToggleSelection: (leadId: string) => void;
   stageName: string;
+  isTabletMode?: boolean;
 }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
@@ -151,15 +154,22 @@ const DraggableLeadCard = ({
     }
   };
 
+  // Card classes based on tablet mode
+  const cardClasses = isTabletMode
+    ? `p-2 sm:p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 relative cursor-pointer group shadow-lg ${
+        isDragging ? 'opacity-50 z-50' : ''
+      } ${isSelected ? 'ring-1 ring-[#d4ff4a]/50 bg-[#d4ff4a]/10' : ''}`
+    : `p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-pointer group ${
+        isDragging ? 'opacity-50 z-50' : ''
+      } ${isSelected ? 'ring-1 ring-blue-400/50 bg-blue-50/50' : ''}`;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...(isSelectionMode ? {} : listeners)}
       {...(isSelectionMode ? {} : attributes)}
-      className={`p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-all relative cursor-pointer group ${
-        isDragging ? 'opacity-50 z-50' : ''
-      } ${isSelected ? 'ring-1 ring-blue-400/50 bg-blue-50/50' : ''}`}
+      className={cardClasses}
       onClick={handleCardClick}
     >
       {/* Checkbox minimalista para multi-seleção */}
@@ -168,8 +178,8 @@ const DraggableLeadCard = ({
           <div 
             className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center cursor-pointer ${
               isSelected 
-                ? 'bg-blue-500 border-blue-500' 
-                : 'border-blue-300 hover:border-blue-400 bg-white'
+                ? isTabletMode ? 'bg-[#d4ff4a] border-[#d4ff4a]' : 'bg-blue-500 border-blue-500'
+                : isTabletMode ? 'border-white/30 hover:border-white/50 bg-white/10' : 'border-blue-300 hover:border-blue-400 bg-white'
             }`}
             onClick={(e) => {
               e.stopPropagation();
@@ -177,7 +187,7 @@ const DraggableLeadCard = ({
             }}
           >
             {isSelected && (
-              <Check className="h-3 w-3 text-white" />
+              <Check className={`h-3 w-3 ${isTabletMode ? 'text-black' : 'text-white'}`} />
             )}
           </div>
         </div>
@@ -185,24 +195,32 @@ const DraggableLeadCard = ({
       
       <div className="flex items-start space-x-2 sm:space-x-3">
         <Avatar className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
-          <AvatarFallback className="text-xs sm:text-sm">{lead.nome.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+          <AvatarFallback className={`text-xs sm:text-sm ${isTabletMode ? 'bg-white/10 text-white' : ''}`}>
+            {lead.nome.split(' ').map((n: string) => n[0]).join('')}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="mb-1 flex items-start justify-between">
-            <p className="font-medium text-xs sm:text-sm truncate flex-1">{lead.nome}</p>
+            <p className={`font-medium text-xs sm:text-sm truncate flex-1 ${isTabletMode ? 'text-white' : ''}`}>
+              {lead.nome}
+            </p>
             {/* Contagem de dias no canto superior direito */}
             {lead.etapa !== "Todos" && (
-              <Badge className="ml-2 bg-blue-50 text-blue-600 border-blue-200 text-xs px-1.5 py-0.5 shrink-0">
+              <Badge className={`ml-2 text-xs px-1.5 py-0.5 shrink-0 ${
+                isTabletMode 
+                  ? 'bg-[#d4ff4a]/20 text-[#d4ff4a] border-[#d4ff4a]/30' 
+                  : 'bg-blue-50 text-blue-600 border-blue-200'
+              }`}>
                 {lead.dias_na_etapa_atual || 1}d
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground truncate">
+          <p className={`text-xs truncate ${isTabletMode ? 'text-white/60' : 'text-muted-foreground'}`}>
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
               ? lead.recomendante.join(", ") 
               : "Sem recomendante"}
           </p>
-          <p className="text-xs sm:text-sm font-semibold text-success mt-1">
+          <p className={`text-xs sm:text-sm font-semibold mt-1 ${isTabletMode ? 'text-[#d4ff4a]' : 'text-success'}`}>
             {lead.profissao || "Profissão não informada"}
           </p>
         </div>
@@ -233,6 +251,7 @@ export default function Pipeline() {
   const { syncCalendarEvent, isConnected } = useCalendarSync();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isTablet } = useIsTablet();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -1009,18 +1028,24 @@ export default function Pipeline() {
                   
                   return (
                     <DroppableColumn key={stage.name} id={stage.name}>
-                      <div className="w-64 sm:w-72 lg:w-80 flex-shrink-0 rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-white/5">
+                      <div className={`w-64 sm:w-72 lg:w-80 flex-shrink-0 rounded-2xl border backdrop-blur-md shadow-xl transition-all duration-300 hover:shadow-2xl ${
+                        isTablet 
+                          ? 'border-white/20 bg-white/5 text-white hover:shadow-white/10 hover:bg-white/10' 
+                          : 'border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 text-card-foreground hover:shadow-white/5'
+                      }`}>
                         <div className="flex flex-col space-y-1.5 p-6">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter truncate">{stage.label}</h3>
-                            <Badge variant="secondary" className="text-xs">{stageLeads.length}</Badge>
+                            <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter truncate ${isTablet ? 'text-white' : ''}`}>{stage.label}</h3>
+                            <Badge variant="secondary" className={`text-xs ${isTablet ? 'bg-white/10 text-white border-white/20' : ''}`}>{stageLeads.length}</Badge>
                           </div>
                           <div className={`w-full h-1 rounded-full ${stage.color}`} />
                           {stageLeads.length > 0 && (
                             <div className="flex gap-1.5">
                               <Button
                                 size="sm"
-                                className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                                className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
+                                  isTablet ? 'bg-[#d4ff4a] hover:bg-[#c9f035] text-black' : 'bg-green-500 hover:bg-green-600 text-white'
+                                }`}
                                 onClick={() => setStageToInclude(stage.name)}
                                 title="Enviar toda a etapa para o SitPlan"
                               >
@@ -1030,8 +1055,8 @@ export default function Pipeline() {
                                 size="sm"
                                 className={`h-6 w-6 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
                                   isGlobalSelectionMode 
-                                    ? "bg-blue-600 text-white" 
-                                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                                    ? isTablet ? "bg-[#d4ff4a] text-black" : "bg-blue-600 text-white"
+                                    : isTablet ? "bg-white/20 hover:bg-white/30 text-white" : "bg-blue-500 hover:bg-blue-600 text-white"
                                 }`}
                                 onClick={() => {
                                   if (isGlobalSelectionMode) {
@@ -1059,10 +1084,11 @@ export default function Pipeline() {
                               isSelected={multiSelect.isSelected(lead.id)}
                               onToggleSelection={multiSelect.toggleSelection}
                               stageName={stage.name}
+                              isTabletMode={isTablet}
                             />
                           ))}
                           {stageLeads.length === 0 && (
-                            <div className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
+                            <div className={`text-center text-xs sm:text-sm py-6 sm:py-8 ${isTablet ? 'text-white/50' : 'text-muted-foreground'}`}>
                               Nenhum lead nesta etapa
                             </div>
                           )}
@@ -1077,16 +1103,20 @@ export default function Pipeline() {
             
             <DragOverlay>
             {activeId ? (
-              <div className="p-3 rounded-lg bg-muted/50 shadow-lg ring-2 ring-primary opacity-90">
+              <div className={`p-3 rounded-lg shadow-lg ring-2 opacity-90 ${
+                isTablet 
+                  ? 'bg-white/10 backdrop-blur-md ring-[#d4ff4a] text-white' 
+                  : 'bg-muted/50 ring-primary'
+              }`}>
                 <div className="flex items-start space-x-3">
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback>
+                    <AvatarFallback className={isTablet ? 'bg-white/10 text-white' : ''}>
                       {leads.find(l => l.id === activeId)?.nome.split(' ').map((n: string) => n[0]).join('') || 'LD'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">Movendo...</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className={`font-medium text-sm ${isTablet ? 'text-white' : ''}`}>Movendo...</p>
+                    <p className={`text-xs ${isTablet ? 'text-white/60' : 'text-muted-foreground'}`}>
                       {leads.find(l => l.id === activeId)?.nome || 'Lead'}
                     </p>
                   </div>
@@ -1099,10 +1129,14 @@ export default function Pipeline() {
           {/* Fixed Action Bar - Modo Seleção */}
           {isGlobalSelectionMode && multiSelect.selectedCount > 0 && (
             <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-4 fade-in duration-300">
-              <div className="flex items-center gap-3 p-4 bg-card/95 backdrop-blur-md border-2 border-primary/20 rounded-xl shadow-xl">
+              <div className={`flex items-center gap-3 p-4 backdrop-blur-md rounded-xl shadow-xl ${
+                isTablet 
+                  ? 'bg-white/10 border border-white/20' 
+                  : 'bg-card/95 border-2 border-primary/20'
+              }`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                  <Badge variant="secondary" className="text-base font-semibold">
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${isTablet ? 'bg-[#d4ff4a]' : 'bg-primary'}`}></div>
+                  <Badge variant="secondary" className={`text-base font-semibold ${isTablet ? 'bg-white/10 text-white border-white/20' : ''}`}>
                     {multiSelect.selectedCount} lead{multiSelect.selectedCount !== 1 ? 's' : ''} selecionado{multiSelect.selectedCount !== 1 ? 's' : ''}
                   </Badge>
                 </div>
@@ -1114,14 +1148,18 @@ export default function Pipeline() {
                       multiSelect.clearSelections();
                       setIsGlobalSelectionMode(false);
                     }}
-                    className="h-8"
+                    className={`h-8 ${isTablet ? 'border-white/30 text-white hover:bg-white/10' : ''}`}
                   >
                     Cancelar
                   </Button>
                   <Button
                     size="sm"
                     onClick={multiSelect.confirmSelection}
-                    className="h-8 rounded-full px-4 font-inter font-light bg-black text-white hover:bg-black/80 transition-colors"
+                    className={`h-8 rounded-full px-4 font-inter font-light transition-colors ${
+                      isTablet 
+                        ? 'bg-[#d4ff4a] text-black hover:bg-[#c9f035]' 
+                        : 'bg-black text-white hover:bg-black/80'
+                    }`}
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Incluir ({multiSelect.selectedCount})
