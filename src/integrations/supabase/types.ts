@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           data_agendamento: string
           google_event_id: string | null
+          google_task_id: string | null
           id: string
           lead_id: string
           observacoes: string | null
@@ -31,6 +32,7 @@ export type Database = {
           created_at?: string
           data_agendamento: string
           google_event_id?: string | null
+          google_task_id?: string | null
           id?: string
           lead_id: string
           observacoes?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           created_at?: string
           data_agendamento?: string
           google_event_id?: string | null
+          google_task_id?: string | null
           id?: string
           lead_id?: string
           observacoes?: string | null

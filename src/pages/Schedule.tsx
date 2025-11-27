@@ -10,7 +10,7 @@ import { useAgendamentos } from "@/hooks/useAgendamentos";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { format, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Phone, Loader2, CheckCircle2, X, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Phone, Loader2, CheckCircle2, X, AlertCircle, ListTodo } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ export default function Schedule() {
         datetime: agendamento.data_agendamento,
         observacoes: agendamento.observacoes,
         synced_with_google: agendamento.synced_with_google || false,
+        google_task_id: (agendamento as any).google_task_id || null,
         status: agendamento.status,
         lead_etapa: lead.etapa,
       };
@@ -259,7 +260,13 @@ export default function Schedule() {
                     {selectedEvent.synced_with_google && (
                       <Badge variant="outline" className={cn("gap-1", isTablet && "bg-white/10 text-white border-white/20")}>
                         <Calendar className="h-3 w-3" />
-                        Sincronizado
+                        Calendar
+                      </Badge>
+                    )}
+                    {selectedEvent.google_task_id && (
+                      <Badge variant="outline" className={cn("gap-1 border-amber-500/50 text-amber-600", isTablet && "bg-amber-500/10 text-amber-400 border-amber-500/30")}>
+                        <ListTodo className="h-3 w-3" />
+                        Task
                       </Badge>
                     )}
                   </div>

@@ -19,6 +19,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   Calendar as CalendarIcon,
+  ListTodo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export interface CalendarEvent {
   datetime: string;
   observacoes?: string | null;
   synced_with_google: boolean;
+  google_task_id?: string | null;
   status: string;
   lead_etapa?: string;
 }
@@ -292,8 +294,15 @@ export function FullScreenCalendar({ data, onEventClick }: FullScreenCalendarPro
                                       {event.lead_etapa}
                                     </Badge>
                                   )}
+                                  {event.google_task_id && (
+                                    <span title="Tarefa no Google Tasks">
+                                      <ListTodo className="h-3 w-3 text-amber-500 flex-shrink-0" />
+                                    </span>
+                                  )}
                                   {event.synced_with_google && (
-                                    <CalendarIcon className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                                    <span title="Evento no Google Calendar">
+                                      <CalendarIcon className="h-3 w-3 text-emerald-600 flex-shrink-0" />
+                                    </span>
                                   )}
                                 </div>
                               </div>
