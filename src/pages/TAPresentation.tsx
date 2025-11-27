@@ -489,7 +489,7 @@ export default function TAPresentation() {
                   <button
                     onClick={() => handleWhatsApp(currentLead.telefone)}
                     disabled={!currentLead.telefone}
-                    className="bg-[#25D366] text-white rounded-full p-2.5 hover:bg-[#20BD5A] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    className="bg-[#d4ff4a] text-black rounded-full p-2.5 hover:bg-[#c9f035] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                     title="Abrir WhatsApp"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
