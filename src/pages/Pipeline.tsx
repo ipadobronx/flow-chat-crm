@@ -290,6 +290,7 @@ export default function Pipeline() {
   // Estado para o popup de agendamento responsivo
   const [showAgendamentoPopup, setShowAgendamentoPopup] = useState(false);
   const [showCalendarDrawer, setShowCalendarDrawer] = useState(false);
+  const [showTimeDrawer, setShowTimeDrawer] = useState(false);
   
   // Estados para criação pendente de agendamento/task ao salvar
   const [pendingCreateAgendamento, setPendingCreateAgendamento] = useState(false);
@@ -1505,10 +1506,6 @@ export default function Pipeline() {
                             return;
                           }
                           setPendingCreateAgendamento(!pendingCreateAgendamento);
-                          toast({
-                            title: pendingCreateAgendamento ? "Agendamento desmarcado" : "Agendamento será criado ao salvar",
-                            description: pendingCreateAgendamento ? undefined : "Clique em Salvar para confirmar"
-                          });
                         }}
                         aria-label={pendingCreateAgendamento ? "Desmarcar agendamento" : "Criar agendamento ao salvar"}
                       />
@@ -1527,10 +1524,6 @@ export default function Pipeline() {
                             return;
                           }
                           setPendingCreateTask(!pendingCreateTask);
-                          toast({
-                            title: pendingCreateTask ? "Task desmarcada" : "Task será criada ao salvar",
-                            description: pendingCreateTask ? undefined : "Clique em Salvar para confirmar"
-                          });
                         }}
                         aria-label={pendingCreateTask ? "Desmarcar task" : "Criar task ao salvar"}
                       />
@@ -1621,30 +1614,60 @@ export default function Pipeline() {
                     </div>
                     <div>
                       <Label className={`text-xs ${isTablet ? 'text-white' : 'text-black'}`}>Horário</Label>
-                      <select
-                        value={editingLead?.hora_callback || selectedLead.hora_callback || ''}
-                        onChange={(e) => {
-                          const currentDate = (editingLead?.data_callback || selectedLead.data_callback || new Date().toISOString()).split('T')[0];
-                          const updatedLead = {
-                            ...(editingLead || selectedLead),
-                            data_callback: `${currentDate}T${e.target.value}:00`,
-                            hora_callback: e.target.value,
-                          };
-                          setEditingLead(updatedLead);
-                          setHasUnsavedChanges(true);
-                        }}
-                        className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15"
+                      <button
+                        type="button"
+                        onClick={() => setShowTimeDrawer(true)}
+                        className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 text-sm font-inter tracking-tighter text-foreground shadow-md flex items-center justify-between transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15"
                       >
-                        <option value="">Selecione</option>
-                        {[
-                          '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-                          '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-                          '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-                          '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00',
-                        ].map((time) => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
+                        <span className={editingLead?.hora_callback || selectedLead.hora_callback ? '' : 'opacity-50'}>
+                          {editingLead?.hora_callback || selectedLead.hora_callback || 'Selecione'}
+                        </span>
+                        <Clock className="w-4 h-4 opacity-50" />
+                      </button>
+                      
+                      <Drawer open={showTimeDrawer} onOpenChange={setShowTimeDrawer}>
+                        <DrawerContent className="px-4 pb-6 bg-black/95 backdrop-blur-xl border-t border-white/10 max-h-[60vh]">
+                          <DrawerHeader className="text-left py-3">
+                            <DrawerTitle className="text-white text-base">Selecionar Horário</DrawerTitle>
+                          </DrawerHeader>
+                          <ScrollArea className="h-[40vh]">
+                            <div className="grid grid-cols-4 gap-2 p-2">
+                              {[
+                                '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+                                '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+                                '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+                                '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00',
+                              ].map((time) => {
+                                const isSelected = (editingLead?.hora_callback || selectedLead.hora_callback) === time;
+                                return (
+                                  <button
+                                    key={time}
+                                    type="button"
+                                    className={`p-3 rounded-2xl text-sm font-medium transition-all ${
+                                      isSelected 
+                                        ? 'bg-[#d4ff4a] text-black' 
+                                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                                    }`}
+                                    onClick={() => {
+                                      const currentDate = (editingLead?.data_callback || selectedLead.data_callback || new Date().toISOString()).split('T')[0];
+                                      const updatedLead = {
+                                        ...(editingLead || selectedLead),
+                                        data_callback: `${currentDate}T${time}:00`,
+                                        hora_callback: time,
+                                      };
+                                      setEditingLead(updatedLead);
+                                      setHasUnsavedChanges(true);
+                                      setShowTimeDrawer(false);
+                                    }}
+                                  >
+                                    {time}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </ScrollArea>
+                        </DrawerContent>
+                      </Drawer>
                     </div>
                     {(editingLead?.data_callback || selectedLead.data_callback) && (
                       <div className={`flex items-center gap-2 text-xs ${isTablet ? 'text-white/70' : 'text-black'}`}>
