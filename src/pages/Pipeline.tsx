@@ -57,6 +57,8 @@ import { updateLeadPartialSchema } from "@/lib/schemas";
 import { globalRateLimiter } from "@/lib/validation";
 import { z } from "zod";
 import { useIsTablet } from "@/hooks/use-tablet";
+import { AgendamentoPopup } from "@/components/agendamento/AgendamentoPopup";
+import { LiquidGlassActionButton } from "@/components/ui/liquid-glass-action-button";
 
 const stages = [
   { name: "Todos", label: "Todos", color: "bg-blue-500" },
@@ -281,6 +283,9 @@ export default function Pipeline() {
   const [dataAgendamento, setDataAgendamento] = useState<Date | undefined>(undefined);
   const [horarioAgendamento, setHorarioAgendamento] = useState<string>("");
   const [observacoesAgendamento, setObservacoesAgendamento] = useState("");
+  
+  // Estado para o popup de agendamento responsivo
+  const [showAgendamentoPopup, setShowAgendamentoPopup] = useState(false);
 
   // Buscar agendamento mais recente para o lead selecionado
   const { data: agendamentoMaisRecente } = useQuery({
@@ -1374,9 +1379,18 @@ export default function Pipeline() {
                       <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter ${isTablet ? 'text-white' : ''}`}>Agendamento</h3>
                       <p className={`text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Selecione a data e horário</p>
                     </div>
-                    {agendamentoMaisRecente && (
-                      <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <LiquidGlassActionButton
+                        icon={Plus}
+                        variant="electric"
+                        size="sm"
+                        onClick={() => setShowAgendamentoPopup(true)}
+                        aria-label="Criar novo agendamento"
+                      />
+                      {agendamentoMaisRecente && (
+                        <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="p-6 pt-0 space-y-4">
                     <div>
@@ -2005,6 +2019,30 @@ export default function Pipeline() {
               </ScrollArea>
           </DialogContent>
         </Dialog>
+
+        {/* Popup de Agendamento Responsivo */}
+        {selectedLead && (
+          <AgendamentoPopup
+            open={showAgendamentoPopup}
+            onOpenChange={setShowAgendamentoPopup}
+            leadId={selectedLead.id}
+            leadNome={selectedLead.nome}
+            existingDate={editingLead?.data_callback || selectedLead.data_callback || undefined}
+            existingTime={editingLead?.hora_callback || selectedLead.hora_callback || undefined}
+            onAgendamentoCriado={(data) => {
+              const updatedLead = {
+                ...(editingLead || selectedLead),
+                data_callback: `${data.date}T${data.time}:00`,
+                hora_callback: data.time,
+              };
+              setEditingLead(updatedLead);
+              toast({
+                title: "Agendamento criado!",
+                description: "Sincronizado com Google Calendar",
+              });
+            }}
+          />
+        )}
 
         {/* Dialog para agendar "Ligar Depois" */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
