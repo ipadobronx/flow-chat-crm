@@ -47,12 +47,12 @@ export function CalendarDrawer({
         </Button>
       </DrawerTrigger>
 
-      <DrawerContent className="p-4">
+      <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
         </DrawerHeader>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center px-4">
           <Calendar
             mode="single"
             selected={date}
@@ -61,7 +61,8 @@ export function CalendarDrawer({
               setOpen(false);
             }}
             locale={ptBR}
-            className="rounded-md border shadow pointer-events-auto"
+            captionLayout="dropdown"
+            className="rounded-md border shadow-sm pointer-events-auto"
           />
         </div>
 
