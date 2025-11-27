@@ -4,7 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import OutlineButton from "@/components/ui/outline-button";
 import { Badge } from "@/components/ui/badge";
-import { X, ArrowUpDown, Users, PlayCircle, Trash2 } from "lucide-react";
+import { X, ArrowUpDown, Users, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
@@ -81,14 +91,14 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-all ${
+      className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all ${
         isDragging ? "opacity-50 shadow-lg scale-95" : "hover:shadow-sm"
       }`}
     >
       <div className="flex items-center gap-3 flex-1">
         <div className="flex-1 min-w-0">
           <div className="mb-2">
-            <h4 className="font-medium text-sm truncate">{lead.nome}</h4>
+            <h4 className="font-medium text-sm truncate text-white">{lead.nome}</h4>
           </div>
           
           <div className="flex items-center gap-2 flex-wrap text-xs">
@@ -102,19 +112,19 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
             )}
             
             {lead.telefone && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.telefone}</span>
               </div>
             )}
             
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.recomendante.join(', ')}</span>
               </div>
             )}
             
             {lead.profissao && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.profissao}</span>
               </div>
             )}
@@ -126,7 +136,7 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
           variant="ghost"
           size="sm"
           onClick={() => onRemove(lead)}
-          className="text-muted-foreground hover:text-destructive"
+          className="text-white/70 hover:text-destructive hover:bg-white/10"
           title="Remover do TA"
         >
           <X className="w-4 h-4" />
@@ -139,6 +149,9 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
 export function TALeadsCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Estado para confirmação de limpar TA
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   
   // Estado para configuração de hierarquia avançada
   const [hierarchyConfig, setHierarchyConfig] = useState<HierarchyConfig>({
@@ -423,7 +436,7 @@ export function TALeadsCard() {
     >
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-white">
             Selecionados Sexta (TA)
             {localLeads.length > 0 && (
               <Badge variant="secondary">{localLeads.length}</Badge>
@@ -438,27 +451,27 @@ export function TALeadsCard() {
               onConfigChange={setHierarchyConfig}
             />
             
-            {/* Botão para ir para o menu TA */}
+            {/* Botão para ir para o menu TA - Verde Elétrico */}
             {localLeads.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button 
                 onClick={() => window.location.href = '/dashboard/ta'}
-                className="h-8 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700"
+                className="bg-[#d4ff4a] text-black rounded-full p-2 hover:bg-[#c9f035] transition-colors"
+                title="Ir para TA"
               >
-                <PlayCircle className="w-3 h-3 mr-1" />
-                TA
-              </Button>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
             )}
             
             {/* Botão para limpar todos os leads do TA */}
             <OutlineButton
-              onClick={clearAllTA}
+              onClick={() => setShowClearConfirmation(true)}
               className="h-8 w-8 p-0 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={localLeads.length === 0}
               aria-label="Limpar TA"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 text-white" />
             </OutlineButton>
           </div>
         </div>
@@ -566,6 +579,33 @@ export function TALeadsCard() {
           </div>
         )}
       </CardContent>
+      
+      {/* Dialog de confirmação para limpar TA */}
+      <AlertDialog open={showClearConfirmation} onOpenChange={setShowClearConfirmation}>
+        <AlertDialogContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-inter font-normal tracking-tighter text-lg sm:text-xl text-white">
+              Limpar todos os leads do TA?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/70">
+              Esta ação irá remover todos os leads da lista do TA. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel 
+              className="rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={clearAllTA}
+              className="rounded-xl bg-destructive/80 text-white hover:bg-destructive"
+            >
+              Apagar Tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
