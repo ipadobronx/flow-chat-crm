@@ -60,15 +60,26 @@ import { z } from "zod";
 const stages = [
   { name: "Todos", label: "Todos", color: "bg-blue-500" },
   { name: "Novo", label: "Novo", color: "bg-sky-500" },
-  { name: "Ligar Depois", label: "Ligar Depois", color: "bg-yellow-600" },
+  { name: "TA", label: "TA", color: "bg-purple-600" },
   { name: "Não atendido", label: "Não Atendido", color: "bg-red-600" },
+  { name: "Ligar Depois", label: "Ligar Depois", color: "bg-yellow-600" },
+  { name: "Marcar", label: "Marcar", color: "bg-green-600" },
   { name: "OI", label: "OI", color: "bg-indigo-500" },
   { name: "Delay OI", label: "Delay OI", color: "bg-yellow-500" },
   { name: "PC", label: "PC", color: "bg-orange-500" },
   { name: "Delay PC", label: "Delay PC", color: "bg-red-500" },
+  { name: "Analisando Proposta", label: "Analisando Proposta", color: "bg-orange-600" },
+  { name: "Pendência de UW", label: "Pendência de UW", color: "bg-yellow-700" },
+  { name: "C2", label: "C2", color: "bg-pink-500" },
+  { name: "Delay C2", label: "Delay C2", color: "bg-rose-500" },
   { name: "N", label: "N", color: "bg-purple-500" },
+  { name: "Não", label: "Não", color: "bg-gray-500" },
+  { name: "Proposta Não Apresentada", label: "Proposta Não Apresentada", color: "bg-gray-600" },
+  { name: "Proposta Cancelada", label: "Proposta Cancelada", color: "bg-red-700" },
   { name: "Apólice Emitida", label: "Apólice Emitida", color: "bg-green-500" },
-  { name: "Apólice Entregue", label: "Apólice Entregue", color: "bg-emerald-600" }
+  { name: "Apólice Entregue", label: "Apólice Entregue", color: "bg-emerald-600" },
+  { name: "Apólice Cancelada", label: "Apólice Cancelada", color: "bg-red-800" },
+  { name: "Placed", label: "Placed", color: "bg-teal-500" }
 ] as const;
 
 type Lead = {

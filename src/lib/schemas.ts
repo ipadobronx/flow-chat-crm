@@ -24,9 +24,11 @@ export const updateLeadSchema = z.object({
   cidade: z.string().max(100).optional().transform(sanitizeText),
   renda_estimada: z.string().max(50).optional().transform(sanitizeText),
   etapa: z.enum([
-    'Todos', 'Novo', 'Ligar Depois', 'Não atendido', 'OI', 'Delay OI',
-    'PC', 'Delay PC', 'N', 'Apólice Emitida', 'Apólice Entregue', 
-    'TA', 'C2', 'Delay C2'
+    'Todos', 'Novo', 'TA', 'Não atendido', 'OI', 'Delay OI',
+    'PC', 'Delay PC', 'N', 'Apólice Emitida', 'Apólice Entregue',
+    'C2', 'Delay C2', 'Ligar Depois', 'Marcar', 'Não',
+    'Proposta Cancelada', 'Apólice Cancelada', 'Analisando Proposta',
+    'Pendência de UW', 'Placed', 'Proposta Não Apresentada'
   ]).optional(),
 });
 
@@ -45,9 +47,11 @@ export const updateLeadPartialSchema = z.object({
   profissao: z.string().max(100).optional().transform(sanitizeText),
   quantidade_filhos: z.number().int().min(0).max(20).optional().nullable(),
   etapa: z.enum([
-    'Todos', 'Novo', 'Ligar Depois', 'Não atendido', 'OI', 'Delay OI',
+    'Todos', 'Novo', 'TA', 'Não atendido', 'OI', 'Delay OI',
     'PC', 'Delay PC', 'N', 'Apólice Emitida', 'Apólice Entregue',
-    'TA', 'C2', 'Delay C2'
+    'C2', 'Delay C2', 'Ligar Depois', 'Marcar', 'Não',
+    'Proposta Cancelada', 'Apólice Cancelada', 'Analisando Proposta',
+    'Pendência de UW', 'Placed', 'Proposta Não Apresentada'
   ]).optional(),
   created_at: z.string().datetime().optional(),
   ta_order: z.number().int().min(0).optional(),
