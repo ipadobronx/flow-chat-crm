@@ -1483,7 +1483,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Celular Principal</Label>
                       <div className="flex items-center space-x-2">
-                        <LiquidGlassInput value={selectedLead.telefone || ""} readOnly className="flex-1" />
+                        <LiquidGlassInput value={selectedLead.telefone || ""} readOnly className="flex-1" variant="light" />
                         <Button 
                           size="sm" 
                           variant="outline"
@@ -1517,6 +1517,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Celular Secundário</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         value={editingLead?.celular_secundario || selectedLead.celular_secundario || ""} 
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), celular_secundario: e.target.value };
@@ -1531,6 +1532,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Email</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         type="email"
                         value={editingLead?.email || selectedLead.email || ""} 
                         onChange={(e) => {
@@ -1544,6 +1546,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Idade</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         type="number"
                         value={editingLead?.idade || selectedLead.idade || ""} 
                         onChange={(e) => {
@@ -1561,6 +1564,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Data de Nascimento</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         type="date" 
                         value={editingLead?.data_nascimento || selectedLead.data_nascimento || ""}
                         onChange={(e) => {
@@ -1586,9 +1590,16 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Renda Estimada</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         value={editingLead?.renda_estimada || selectedLead.renda_estimada || ""} 
                         onChange={(e) => {
-                          const updatedLead = { ...(editingLead || selectedLead), renda_estimada: e.target.value };
+                          // Format as currency
+                          const value = e.target.value.replace(/\D/g, '');
+                          const numericValue = parseInt(value) || 0;
+                          const formatted = numericValue > 0 
+                            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numericValue / 100)
+                            : '';
+                          const updatedLead = { ...(editingLead || selectedLead), renda_estimada: formatted };
                           setEditingLead(updatedLead);
                         }}
                         placeholder="R$ 5.000,00"
@@ -1598,6 +1609,7 @@ export default function Pipeline() {
                     <div>
                       <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Cidade</Label>
                       <LiquidGlassInput 
+                        variant="light"
                         value={editingLead?.cidade || selectedLead.cidade || ""} 
                         onChange={(e) => {
                           const updatedLead = { ...(editingLead || selectedLead), cidade: e.target.value };
@@ -1647,6 +1659,7 @@ export default function Pipeline() {
                     <div className="flex items-center justify-between py-2 border-b bg-muted/30 px-3 rounded">
                       <span className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Quantidade de filhos</span>
                       <LiquidGlassInput 
+                        variant="light"
                         type="number"
                         min="1"
                         max="20"
@@ -1931,11 +1944,19 @@ export default function Pipeline() {
                 <div>
                   <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>PA Estimado</Label>
                   <LiquidGlassInput 
+                    variant="light"
                     value={editingLead?.pa_estimado || selectedLead.pa_estimado || ""} 
                     onChange={(e) => {
-                      const updatedLead = { ...(editingLead || selectedLead), pa_estimado: e.target.value };
+                      // Format as currency
+                      const value = e.target.value.replace(/\D/g, '');
+                      const numericValue = parseInt(value) || 0;
+                      const formatted = numericValue > 0 
+                        ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numericValue / 100)
+                        : '';
+                      const updatedLead = { ...(editingLead || selectedLead), pa_estimado: formatted };
                       setEditingLead(updatedLead);
                     }}
+                    placeholder="R$ 10.000,00"
                   />
                 </div>
 
@@ -2000,6 +2021,7 @@ export default function Pipeline() {
                 </Label>
                 
                 <LiquidGlassInput
+                  variant="light"
                   type="date"
                   value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
                 onChange={(e) => {
