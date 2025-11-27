@@ -3,13 +3,14 @@ import { Button } from "@/components/ui/button";
 import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Label } from "@/components/ui/label";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
-import { CalendarIcon, Clock, Calendar as CalendarGoogleIcon } from "lucide-react";
+import { CalendarIcon, Clock, Calendar as CalendarGoogleIcon, ListTodo } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
+  const [createTask, setCreateTask] = useState(false);
 
   // Opções de horário (08:00 às 18:00)
   const timeOptions = [
@@ -78,15 +80,16 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
 
       toast.success(`Ligação agendada para ${format(dataAgendamento, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`);
 
-      // Sincronizar com Google Calendar se conectado
+      // Sincronizar com Google Calendar se conectado (com opção de criar tarefa)
       if (isConnected && data) {
-        syncAgendamento(data.id);
+        syncAgendamento(data.id, createTask);
       }
 
       // Reset form
       setSelectedDate(undefined);
       setSelectedTime("");
       setObservacoes("");
+      setCreateTask(false);
       setIsOpen(false);
       
       onAgendamentoCriado?.();
@@ -169,6 +172,26 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
               className="min-h-[80px]"
             />
           </div>
+
+          {/* Opção de criar tarefa no Google Tasks */}
+          {isConnected && (
+            <div className="flex items-center space-x-2 pt-2 border-t">
+              <Checkbox 
+                id="create-task" 
+                checked={createTask}
+                onCheckedChange={(checked) => setCreateTask(checked === true)}
+              />
+              <div className="flex items-center gap-2">
+                <ListTodo className="h-4 w-4 text-muted-foreground" />
+                <Label 
+                  htmlFor="create-task" 
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  Criar também no Google Tasks
+                </Label>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button
