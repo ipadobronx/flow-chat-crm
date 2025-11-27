@@ -1506,6 +1506,7 @@ export default function Pipeline() {
                             return;
                           }
                           setPendingCreateAgendamento(!pendingCreateAgendamento);
+                          setPendingCreateTask(false);
                         }}
                         aria-label={pendingCreateAgendamento ? "Desmarcar agendamento" : "Criar agendamento ao salvar"}
                       />
@@ -1524,6 +1525,7 @@ export default function Pipeline() {
                             return;
                           }
                           setPendingCreateTask(!pendingCreateTask);
+                          setPendingCreateAgendamento(false);
                         }}
                         aria-label={pendingCreateTask ? "Desmarcar task" : "Criar task ao salvar"}
                       />
