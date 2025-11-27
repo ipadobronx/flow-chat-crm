@@ -590,7 +590,7 @@ export function SelecionadosCard() {
               <>
                 <Button
                   size="sm"
-                  className="h-6 w-6 p-0 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
+                  className="h-6 w-6 p-0 bg-[#d4ff4a] hover:bg-[#c9f035] text-black rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105"
                   onClick={() => setShowConfirmAll(true)}
                   title="Mover todos os leads filtrados para TA"
                 >
