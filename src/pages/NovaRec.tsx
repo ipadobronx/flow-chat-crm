@@ -185,8 +185,8 @@ export default function NovaRec() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-inter font-normal tracking-tighter">Nova Recomendação</h2>
-            <p className="text-sm text-muted-foreground">Cadastre um novo lead no sistema</p>
+            <h2 className="text-2xl font-inter font-normal tracking-tighter text-white">Nova Recomendação</h2>
+            <p className="text-sm text-white/70">Cadastre um novo lead no sistema</p>
           </div>
           <button 
             type="submit" 
@@ -208,15 +208,15 @@ export default function NovaRec() {
               {/* Coluna 1 */}
               <div className="space-y-4">
                 {/* Card: Dados Principais */}
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
-                  <h3 className="text-xl font-inter font-normal tracking-tighter">Dados Principais</h3>
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter text-white">Dados Principais</h3>
                   
                   <FormField
                     control={form.control}
                     name="nome"
                     render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm">Nome *</Label>
+                        <Label className="text-sm text-white">Nome *</Label>
                         <FormControl>
                           <LiquidGlassInput 
                             variant="light"
@@ -230,7 +230,7 @@ export default function NovaRec() {
                   />
 
                   <div>
-                    <Label className="text-sm mb-2 block">Recomendantes</Label>
+                    <Label className="text-sm mb-2 block text-white">Recomendantes</Label>
                     <div className="space-y-2">
                       {fields.map((field, index) => (
                         <div key={field.id} className="flex gap-2">
@@ -274,8 +274,8 @@ export default function NovaRec() {
                 </div>
 
                 {/* Card: Informações Pessoais */}
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
-                  <h3 className="text-xl font-inter font-normal tracking-tighter">Informações Pessoais</h3>
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter text-white">Informações Pessoais</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
@@ -283,7 +283,7 @@ export default function NovaRec() {
                       name="idade"
                       render={({ field }) => (
                         <FormItem>
-                          <Label className="text-sm">Idade</Label>
+                          <Label className="text-sm text-white">Idade</Label>
                           <FormControl>
                             <LiquidGlassInput 
                               variant="light"
@@ -302,7 +302,7 @@ export default function NovaRec() {
                       name="cidade"
                       render={({ field }) => (
                         <FormItem>
-                          <Label className="text-sm">Cidade</Label>
+                          <Label className="text-sm text-white">Cidade</Label>
                           <FormControl>
                             <LiquidGlassInput 
                               variant="light"
@@ -321,7 +321,7 @@ export default function NovaRec() {
                     name="profissao"
                     render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm">Profissão</Label>
+                        <Label className="text-sm text-white">Profissão</Label>
                         <FormControl>
                           <ProfissaoCombobox
                             value={field.value}
@@ -338,7 +338,7 @@ export default function NovaRec() {
                     name="renda_estimada"
                     render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm">Renda Estimada</Label>
+                        <Label className="text-sm text-white">Renda Estimada</Label>
                         <FormControl>
                           <LiquidGlassInput 
                             variant="light"
@@ -356,8 +356,8 @@ export default function NovaRec() {
               {/* Coluna 2 */}
               <div className="space-y-4">
                 {/* Card: Contato */}
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
-                  <h3 className="text-xl font-inter font-normal tracking-tighter">Informações de Contato</h3>
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter text-white">Informações de Contato</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
@@ -365,7 +365,7 @@ export default function NovaRec() {
                       name="telefone"
                       render={({ field }) => (
                         <FormItem>
-                          <Label className="text-sm">Celular Principal *</Label>
+                          <Label className="text-sm text-white">Celular Principal *</Label>
                           <FormControl>
                             <LiquidGlassInput 
                               variant="light"
@@ -383,7 +383,7 @@ export default function NovaRec() {
                       name="celular_secundario"
                       render={({ field }) => (
                         <FormItem>
-                          <Label className="text-sm">Celular Secundário</Label>
+                          <Label className="text-sm text-white">Celular Secundário</Label>
                           <FormControl>
                             <LiquidGlassInput 
                               variant="light"
@@ -402,7 +402,7 @@ export default function NovaRec() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <Label className="text-sm">Email</Label>
+                        <Label className="text-sm text-white">Email</Label>
                         <FormControl>
                           <LiquidGlassInput 
                             variant="light"
@@ -418,15 +418,15 @@ export default function NovaRec() {
                 </div>
 
                 {/* Card: Configurações (Switches) */}
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-2">
-                  <h3 className="text-xl font-inter font-normal tracking-tighter mb-4">Configurações</h3>
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-2">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter text-white mb-4">Configurações</h3>
                   
                   <FormField
                     control={form.control}
                     name="casado"
                     render={({ field }) => (
-                      <div className="flex items-center justify-between py-3 border-b border-border/30">
-                        <span className="text-sm">Casado(a)</span>
+                      <div className="flex items-center justify-between py-3 border-b border-white/20">
+                        <span className="text-sm text-white">Casado(a)</span>
                         <CheckedSwitch
                           checked={field.value}
                           onChange={field.onChange}
@@ -440,8 +440,8 @@ export default function NovaRec() {
                     name="tem_filhos"
                     render={({ field }) => (
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between py-3 border-b border-border/30">
-                          <span className="text-sm">Tem Filhos</span>
+                        <div className="flex items-center justify-between py-3 border-b border-white/20">
+                          <span className="text-sm text-white">Tem Filhos</span>
                           <CheckedSwitch
                             checked={field.value}
                             onChange={field.onChange}
@@ -454,8 +454,8 @@ export default function NovaRec() {
                             control={form.control}
                             name="quantidade_filhos"
                             render={({ field: qtyField }) => (
-                              <div className="flex items-center justify-between py-2 px-3 bg-muted/30 rounded-xl">
-                                <span className="text-sm">Quantos filhos?</span>
+                              <div className="flex items-center justify-between py-2 px-3 bg-white/10 rounded-xl">
+                                <span className="text-sm text-white">Quantos filhos?</span>
                                 <LiquidGlassInput 
                                   variant="light"
                                   type="number"
@@ -477,8 +477,8 @@ export default function NovaRec() {
                     control={form.control}
                     name="avisado"
                     render={({ field }) => (
-                      <div className="flex items-center justify-between py-3 border-b border-border/30">
-                        <span className="text-sm">Avisado</span>
+                      <div className="flex items-center justify-between py-3 border-b border-white/20">
+                        <span className="text-sm text-white">Avisado</span>
                         <CheckedSwitch
                           checked={field.value}
                           onChange={field.onChange}
@@ -492,7 +492,7 @@ export default function NovaRec() {
                     name="incluir_sitplan"
                     render={({ field }) => (
                       <div className="flex items-center justify-between py-3">
-                        <span className="text-sm">Incluir no SitPlan</span>
+                        <span className="text-sm text-white">Incluir no SitPlan</span>
                         <CheckedSwitch
                           checked={field.value}
                           onChange={field.onChange}
@@ -503,8 +503,8 @@ export default function NovaRec() {
                 </div>
 
                 {/* Card: Observações */}
-                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
-                  <h3 className="text-xl font-inter font-normal tracking-tighter">Observações</h3>
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl transition-all duration-300 p-4 sm:p-6 space-y-4">
+                  <h3 className="text-xl font-inter font-normal tracking-tighter text-white">Observações</h3>
                   
                   <FormField
                     control={form.control}
