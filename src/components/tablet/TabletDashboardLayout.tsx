@@ -11,7 +11,7 @@ export function TabletDashboardLayout({ children }: TabletDashboardLayoutProps) 
   const location = useLocation();
   
   // Show launcher on dashboard root
-  const isLauncherRoute = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+  const isLauncherRoute = location.pathname === "/" || location.pathname === "";
 
   if (isLauncherRoute) {
     return <TabletLauncher />;
