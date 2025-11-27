@@ -57,8 +57,8 @@ export function TAMetricCardGlass({
               </>
             ) : isPositive ? (
               <>
-                <TrendingUp className="h-3 w-3 text-green-400" />
-                <span className="text-green-400">+{percentageChange.toFixed(0)}%</span>
+                <TrendingUp className="h-3 w-3 text-[#d4ff4a]" />
+                <span className="text-[#d4ff4a]">+{percentageChange.toFixed(0)}%</span>
               </>
             ) : (
               <>

@@ -87,7 +87,7 @@ export function TAComparisonChart({
           <span className="text-sm text-white/60">Variação</span>
           <div className={cn(
             "text-lg font-bold",
-            percentageChange > 0 ? "text-green-400" : percentageChange < 0 ? "text-red-400" : "text-white/50"
+            percentageChange > 0 ? "text-[#d4ff4a]" : percentageChange < 0 ? "text-red-400" : "text-white/50"
           )}>
             {percentageChange > 0 ? "+" : ""}{percentageChange.toFixed(0)}%
           </div>
@@ -99,7 +99,7 @@ export function TAComparisonChart({
           <span className={cn(
             "text-xs px-2 py-0.5 rounded-full",
             percentageChange > 0 
-              ? "bg-green-500/20 text-green-400" 
+              ? "bg-[#d4ff4a]/20 text-[#d4ff4a]" 
               : percentageChange < 0 
                 ? "bg-red-500/20 text-red-400" 
                 : "bg-white/10 text-white/50"
