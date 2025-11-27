@@ -23,7 +23,7 @@ import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import CheckedSwitch from "@/components/ui/checked-switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, Plus, PlayCircle } from "lucide-react";
+import { Phone, MessageSquare, Calendar as CalendarIcon, ArrowRight, Clock, Edit2, Trash2, X, Check, Filter, CheckSquare, Square, Users, ListTodo, Plus, PlayCircle } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +47,7 @@ import {
 } from "@dnd-kit/core";
 import { LeadHistory } from "@/components/sitplan/LeadHistory";
 import { Calendar } from "@/components/ui/calendar";
+import { LiquidGlassCalendar } from "@/components/calendar/LiquidGlassCalendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import GlassProgressBar from "@/components/ui/glass-progress-bar";
 import { useCalendarSync } from "@/hooks/useCalendarSync";
@@ -1382,12 +1383,90 @@ export default function Pipeline() {
                       <p className={`text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Selecione a data e horário</p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Ícone Agendamento - Cria agendamento com dados do lead */}
                       <LiquidGlassActionButton
-                        icon={Plus}
+                        icon={CalendarIcon}
+                        variant="default"
+                        size="sm"
+                        onClick={async () => {
+                          if (!selectedLead || !user) return;
+                          
+                          const dataCallback = editingLead?.data_callback || selectedLead.data_callback;
+                          const horaCallback = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                          
+                          if (!dataCallback) {
+                            toast({
+                              title: "Selecione uma data primeiro",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
+                          const { data, error } = await supabase
+                            .from('agendamentos_ligacoes')
+                            .insert({
+                              user_id: user.id,
+                              lead_id: selectedLead.id,
+                              data_agendamento: dataCallback,
+                              observacoes: `Agendamento: ${selectedLead.nome}`,
+                              status: 'pendente'
+                            })
+                            .select()
+                            .single();
+
+                          if (error) {
+                            toast({
+                              title: "Erro ao criar agendamento",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
+                          // Sincronizar com Google Calendar se conectado
+                          if (isConnected && googleCalendar.syncAgendamento) {
+                            await googleCalendar.syncAgendamento(data.id);
+                          }
+
+                          toast({
+                            title: "Agendamento criado!",
+                            description: isConnected ? "Sincronizado com Google Calendar" : undefined
+                          });
+                          
+                          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+                          queryClient.invalidateQueries({ queryKey: ['agendamento-lead', selectedLead.id] });
+                        }}
+                        aria-label="Criar agendamento"
+                      />
+
+                      {/* Ícone Task - Cria task automaticamente com dados do lead */}
+                      <LiquidGlassActionButton
+                        icon={ListTodo}
                         variant="electric"
                         size="sm"
-                        onClick={() => setShowAgendamentoPopup(true)}
-                        aria-label="Criar novo agendamento"
+                        onClick={async () => {
+                          if (!selectedLead) return;
+                          
+                          if (!isConnected) {
+                            toast({
+                              title: "Conecte ao Google Calendar primeiro",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
+                          const dataCallback = editingLead?.data_callback || selectedLead.data_callback;
+                          
+                          await googleCalendar.createTask({
+                            title: `Ligar para ${selectedLead.nome}`,
+                            notes: `Telefone: ${selectedLead.telefone || 'N/A'}\nEmpresa: ${selectedLead.empresa || 'N/A'}\nValor: ${selectedLead.valor || 'N/A'}`,
+                            dueDate: dataCallback ? new Date(dataCallback).toISOString() : undefined
+                          });
+
+                          toast({
+                            title: "Task criada no Google Tasks!"
+                          });
+                        }}
+                        aria-label="Criar task"
                       />
                       {agendamentoMaisRecente && (
                         <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
@@ -1436,35 +1515,25 @@ export default function Pipeline() {
                         </button>
                         
                         <Drawer open={showCalendarDrawer} onOpenChange={setShowCalendarDrawer}>
-                          <DrawerContent className="px-4 pb-6 bg-background">
+                          <DrawerContent className="px-4 pb-6 bg-black/95 backdrop-blur-xl border-t border-white/10">
                             <DrawerHeader className="text-left">
-                              <DrawerTitle>Selecionar Data</DrawerTitle>
+                              <DrawerTitle className="text-white">Selecionar Data</DrawerTitle>
                             </DrawerHeader>
-                            <div className="flex justify-center">
-                              <Calendar
-                                mode="single"
-                                selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
-                                onSelect={(date) => {
-                                  if (!date) return;
-                                  const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
-                                  const dateStr = format(date, 'yyyy-MM-dd');
-                                  const updatedLead = {
-                                    ...(editingLead || selectedLead),
-                                    data_callback: `${dateStr}T${currentTime}:00`,
-                                    hora_callback: currentTime,
-                                  };
-                                  setEditingLead(updatedLead);
-                                  setShowCalendarDrawer(false);
-                                }}
-                                locale={ptBR}
-                                disabled={(date) => date < new Date()}
-                                className="pointer-events-auto"
-                                classNames={{
-                                  day_selected:
-                                    "bg-black text-white hover:bg-black hover:text-white focus:bg-black focus:text-white",
-                                }}
-                              />
-                            </div>
+                            <LiquidGlassCalendar
+                              selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
+                              onSelect={(date) => {
+                                if (!date) return;
+                                const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                                const dateStr = format(date, 'yyyy-MM-dd');
+                                const updatedLead = {
+                                  ...(editingLead || selectedLead),
+                                  data_callback: `${dateStr}T${currentTime}:00`,
+                                  hora_callback: currentTime,
+                                };
+                                setEditingLead(updatedLead);
+                                setShowCalendarDrawer(false);
+                              }}
+                            />
                           </DrawerContent>
                         </Drawer>
                       </div>
