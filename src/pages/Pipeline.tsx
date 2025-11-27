@@ -1515,25 +1515,28 @@ export default function Pipeline() {
                         </button>
                         
                         <Drawer open={showCalendarDrawer} onOpenChange={setShowCalendarDrawer}>
-                          <DrawerContent className="px-4 pb-6 bg-black/95 backdrop-blur-xl border-t border-white/10">
-                            <DrawerHeader className="text-left">
-                              <DrawerTitle className="text-white">Selecionar Data</DrawerTitle>
+                          <DrawerContent className="px-4 pb-4 bg-black/95 backdrop-blur-xl border-t border-white/10 max-h-[60vh]">
+                            <DrawerHeader className="text-left py-3">
+                              <DrawerTitle className="text-white text-base">Selecionar Data</DrawerTitle>
                             </DrawerHeader>
-                            <LiquidGlassCalendar
-                              selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
-                              onSelect={(date) => {
-                                if (!date) return;
-                                const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
-                                const dateStr = format(date, 'yyyy-MM-dd');
-                                const updatedLead = {
-                                  ...(editingLead || selectedLead),
-                                  data_callback: `${dateStr}T${currentTime}:00`,
-                                  hora_callback: currentTime,
-                                };
-                                setEditingLead(updatedLead);
-                                setShowCalendarDrawer(false);
-                              }}
-                            />
+                            <div className="flex justify-center">
+                              <LiquidGlassCalendar
+                                selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
+                                onSelect={(date) => {
+                                  if (!date) return;
+                                  const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
+                                  const dateStr = format(date, 'yyyy-MM-dd');
+                                  const updatedLead = {
+                                    ...(editingLead || selectedLead),
+                                    data_callback: `${dateStr}T${currentTime}:00`,
+                                    hora_callback: currentTime,
+                                  };
+                                  setEditingLead(updatedLead);
+                                  setShowCalendarDrawer(false);
+                                }}
+                                className="h-auto p-2 max-w-[280px]"
+                              />
+                            </div>
                           </DrawerContent>
                         </Drawer>
                       </div>
