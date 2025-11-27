@@ -9,6 +9,7 @@ import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTablet } from "@/hooks/use-tablet";
 
 interface TADateFilterProps {
   startDate: Date;
@@ -53,6 +54,8 @@ export function TADateFilter({
   onPresetChange,
 }: TADateFilterProps) {
   const isMobile = useIsMobile();
+  const { isTablet, isTouchDevice } = useIsTablet();
+  const useDrawer = isMobile || isTablet || isTouchDevice;
   const [startDrawerOpen, setStartDrawerOpen] = useState(false);
   const [endDrawerOpen, setEndDrawerOpen] = useState(false);
 
@@ -107,7 +110,7 @@ export function TADateFilter({
   );
 
   const renderStartDatePicker = () => {
-    if (isMobile) {
+    if (useDrawer) {
       return (
         <Drawer open={startDrawerOpen} onOpenChange={setStartDrawerOpen}>
           <DrawerTrigger asChild>{StartDateButton}</DrawerTrigger>
@@ -157,7 +160,7 @@ export function TADateFilter({
   };
 
   const renderEndDatePicker = () => {
-    if (isMobile) {
+    if (useDrawer) {
       return (
         <Drawer open={endDrawerOpen} onOpenChange={setEndDrawerOpen}>
           <DrawerTrigger asChild>{EndDateButton}</DrawerTrigger>
