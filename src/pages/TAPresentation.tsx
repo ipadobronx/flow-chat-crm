@@ -7,7 +7,7 @@ import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import LiquidGlassInput from "@/components/ui/liquid-input";
-import { LiquidGlassCalendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -603,11 +603,11 @@ export default function TAPresentation() {
                             </button>
                           </PopoverTrigger>
                           <PopoverContent 
-                            className="w-auto p-0 border-0 bg-transparent" 
+                            className="w-auto p-0 rounded-2xl border border-white/20 bg-black/60 backdrop-blur-xl shadow-2xl" 
                             align="start"
                             sideOffset={4}
                           >
-                            <LiquidGlassCalendar
+                            <Calendar
                               mode="single"
                               selected={agendamentoDate}
                               onSelect={setAgendamentoDate}
