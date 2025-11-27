@@ -1204,13 +1204,8 @@ export default function Pipeline() {
           <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
               <ScrollArea className="max-h-[80vh] w-full">
               <div className="p-4 sm:p-6">
-              <DialogHeader className="space-y-2 sm:space-y-3">
-                <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                  <div className="text-center sm:text-left">
-                    <p className="text-lg sm:text-xl font-inter font-normal tracking-tighter">{selectedLead?.nome}</p>
-                    <p className="text-sm sm:text-base text-black font-inter tracking-tighter">Recomendação</p>
-                  </div>
-                </DialogTitle>
+              <DialogHeader className="sr-only">
+                <DialogTitle>Detalhes do Lead</DialogTitle>
               </DialogHeader>
 
             {selectedLead && (
