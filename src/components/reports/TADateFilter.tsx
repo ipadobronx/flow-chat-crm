@@ -44,21 +44,21 @@ const liquidGlassCalendarClassNames = {
   hidden: "invisible",
 };
 
-// Larger calendar for Drawer (mobile/tablet) - compact height, expanded width
+// Larger calendar for Drawer (mobile/tablet)
 const liquidGlassCalendarLargeClassNames = {
   months: "flex flex-col w-full",
-  month: "space-y-4 w-full",
-  month_caption: "flex justify-center pt-1 relative items-center mb-4",
-  caption_label: "text-lg font-medium text-white",
+  month: "space-y-8 w-full",
+  month_caption: "flex justify-center pt-4 relative items-center mb-8",
+  caption_label: "text-xl font-medium text-white",
   nav: "space-x-1 flex items-center",
-  button_previous: "absolute left-0 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
-  button_next: "absolute right-0 h-10 w-10 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
+  button_previous: "absolute left-0 h-12 w-12 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
+  button_next: "absolute right-0 h-12 w-12 bg-white/10 hover:bg-white/20 rounded-full p-0 flex items-center justify-center transition-colors border border-white/10",
   month_grid: "w-full border-collapse",
-  weekdays: "flex justify-between w-full mb-2",
-  weekday: "text-white/50 flex-1 font-normal text-sm uppercase tracking-wide text-center",
-  week: "flex w-full mt-1 justify-between",
-  day: "relative text-center text-lg p-0 flex-1 aspect-square focus-within:relative focus-within:z-20",
-  day_button: "h-12 w-12 p-0 font-normal rounded-full flex items-center justify-center transition-colors text-white/80 hover:bg-white/10 hover:text-white mx-auto text-base",
+  weekdays: "flex justify-between w-full mb-4",
+  weekday: "text-white/50 flex-1 font-normal text-base uppercase tracking-wide text-center",
+  week: "flex w-full mt-3 justify-between",
+  day: "relative text-center text-xl p-0 flex-1 aspect-square focus-within:relative focus-within:z-20",
+  day_button: "h-14 w-14 p-0 font-normal rounded-full flex items-center justify-center transition-colors text-white/80 hover:bg-white/10 hover:text-white mx-auto text-lg",
   range_end: "day-range-end",
   selected: "bg-[#d4ff4a] text-black hover:bg-[#c9f035] hover:text-black focus:bg-[#d4ff4a] focus:text-black font-semibold",
   today: "bg-white/10 text-white font-semibold border border-white/20",
@@ -137,13 +137,13 @@ export function TADateFilter({
       return (
         <Drawer open={startDrawerOpen} onOpenChange={setStartDrawerOpen}>
           <DrawerTrigger asChild>{StartDateButton}</DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[70vh]">
-            <DrawerHeader className="text-center py-3">
+          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl">
+            <DrawerHeader className="text-center">
               <DrawerTitle className="text-white font-inter font-normal">
                 Selecionar Data Inicial
               </DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-6 flex justify-center w-full">
+            <div className="px-6 pb-10 flex justify-center w-full">
               <Calendar
                 mode="single"
                 selected={startDate}
@@ -152,7 +152,7 @@ export function TADateFilter({
                   setStartDrawerOpen(false);
                 }}
                 locale={ptBR}
-                className="p-2 pointer-events-auto w-full"
+                className="p-4 pointer-events-auto w-full max-w-sm"
                 classNames={liquidGlassCalendarLargeClassNames}
               />
             </div>
@@ -187,13 +187,13 @@ export function TADateFilter({
       return (
         <Drawer open={endDrawerOpen} onOpenChange={setEndDrawerOpen}>
           <DrawerTrigger asChild>{EndDateButton}</DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl max-h-[70vh]">
-            <DrawerHeader className="text-center py-3">
+          <DrawerContent className="rounded-t-3xl border border-white/20 bg-black/95 backdrop-blur-xl">
+            <DrawerHeader className="text-center">
               <DrawerTitle className="text-white font-inter font-normal">
                 Selecionar Data Final
               </DrawerTitle>
             </DrawerHeader>
-            <div className="px-4 pb-6 flex justify-center w-full">
+            <div className="px-6 pb-10 flex justify-center w-full">
               <Calendar
                 mode="single"
                 selected={endDate}
@@ -202,7 +202,7 @@ export function TADateFilter({
                   setEndDrawerOpen(false);
                 }}
                 locale={ptBR}
-                className="p-2 pointer-events-auto w-full"
+                className="p-4 pointer-events-auto w-full max-w-sm"
                 classNames={liquidGlassCalendarLargeClassNames}
               />
             </div>
