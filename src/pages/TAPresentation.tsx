@@ -382,30 +382,32 @@ export default function TAPresentation() {
             <div className="flex items-center gap-3">
               <button
                 onClick={isPreviewMode ? undefined : () => navigate('/dashboard/ta')}
-                className="px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-white/30 text-white hover:bg-white/15 transition-colors shadow-2xl flex items-center"
+                className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Voltar
               </button>
               <button
                 onClick={isPreviewMode ? undefined : startPresentation}
-                className="px-6 py-3 rounded-2xl bg-white/10 backdrop-blur-xl border-2 border-[#00FFF0] text-[#00FFF0] hover:bg-white/15 transition-colors shadow-2xl flex items-center"
+                className="bg-[#d4ff4a] text-black rounded-full p-3 hover:bg-[#c9f035] transition-colors shadow-2xl"
+                title="Iniciar Apresentação"
               >
-                <Play className="mr-2 h-4 w-4" />
-                Iniciar Apresentação
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+                </svg>
               </button>
             </div>
           ) : (
             <div className="text-center space-y-4">
               <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
               <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
-              <Button
+              <button
                 onClick={() => navigate('/dashboard/ta')}
-                className="px-8 py-4 rounded-xl bg-border/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/15 transition-colors shadow-xl"
+                className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
                 Voltar
-              </Button>
+              </button>
             </div>
           )}
         </div>
