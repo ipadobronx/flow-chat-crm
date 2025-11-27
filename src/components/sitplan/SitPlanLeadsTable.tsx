@@ -18,10 +18,13 @@ import { Search, Edit, Send, CheckSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 
 type Lead = Tables<"leads">;
 
 export function SitPlanLeadsTable() {
+  const { isTablet } = useIsTablet();
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
@@ -137,24 +140,37 @@ export function SitPlanLeadsTable() {
   // Get unique etapas from leads
   const uniqueEtapas = Array.from(new Set(leads.map(lead => lead.etapa))).sort();
 
+  // Tablet liquid glass classes
+  const cardClasses = cn(
+    "rounded-[20px]",
+    isTablet && "bg-white/5 backdrop-blur-md border-white/10"
+  );
+
+  const titleClasses = cn(isTablet && "text-white");
+  const subtitleClasses = cn(isTablet ? "text-white/50" : "text-muted-foreground");
+
   if (isLoading) {
-    return <Card><CardContent className="p-6">Carregando...</CardContent></Card>;
+    return (
+      <Card className={cardClasses}>
+        <CardContent className={cn("p-6", titleClasses)}>Carregando...</CardContent>
+      </Card>
+    );
   }
 
   return (
-    <Card>
+    <Card className={cardClasses}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <CardTitle>Todos os Leads</CardTitle>
+            <CardTitle className={titleClasses}>Todos os Leads</CardTitle>
             <Select value={selectedEtapa || "all"} onValueChange={(value) => setSelectedEtapa(value === "all" ? null : value)}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className={cn("w-48", isTablet && "bg-white/10 border-white/20 text-white")}>
                 <SelectValue placeholder="Filtrar por etapa" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as etapas</SelectItem>
+              <SelectContent className={cn(isTablet && "bg-black/90 border-white/20")}>
+                <SelectItem value="all" className={cn(isTablet && "text-white focus:bg-white/10")}>Todas as etapas</SelectItem>
                 {uniqueEtapas.map((etapa) => (
-                  <SelectItem key={etapa} value={etapa}>
+                  <SelectItem key={etapa} value={etapa} className={cn(isTablet && "text-white focus:bg-white/10")}>
                     {etapa}
                   </SelectItem>
                 ))}
@@ -167,23 +183,28 @@ export function SitPlanLeadsTable() {
                 variant="outline" 
                 size="sm"
                 onClick={() => setSelectedEtapa(null)}
+                className={cn(isTablet && "bg-white/10 border-white/20 text-white hover:bg-white/20")}
               >
                 Limpar filtro: {selectedEtapa}
               </Button>
             )}
             {isEditMode && (
-              <Button onClick={handleAddToSitPlan} className="gap-2">
+              <Button 
+                onClick={handleAddToSitPlan} 
+                className={cn("gap-2", isTablet && "bg-[#d4ff4a] text-black hover:bg-[#c9f035]")}
+              >
                 <Send className="w-4 h-4" />
                 Adicionar ao SitPlan ({selectedLeads.length})
               </Button>
             )}
             <Button 
               size="sm"
-              className={`h-8 w-8 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105 ${
+              className={cn(
+                "h-8 w-8 p-0 rounded-full shadow-sm border-0 transition-all duration-200 hover:scale-105",
                 isEditMode 
-                  ? "bg-blue-600 text-white" 
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
-              }`}
+                  ? (isTablet ? "bg-[#d4ff4a] text-black" : "bg-blue-600 text-white")
+                  : (isTablet ? "bg-white/10 text-white hover:bg-white/20" : "bg-blue-500 hover:bg-blue-600 text-white")
+              )}
               onClick={() => {
                 setIsEditMode(!isEditMode);
                 if (!isEditMode) setSelectedLeads([]);
@@ -196,7 +217,7 @@ export function SitPlanLeadsTable() {
         </div>
         
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4", isTablet ? "text-white/50" : "text-muted-foreground")} />
           <LiquidGlassInput
             placeholder="Buscar lead..."
             value={searchTerm}
@@ -207,24 +228,24 @@ export function SitPlanLeadsTable() {
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-md border">
+        <div className={cn("rounded-md border", isTablet && "border-white/10")}>
           <Table>
             <TableHeader>
-              <TableRow>
-                {isEditMode && <TableHead className="w-12"></TableHead>}
-                <TableHead>NOME</TableHead>
-                <TableHead>ETAPA</TableHead>
-                <TableHead>RECOMENDANTE</TableHead>
-                <TableHead>PROFISSÃO</TableHead>
-                <TableHead>TELEFONE</TableHead>
-                <TableHead>CASADO</TableHead>
-                <TableHead>FILHOS</TableHead>
-                <TableHead>OBSERVAÇÕES</TableHead>
+              <TableRow className={cn(isTablet && "border-white/10")}>
+                {isEditMode && <TableHead className={cn("w-12", isTablet && "text-white/70")}></TableHead>}
+                <TableHead className={cn(isTablet && "text-white/70")}>NOME</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>ETAPA</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>RECOMENDANTE</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>PROFISSÃO</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>TELEFONE</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>CASADO</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>FILHOS</TableHead>
+                <TableHead className={cn(isTablet && "text-white/70")}>OBSERVAÇÕES</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredLeads.map((lead) => (
-                <TableRow key={lead.id}>
+                <TableRow key={lead.id} className={cn(isTablet && "border-white/10 hover:bg-white/5")}>
                   {isEditMode && (
                     <TableCell>
                       <Checkbox
@@ -232,10 +253,11 @@ export function SitPlanLeadsTable() {
                         onCheckedChange={(checked) => 
                           handleLeadSelect(lead.id, checked as boolean)
                         }
+                        className={cn(isTablet && "border-white/30")}
                       />
                     </TableCell>
                   )}
-                  <TableCell className="font-medium">{lead.nome}</TableCell>
+                  <TableCell className={cn("font-medium", titleClasses)}>{lead.nome}</TableCell>
                   <TableCell>
                     <Badge 
                       className={`text-white cursor-pointer hover:opacity-80 transition-opacity ${getEtapaColor(lead.etapa, selectedEtapa === lead.etapa)}`}
@@ -244,27 +266,27 @@ export function SitPlanLeadsTable() {
                       {lead.etapa}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={cn(isTablet && "text-white/70")}>
                     {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 
                       ? lead.recomendante.join(', ')
                       : "-"
                     }
                   </TableCell>
-                  <TableCell>{lead.profissao || "-"}</TableCell>
-                  <TableCell>{lead.telefone || "-"}</TableCell>
-                  <TableCell>{lead.casado ? "SIM" : "NÃO"}</TableCell>
-                  <TableCell>
+                  <TableCell className={cn(isTablet && "text-white/70")}>{lead.profissao || "-"}</TableCell>
+                  <TableCell className={cn(isTablet && "text-white/70")}>{lead.telefone || "-"}</TableCell>
+                  <TableCell className={cn(isTablet && "text-white/70")}>{lead.casado ? "SIM" : "NÃO"}</TableCell>
+                  <TableCell className={cn(isTablet && "text-white/70")}>
                     {lead.tem_filhos ? `SIM${lead.quantidade_filhos ? ` (${lead.quantidade_filhos})` : ""}` : "NÃO"}
                   </TableCell>
-                  <TableCell className="max-w-xs truncate">
+                  <TableCell className={cn("max-w-xs truncate", subtitleClasses)}>
                     {lead.observacoes || "-"}
                   </TableCell>
                 </TableRow>
               ))}
               
               {filteredLeads.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={isEditMode ? 9 : 8} className="text-center py-8 text-muted-foreground">
+                <TableRow className={cn(isTablet && "border-white/10")}>
+                  <TableCell colSpan={isEditMode ? 9 : 8} className={cn("text-center py-8", subtitleClasses)}>
                     Nenhum lead encontrado
                   </TableCell>
                 </TableRow>

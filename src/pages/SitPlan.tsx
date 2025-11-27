@@ -4,8 +4,11 @@ import { TALeadsCard } from "@/components/sitplan/TALeadsCard";
 import { SelecionadosCard } from "@/components/sitplan/SelecionadosCard";
 import { DndContext, closestCenter, DragEndEvent, DragStartEvent, DragOverEvent } from "@dnd-kit/core";
 import { useState } from "react";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 
 export default function SitPlan() {
+  const { isTablet } = useIsTablet();
   const [dragEndEvent, setDragEndEvent] = useState<any>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -45,9 +48,11 @@ export default function SitPlan() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className={`p-6 space-y-6 transition-all duration-300 ${
-          isDragging ? 'bg-gradient-to-br from-blue-50/30 to-purple-50/30' : ''
-        }`}>
+        <div className={cn(
+          "p-6 space-y-6 transition-all duration-300",
+          isDragging && !isTablet && 'bg-gradient-to-br from-blue-50/30 to-purple-50/30',
+          isDragging && isTablet && 'bg-white/5'
+        )}>
           
           
           {/* Grid com duas tabelas lado a lado */}

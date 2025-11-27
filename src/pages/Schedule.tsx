@@ -16,9 +16,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
+import { useIsTablet } from "@/hooks/use-tablet";
+import { cn } from "@/lib/utils";
 
 export default function Schedule() {
   const { user } = useAuth();
+  const { isTablet } = useIsTablet();
   const [statusFilter, setStatusFilter] = useState<string>("pendente");
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -133,6 +136,19 @@ export default function Schedule() {
     }
   };
 
+  // Tablet liquid glass classes
+  const cardClasses = cn(
+    isTablet && "bg-white/5 backdrop-blur-md border-white/10 text-white"
+  );
+
+  const buttonOutlineClasses = cn(
+    isTablet && "bg-white/10 border-white/20 text-white hover:bg-white/20"
+  );
+
+  const buttonDefaultClasses = cn(
+    isTablet && "bg-[#d4ff4a] text-black hover:bg-[#c9f035]"
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -144,6 +160,7 @@ export default function Schedule() {
               disabled={isImporting}
               variant="outline"
               size="sm"
+              className={buttonOutlineClasses}
             >
               {isImporting ? (
                 <>
@@ -161,14 +178,14 @@ export default function Schedule() {
         </div>
 
         {isConnected && agendamentos && agendamentos.length === 0 && !isLoading && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className={cn(isTablet && "bg-white/5 backdrop-blur-md border-white/10 text-white")}>
+            <AlertCircle className={cn("h-4 w-4", isTablet && "text-white")} />
+            <AlertDescription className={cn(isTablet && "text-white/70")}>
               Você tem o Google Calendar conectado mas nenhum agendamento local.{' '}
               <Button 
                 variant="link" 
                 onClick={handleImportFromGoogle} 
-                className="px-1 h-auto font-semibold"
+                className={cn("px-1 h-auto font-semibold", isTablet && "text-[#d4ff4a]")}
                 disabled={isImporting}
               >
                 {isImporting ? 'Importando...' : 'Clique aqui para importar seus eventos.'}
@@ -177,17 +194,20 @@ export default function Schedule() {
           </Alert>
         )}
 
-        <Card>
+        <Card className={cn("rounded-[20px]", cardClasses)}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle>Calendário de Agendamentos</CardTitle>
-              <CardDescription>Visualize e gerencie seus agendamentos</CardDescription>
+              <CardTitle className={cn(isTablet && "text-white")}>Calendário de Agendamentos</CardTitle>
+              <CardDescription className={cn(isTablet && "text-white/50")}>Visualize e gerencie seus agendamentos</CardDescription>
             </div>
             <div className="flex gap-2">
               <Button
                 variant={statusFilter === "pendente" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("pendente")}
+                className={cn(
+                  statusFilter === "pendente" ? buttonDefaultClasses : buttonOutlineClasses
+                )}
               >
                 Pendentes
               </Button>
@@ -195,6 +215,9 @@ export default function Schedule() {
                 variant={statusFilter === "realizado" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setStatusFilter("realizado")}
+                className={cn(
+                  statusFilter === "realizado" ? buttonDefaultClasses : buttonOutlineClasses
+                )}
               >
                 Realizados
               </Button>
@@ -203,7 +226,7 @@ export default function Schedule() {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <Loader2 className={cn("h-8 w-8 animate-spin", isTablet ? "text-white/50" : "text-muted-foreground")} />
               </div>
             ) : (
               <FullScreenCalendar 
@@ -216,10 +239,12 @@ export default function Schedule() {
 
         {/* Dialog de detalhes do evento */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+          <DialogContent className={cn(
+            isTablet && "bg-black/80 backdrop-blur-xl border-white/20 text-white"
+          )}>
             <DialogHeader>
-              <DialogTitle>Detalhes do Agendamento</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className={cn(isTablet && "text-white")}>Detalhes do Agendamento</DialogTitle>
+              <DialogDescription className={cn(isTablet && "text-white/50")}>
                 Informações e ações para este agendamento
               </DialogDescription>
             </DialogHeader>
@@ -227,19 +252,19 @@ export default function Schedule() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">{selectedEvent.lead_nome}</h3>
-                    <Badge variant={selectedEvent.status === 'pendente' ? 'default' : 'secondary'}>
+                    <h3 className={cn("text-lg font-semibold", isTablet && "text-white")}>{selectedEvent.lead_nome}</h3>
+                    <Badge variant={selectedEvent.status === 'pendente' ? 'default' : 'secondary'} className={cn(isTablet && "bg-white/10 text-white border-white/20")}>
                       {selectedEvent.status}
                     </Badge>
                     {selectedEvent.synced_with_google && (
-                      <Badge variant="outline" className="gap-1">
+                      <Badge variant="outline" className={cn("gap-1", isTablet && "bg-white/10 text-white border-white/20")}>
                         <Calendar className="h-3 w-3" />
                         Sincronizado
                       </Badge>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className={cn("flex items-center gap-4 text-sm", isTablet ? "text-white/70" : "text-muted-foreground")}>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
                       {format(parseISO(selectedEvent.datetime), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
@@ -251,7 +276,7 @@ export default function Schedule() {
                   </div>
 
                   {selectedEvent.observacoes && (
-                    <p className="text-sm text-muted-foreground pt-2">
+                    <p className={cn("text-sm pt-2", isTablet ? "text-white/50" : "text-muted-foreground")}>
                       {selectedEvent.observacoes}
                     </p>
                   )}
@@ -263,7 +288,7 @@ export default function Schedule() {
                       variant="outline"
                       onClick={() => handleSync(selectedEvent.id)}
                       disabled={isSyncing}
-                      className="flex-1"
+                      className={cn("flex-1", buttonOutlineClasses)}
                     >
                       {isSyncing ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -280,7 +305,7 @@ export default function Schedule() {
                     <Button
                       variant="default"
                       onClick={() => handleMarkAsCompleted(selectedEvent.id)}
-                      className="flex-1"
+                      className={cn("flex-1", buttonDefaultClasses)}
                     >
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                       Marcar como Realizado
