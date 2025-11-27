@@ -1233,7 +1233,7 @@ export default function Pipeline() {
                     <span className="ml-2">WhatsApp</span>
                   </OutlineButton>
                   <OutlineButton
-                    className="w-full sm:w-auto"
+                    className={`w-full sm:w-auto ${isTablet ? 'text-white' : ''}`}
                     onClick={async (e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -1380,8 +1380,8 @@ export default function Pipeline() {
                               }}
                               style={{ cursor: 'pointer' }}
                             >
-                              <div className="font-medium">{dayNum}</div>
-                              <div className="text-xs font-light mt-1">{weekLabel}</div>
+                              <div className={`font-medium ${isTablet && !isSelected ? 'text-white' : ''}`}>{dayNum}</div>
+                              <div className={`text-xs font-light mt-1 ${isTablet && !isSelected ? 'text-white/60' : ''}`}>{weekLabel}</div>
                             </div>
                           );
                         })}
