@@ -289,6 +289,10 @@ export default function Pipeline() {
   // Estado para o popup de agendamento responsivo
   const [showAgendamentoPopup, setShowAgendamentoPopup] = useState(false);
   const [showCalendarDrawer, setShowCalendarDrawer] = useState(false);
+  
+  // Estados para criação pendente de agendamento/task ao salvar
+  const [pendingCreateAgendamento, setPendingCreateAgendamento] = useState(false);
+  const [pendingCreateTask, setPendingCreateTask] = useState(false);
 
   // Buscar agendamento mais recente para o lead selecionado
   const { data: agendamentoMaisRecente } = useQuery({
@@ -786,6 +790,56 @@ export default function Pipeline() {
          queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
          console.log('🔄 Cache do SitPlan invalidado - sincronização ativada');
        }
+       
+       // Criar agendamento pendente se marcado
+       if (pendingCreateAgendamento && editingLead.data_callback) {
+         try {
+           const { data } = await supabase
+             .from('agendamentos_ligacoes')
+             .insert({
+               user_id: user.id,
+               lead_id: editingLead.id,
+               data_agendamento: editingLead.data_callback,
+               observacoes: `Agendamento: ${editingLead.nome}`,
+               status: 'pendente'
+             })
+             .select()
+             .single();
+
+           if (data && isConnected && googleCalendar.syncAgendamento) {
+             await googleCalendar.syncAgendamento(data.id);
+           }
+           
+           queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+           queryClient.invalidateQueries({ queryKey: ['agendamento-lead', editingLead.id] });
+           
+           toast({
+             title: "Agendamento criado!",
+             description: isConnected ? "Sincronizado com Google Calendar" : undefined
+           });
+         } catch (agendError) {
+           console.error('Erro ao criar agendamento:', agendError);
+         }
+         setPendingCreateAgendamento(false);
+       }
+       
+       // Criar task pendente se marcado
+       if (pendingCreateTask && isConnected && googleCalendar.createTask) {
+         try {
+           await googleCalendar.createTask({
+             title: `Ligar para ${editingLead.nome}`,
+             notes: `Telefone: ${editingLead.telefone || 'N/A'}\nEmpresa: ${editingLead.empresa || 'N/A'}\nValor: ${editingLead.valor || 'N/A'}`,
+             dueDate: editingLead.data_callback ? new Date(editingLead.data_callback).toISOString() : undefined
+           });
+           
+           toast({
+             title: "Task criada no Google Tasks!"
+           });
+         } catch (taskError) {
+           console.error('Erro ao criar task:', taskError);
+         }
+         setPendingCreateTask(false);
+       }
      } catch (error) {
        if (error instanceof z.ZodError) {
          toast({
@@ -800,11 +854,11 @@ export default function Pipeline() {
            description: "Não foi possível salvar as alterações.",
            variant: "destructive",
          });
-       }
+     }
     } finally {
       setSaving(false);
     }
-  }, [editingLead, user, toast, selectedLead, syncCalendarEvent, isConnected, queryClient]);
+  }, [editingLead, user, toast, selectedLead, syncCalendarEvent, isConnected, queryClient, pendingCreateAgendamento, pendingCreateTask, googleCalendar]);
 
   // Função para processar agendamento "Ligar Depois"
   const handleConfirmarLigarDepois = async () => {
@@ -898,6 +952,12 @@ export default function Pipeline() {
       fetchLigacoesHistorico(selectedLead.id);
     }
   }, [selectedLead, user]);
+
+  // Reset pending states quando muda de lead ou fecha o card
+  useEffect(() => {
+    setPendingCreateAgendamento(false);
+    setPendingCreateTask(false);
+  }, [selectedLead?.id]);
 
   const fetchLigacoesHistorico = async (leadId: string) => {
     setLoadingHistorico(true);
@@ -1383,69 +1443,35 @@ export default function Pipeline() {
                       <p className={`text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Selecione a data e horário</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {/* Ícone Agendamento - Cria agendamento com dados do lead */}
+                      {/* Ícone Agendamento - Marca para criar agendamento ao salvar */}
                       <LiquidGlassActionButton
                         icon={CalendarIcon}
-                        variant="default"
+                        variant={pendingCreateAgendamento ? "electric" : "default"}
                         size="sm"
-                        onClick={async () => {
-                          if (!selectedLead || !user) return;
-                          
+                        onClick={() => {
                           const dataCallback = editingLead?.data_callback || selectedLead.data_callback;
-                          const horaCallback = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
-                          
-                          if (!dataCallback) {
+                          if (!dataCallback && !pendingCreateAgendamento) {
                             toast({
                               title: "Selecione uma data primeiro",
                               variant: "destructive"
                             });
                             return;
                           }
-
-                          const { data, error } = await supabase
-                            .from('agendamentos_ligacoes')
-                            .insert({
-                              user_id: user.id,
-                              lead_id: selectedLead.id,
-                              data_agendamento: dataCallback,
-                              observacoes: `Agendamento: ${selectedLead.nome}`,
-                              status: 'pendente'
-                            })
-                            .select()
-                            .single();
-
-                          if (error) {
-                            toast({
-                              title: "Erro ao criar agendamento",
-                              variant: "destructive"
-                            });
-                            return;
-                          }
-
-                          // Sincronizar com Google Calendar se conectado
-                          if (isConnected && googleCalendar.syncAgendamento) {
-                            await googleCalendar.syncAgendamento(data.id);
-                          }
-
+                          setPendingCreateAgendamento(!pendingCreateAgendamento);
                           toast({
-                            title: "Agendamento criado!",
-                            description: isConnected ? "Sincronizado com Google Calendar" : undefined
+                            title: pendingCreateAgendamento ? "Agendamento desmarcado" : "Agendamento será criado ao salvar",
+                            description: pendingCreateAgendamento ? undefined : "Clique em Salvar para confirmar"
                           });
-                          
-                          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-                          queryClient.invalidateQueries({ queryKey: ['agendamento-lead', selectedLead.id] });
                         }}
-                        aria-label="Criar agendamento"
+                        aria-label={pendingCreateAgendamento ? "Desmarcar agendamento" : "Criar agendamento ao salvar"}
                       />
 
-                      {/* Ícone Task - Cria task automaticamente com dados do lead */}
+                      {/* Ícone Task - Marca para criar task ao salvar */}
                       <LiquidGlassActionButton
                         icon={ListTodo}
-                        variant="electric"
+                        variant={pendingCreateTask ? "electric" : "default"}
                         size="sm"
-                        onClick={async () => {
-                          if (!selectedLead) return;
-                          
+                        onClick={() => {
                           if (!isConnected) {
                             toast({
                               title: "Conecte ao Google Calendar primeiro",
@@ -1453,20 +1479,13 @@ export default function Pipeline() {
                             });
                             return;
                           }
-
-                          const dataCallback = editingLead?.data_callback || selectedLead.data_callback;
-                          
-                          await googleCalendar.createTask({
-                            title: `Ligar para ${selectedLead.nome}`,
-                            notes: `Telefone: ${selectedLead.telefone || 'N/A'}\nEmpresa: ${selectedLead.empresa || 'N/A'}\nValor: ${selectedLead.valor || 'N/A'}`,
-                            dueDate: dataCallback ? new Date(dataCallback).toISOString() : undefined
-                          });
-
+                          setPendingCreateTask(!pendingCreateTask);
                           toast({
-                            title: "Task criada no Google Tasks!"
+                            title: pendingCreateTask ? "Task desmarcada" : "Task será criada ao salvar",
+                            description: pendingCreateTask ? undefined : "Clique em Salvar para confirmar"
                           });
                         }}
-                        aria-label="Criar task"
+                        aria-label={pendingCreateTask ? "Desmarcar task" : "Criar task ao salvar"}
                       />
                       {agendamentoMaisRecente && (
                         <Badge variant="secondary" className="text-xs">Criado no TA</Badge>
@@ -1521,11 +1540,21 @@ export default function Pipeline() {
                             </DrawerHeader>
                             <div className="flex justify-center">
                               <LiquidGlassCalendar
-                                selected={(editingLead?.data_callback || selectedLead.data_callback) ? new Date((editingLead?.data_callback || selectedLead.data_callback || '').split('T')[0]) : undefined}
+                                selected={(() => {
+                                  const dateStr = editingLead?.data_callback || selectedLead.data_callback;
+                                  if (!dateStr) return undefined;
+                                  const [datePart] = dateStr.split('T');
+                                  const [year, month, day] = datePart.split('-').map(Number);
+                                  return new Date(year, month - 1, day); // Cria data local sem timezone issues
+                                })()}
                                 onSelect={(date) => {
                                   if (!date) return;
                                   const currentTime = editingLead?.hora_callback || selectedLead.hora_callback || '09:00';
-                                  const dateStr = format(date, 'yyyy-MM-dd');
+                                  // FIX: Usar componentes da data local para evitar bug de timezone
+                                  const year = date.getFullYear();
+                                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                                  const day = String(date.getDate()).padStart(2, '0');
+                                  const dateStr = `${year}-${month}-${day}`;
                                   const updatedLead = {
                                     ...(editingLead || selectedLead),
                                     data_callback: `${dateStr}T${currentTime}:00`,
