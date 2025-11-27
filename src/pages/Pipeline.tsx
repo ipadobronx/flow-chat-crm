@@ -1308,11 +1308,11 @@ export default function Pipeline() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                   <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome</Label>
-                    <p className="font-medium">{selectedLead.nome}</p>
+                    <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>{selectedLead.nome}</p>
                   </div>
                   <div>
                   <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Recomendante(s)</Label>
-                    <p className="font-medium">
+                    <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>
                       {selectedLead.recomendante && selectedLead.recomendante.length > 0 
                         ? selectedLead.recomendante.join(', ')
                         : 'Nenhum recomendante'
@@ -1348,7 +1348,7 @@ export default function Pipeline() {
                 <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300">
                   <div className="flex items-center justify-between p-6">
                     <div className="flex flex-col space-y-1.5">
-                      <h3 className="text-2xl font-inter font-normal leading-none tracking-tighter">Agendamento</h3>
+                      <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter ${isTablet ? 'text-white' : ''}`}>Agendamento</h3>
                       <p className={`text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Selecione a data e horário</p>
                     </div>
                     {agendamentoMaisRecente && (
@@ -1790,7 +1790,7 @@ export default function Pipeline() {
                       <Clock className="w-4 h-4" />
                       Histórico de Ligações
                     </Label>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className={isTablet ? 'bg-white/10 text-white border-white/20' : ''}>
                       {ligacoesHistorico.length} {ligacoesHistorico.length === 1 ? 'ligação' : 'ligações'}
                     </Badge>
                   </div>
