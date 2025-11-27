@@ -236,7 +236,10 @@ export const useGoogleCalendar = () => {
     disconnect: disconnectMutation.mutate,
     syncAgendamento: (agendamentoId: string, createTask: boolean = false) => 
       syncAgendamentoMutation.mutate({ agendamentoId, createTask }),
+    syncAgendamentoAsync: (agendamentoId: string, createTask: boolean = false) => 
+      syncAgendamentoMutation.mutateAsync({ agendamentoId, createTask }),
     createTask: createTaskMutation.mutate,
+    createTaskAsync: createTaskMutation.mutateAsync,
     isConnecting: connectMutation.isPending,
     isDisconnecting: disconnectMutation.isPending,
     isSyncing: syncAgendamentoMutation.isPending,

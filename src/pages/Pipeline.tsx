@@ -823,23 +823,58 @@ export default function Pipeline() {
          setPendingCreateAgendamento(false);
        }
        
-       // Criar task pendente se marcado
-       if (pendingCreateTask && isConnected && googleCalendar.createTask) {
-         try {
-           await googleCalendar.createTask({
-             title: `Ligar para ${editingLead.nome}`,
-             notes: `Telefone: ${editingLead.telefone || 'N/A'}\nEmpresa: ${editingLead.empresa || 'N/A'}\nValor: ${editingLead.valor || 'N/A'}`,
-             dueDate: editingLead.data_callback ? new Date(editingLead.data_callback).toISOString() : undefined
-           });
-           
-           toast({
-             title: "Task criada no Google Tasks!"
-           });
-         } catch (taskError) {
-           console.error('Erro ao criar task:', taskError);
-         }
-         setPendingCreateTask(false);
-       }
+        // Criar task pendente se marcado (cria agendamento local + Google Task)
+        if (pendingCreateTask && editingLead.data_callback) {
+          try {
+            // 1. Criar agendamento local primeiro
+            const { data: agendamentoData, error: agendError } = await supabase
+              .from('agendamentos_ligacoes')
+              .insert({
+                user_id: user.id,
+                lead_id: editingLead.id,
+                data_agendamento: editingLead.data_callback,
+                observacoes: `Task: ${editingLead.nome}`,
+                status: 'pendente'
+              })
+              .select()
+              .single();
+
+            if (agendError) {
+              console.error('Erro ao criar agendamento para task:', agendError);
+              throw agendError;
+            }
+
+            // 2. Se conectado ao Google, criar a task e salvar o ID
+            if (isConnected && googleCalendar.createTaskAsync) {
+              const taskResult = await googleCalendar.createTaskAsync({
+                title: `Ligar para ${editingLead.nome}`,
+                notes: `Telefone: ${editingLead.telefone || 'N/A'}\nEmpresa: ${editingLead.empresa || 'N/A'}\nValor: ${editingLead.valor || 'N/A'}`,
+                dueDate: new Date(editingLead.data_callback).toISOString()
+              });
+
+              // 3. Salvar o google_task_id no agendamento
+              if (taskResult?.taskId && agendamentoData) {
+                await supabase
+                  .from('agendamentos_ligacoes')
+                  .update({ google_task_id: taskResult.taskId })
+                  .eq('id', agendamentoData.id);
+              }
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+            toast({
+              title: "Task criada!",
+              description: isConnected ? "Sincronizada com Google Tasks" : "Salva localmente"
+            });
+          } catch (taskError) {
+            console.error('Erro ao criar task:', taskError);
+            toast({
+              title: "Erro ao criar task",
+              variant: "destructive"
+            });
+          }
+          setPendingCreateTask(false);
+        }
      } catch (error) {
        if (error instanceof z.ZodError) {
          toast({
