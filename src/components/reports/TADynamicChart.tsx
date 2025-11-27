@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 
 interface ChartData {
   date: string;
@@ -25,10 +24,32 @@ interface TADynamicChartProps {
   };
   currentPeriod: string;
   previousPeriod: string;
-  periodFilter: number; // Número de dias (7, 30, 90, etc.)
+  periodFilter: number;
   isLoading?: boolean;
   onPeriodChange?: (period: number) => void;
 }
+
+// Custom Tooltip with liquid glass style
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-white/20 bg-black/80 backdrop-blur-md px-4 py-3 text-xs shadow-xl">
+        <p className="font-medium text-white mb-2">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center gap-2 py-0.5">
+            <div 
+              className="w-2.5 h-2.5 rounded-full" 
+              style={{ backgroundColor: entry.fill }}
+            />
+            <span className="text-white/70">{entry.name}:</span>
+            <span className="text-white font-medium">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function TADynamicChart({
   activeCard,
@@ -39,16 +60,13 @@ export default function TADynamicChart({
   isLoading = false,
   onPeriodChange
 }: TADynamicChartProps) {
-  // Função para processar dados reais vindos do backend
   const processRealData = (rawData: ChartData[]): ChartData[] => {
     if (!rawData || rawData.length === 0) {
       return [];
     }
-    
-    // Retornar os dados reais, apenas formatando as datas se necessário
     return rawData.map(item => ({
       ...item,
-      date: item.date // Manter o formato da data como está vindo do backend
+      date: item.date
     }));
   };
 
@@ -89,20 +107,18 @@ export default function TADynamicChart({
     return {
       title,
       data: processRealData(rawData || []),
-      comparisonData: [] // Para agora, não precisamos dos dados de comparação
+      comparisonData: []
     };
   };
 
   const chartInfo = getChartInfo();
 
-  // Calcular intervalo de labels baseado no período
   const getTickInterval = () => {
-    if (periodFilter <= 7) return 0; // Mostrar todos os labels
-    if (periodFilter <= 30) return 2; // Mostrar a cada 3 dias
-    return 6; // Mostrar a cada 7 dias para períodos maiores
+    if (periodFilter <= 7) return 0;
+    if (periodFilter <= 30) return 2;
+    return 6;
   };
 
-  // Configuração do gráfico
   const chartConfig = {
     contatosEfetuados: { label: "Contatos Efetuados", color: "hsl(217 91% 60%)" },
     ligacoesNaoAtendidas: { label: "Ligações Não Atendidas", color: "hsl(220 9% 46%)" },
@@ -113,42 +129,52 @@ export default function TADynamicChart({
     outros: { label: "Outros", color: "hsl(var(--chart-4))" }
   };
 
-  // Estado de loading
+  // Loading state with liquid glass
   if (isLoading) {
     return (
-      <Card className="w-full">
-        <CardContent className="h-80 flex items-center justify-center">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-sm text-gray-500">Carregando dados...</p>
+      <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl w-full">
+        <div className="h-80 flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
+            <p className="text-sm text-white/60">Carregando dados...</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md shadow-xl w-full transition-all duration-300 hover:shadow-2xl hover:shadow-white/5">
+      {/* Header */}
+      <div className="p-6 pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">
+          <h3 className="text-lg text-white font-inter font-normal tracking-tight">
             {chartInfo.title}
-          </CardTitle>
-          <div className="text-xs text-gray-500">
-            <span className="font-medium">{currentPeriod}</span> vs <span className="font-medium">{previousPeriod}</span>
+          </h3>
+          <div className="text-xs text-white/50">
+            <span className="font-medium text-white/70">{currentPeriod}</span>
+            <span className="mx-1">vs</span>
+            <span className="font-medium text-white/70">{previousPeriod}</span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      
+      {/* Chart Content */}
+      <div className="p-6 pt-2">
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={chartInfo.data}
-              margin={{ top: 5, right: 20, left: 0, bottom: 70 }}
+              margin={{ top: 10, right: 20, left: 0, bottom: 70 }}
             >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="rgba(255,255,255,0.08)" 
+                vertical={false}
+              />
               <XAxis 
                 dataKey="date" 
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.5)' }}
                 tickLine={false}
                 axisLine={false}
                 angle={-45}
@@ -157,125 +183,133 @@ export default function TADynamicChart({
                 interval={getTickInterval()}
               />
               <YAxis 
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.5)' }}
                 tickLine={false}
                 axisLine={false}
                 width={40}
               />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
               {activeCard === 'leadsContactados' ? (
-                // Modo "Leads Contactados" - mostra categorias separadas
                 <>
                   <Bar 
                     dataKey="ligacoesNaoAtendidas" 
+                    name="Não Atendidas"
                     stackId="a" 
                     fill="var(--color-ligacoesNaoAtendidas)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="ligarDepois" 
+                    name="Ligar Depois"
                     stackId="a" 
                     fill="var(--color-ligarDepois)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="marcarWhatsapp" 
+                    name="Marcar WhatsApp"
                     stackId="a" 
                     fill="var(--color-marcarWhatsapp)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="naoTemInteresse" 
+                    name="Sem Interesse"
                     stackId="a" 
                     fill="var(--color-naoTemInteresse)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="oi" 
+                    name="OI Agendados"
                     stackId="a" 
                     fill="var(--color-oi)" 
-                    radius={[2, 2, 0, 0]}
+                    radius={[6, 6, 0, 0]}
                   />
                 </>
               ) : activeCard === 'naoAtendido' ? (
-                // Modo "Não Atendido" - mostra apenas ligações não atendidas
                 <Bar 
                   dataKey="ligacoesNaoAtendidas" 
+                  name="Não Atendidas"
                   stackId="a" 
                   fill="var(--color-ligacoesNaoAtendidas)" 
-                  radius={[2, 2, 0, 0]}
+                  radius={[8, 8, 4, 4]}
                 />
               ) : activeCard === 'ligarDepois' ? (
-                // Modo "Ligar Depois" - mostra apenas ligar depois
                 <Bar 
                   dataKey="ligarDepois" 
+                  name="Ligar Depois"
                   stackId="a" 
                   fill="var(--color-ligarDepois)" 
-                  radius={[2, 2, 0, 0]}
+                  radius={[8, 8, 4, 4]}
                 />
               ) : activeCard === 'marcarWhatsapp' ? (
-                // Modo "Marcar WhatsApp" - mostra apenas marcar whatsapp
                 <Bar 
                   dataKey="marcarWhatsapp" 
+                  name="Marcar WhatsApp"
                   stackId="a" 
                   fill="var(--color-marcarWhatsapp)" 
-                  radius={[2, 2, 0, 0]}
+                  radius={[8, 8, 4, 4]}
                 />
               ) : activeCard === 'resultadoGeral' ? (
-                // Modo "OI Agendado" - mostra apenas OI
                 <Bar 
                   dataKey="oi" 
+                  name="OI Agendados"
                   stackId="a" 
                   fill="var(--color-oi)" 
-                  radius={[2, 2, 0, 0]}
+                  radius={[8, 8, 4, 4]}
                 />
               ) : activeCard === 'naoTemInteresse' ? (
-                // Modo "Não Tem Interesse" - mostra apenas não tem interesse
                 <Bar 
                   dataKey="naoTemInteresse" 
+                  name="Sem Interesse"
                   stackId="a" 
                   fill="var(--color-naoTemInteresse)" 
-                  radius={[2, 2, 0, 0]}
+                  radius={[8, 8, 4, 4]}
                 />
               ) : (
-                // Fallback - mostra leads contactados empilhados
                 <>
                   <Bar 
                     dataKey="ligacoesNaoAtendidas" 
+                    name="Não Atendidas"
                     stackId="a" 
                     fill="var(--color-ligacoesNaoAtendidas)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="ligarDepois" 
+                    name="Ligar Depois"
                     stackId="a" 
                     fill="var(--color-ligarDepois)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="marcarWhatsapp" 
+                    name="Marcar WhatsApp"
                     stackId="a" 
                     fill="var(--color-marcarWhatsapp)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="naoTemInteresse" 
+                    name="Sem Interesse"
                     stackId="a" 
                     fill="var(--color-naoTemInteresse)" 
                     radius={[0, 0, 0, 0]}
                   />
                   <Bar 
                     dataKey="oi" 
+                    name="OI Agendados"
                     stackId="a" 
                     fill="var(--color-oi)" 
-                    radius={[2, 2, 0, 0]}
+                    radius={[6, 6, 0, 0]}
                   />
                 </>
               )}
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
