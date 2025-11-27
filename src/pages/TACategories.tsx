@@ -97,7 +97,7 @@ export default function TACategories() {
     // Se não há conflitos, navegar diretamente
     if (conflitos.length === 0) {
       const param = tipo === 'etapa' ? 'etapa' : 'profissao';
-      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}`);
+      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&start=true`);
       return;
     }
 
@@ -153,7 +153,7 @@ export default function TACategories() {
       }
       
       const param = tipo === 'etapa' ? 'etapa' : 'profissao';
-      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&exclusivo=true`);
+      navigate(`/dashboard/ta-presentation?${param}=${encodeURIComponent(categoria)}&exclusivo=true&start=true`);
     } catch (error) {
       console.error('Erro ao processar categoria:', error);
       toast({
@@ -296,18 +296,16 @@ export default function TACategories() {
           const progressoGlobal = leads.length > 0 
             ? Math.round((leadsApresentados.filter(id => leads.some(l => l.id === id)).length / leads.length) * 100)
             : 0;
-          const totalApresentados = leadsApresentados.filter(id => leads.some(l => l.id === id)).length;
           
           return (
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-white/70 font-inter">
-                  Progresso Total: {totalApresentados} de {leads.length} leads ({progressoGlobal}%)
-                </span>
+            <div className="space-y-2 mb-8">
+              <div className="flex justify-between items-center">
+                <span className="text-white/70 font-light">Progresso Total</span>
+                <span className="text-white font-medium">{progressoGlobal}%</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-3">
+              <div className="w-full bg-white/20 rounded-full h-2">
                 <div 
-                  className="bg-[#d4ff4a] h-3 rounded-full transition-all duration-500" 
+                  className="bg-white h-2 rounded-full transition-all duration-300" 
                   style={{ width: `${progressoGlobal}%` }}
                 ></div>
               </div>
