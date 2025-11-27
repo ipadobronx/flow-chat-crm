@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useIsTablet } from "@/hooks/use-tablet";
 
 interface StageTimeRecord {
   id: string;
@@ -26,6 +27,7 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
   const { user } = useAuth();
   const [records, setRecords] = useState<StageTimeRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const isTablet = useIsTablet();
 
   useEffect(() => {
     async function fetchStageTimeHistory() {
@@ -105,12 +107,12 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
     return (
       <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
         <CardHeader>
-          <CardTitle className="font-inter font-normal tracking-tighter">Histórico de Tempo em Etapas</CardTitle>
+          <CardTitle className={`font-inter font-normal tracking-tighter ${isTablet ? 'text-white' : ''}`}>Histórico de Tempo em Etapas</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="py-2">
             <GlassProgressBar progress={60} />
-            <div className="mt-2 text-center text-sm text-black">Carregando...</div>
+            <div className={`mt-2 text-center text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Carregando...</div>
           </div>
         </CardContent>
       </Card>
@@ -120,10 +122,10 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
   return (
     <Card className="rounded-3xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
-        <CardTitle className="font-inter font-normal tracking-tighter">
+        <CardTitle className={`font-inter font-normal tracking-tighter ${isTablet ? 'text-white' : ''}`}>
           Histórico de Tempo em Etapas
           {records.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
+            <Badge variant="secondary" className={`ml-2 ${isTablet ? 'bg-white/20 text-white' : ''}`}>
               {records.length} registros
             </Badge>
           )}
@@ -131,7 +133,7 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
       </CardHeader>
       <CardContent>
         {records.length === 0 ? (
-          <div className="text-center py-8 text-black">
+          <div className={`text-center py-8 ${isTablet ? 'text-white' : 'text-black'}`}>
             Nenhum histórico de tempo encontrado.
           </div>
         ) : (
@@ -152,7 +154,7 @@ export function StageTimeHistory({ leadId, showLeadName = true, limit = 10 }: St
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs text-black mt-1">
+                  <div className={`text-xs mt-1 ${isTablet ? 'text-white/70' : 'text-black'}`}>
                     Entrada: {formatDistanceToNow(new Date(record.data_entrada), { 
                       addSuffix: true, 
                       locale: ptBR 
