@@ -227,13 +227,13 @@ export default function TACategories() {
         <div className="text-center space-y-4">
           <p className="text-[#A9A9A9]">Nenhum lead foi enviado para TA ainda.</p>
           <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
-          <Button
+          <button
             onClick={() => navigate('/dashboard/sitplan')}
-            className="px-8 py-4 bg-white/5 backdrop-blur-md border border-[#FF00C8] text-[#FF00C8] hover:bg-[#FF00C8]/20"
+            className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
             Voltar
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -248,21 +248,23 @@ export default function TACategories() {
             <h1 className="text-4xl font-bold text-white mb-2 font-inter tracking-tight">Apresentação TA</h1>
             <p className="text-[#A9A9A9] font-inter">Selecione uma categoria para visualizar ou inicie a apresentação completa</p>
           </div>
-          <div className="flex gap-4">
-            <Button
+          <div className="flex gap-3 items-center">
+            <button
               onClick={() => navigate('/dashboard/sitplan')}
-              className="px-6 py-3 bg-white/5 backdrop-blur-md border border-[#A9A9A9] text-[#A9A9A9] hover:bg-white/10"
+              className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
               Voltar
-            </Button>
-            <Button
-              onClick={() => navigate('/dashboard/ta-presentation')}
-              className="px-8 py-3 bg-white/5 backdrop-blur-md border border-[#00FFF0] text-[#00FFF0] hover:bg-[#00FFF0]/20 hover:scale-105 transition-all duration-300"
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/ta-presentation?start=true')}
+              className="bg-[#d4ff4a] text-black rounded-full p-3 hover:bg-[#c9f035] transition-colors"
+              title="Iniciar Apresentação"
             >
-              <Play className="mr-2 h-4 w-4" />
-              Iniciar Apresentação
-            </Button>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
+              </svg>
+            </button>
           </div>
         </div>
 
