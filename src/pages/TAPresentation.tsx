@@ -562,9 +562,13 @@ export default function TAPresentation() {
                       <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9">
                         <SelectValue placeholder="Selecione a etapa" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
                         {etapasOptions.map((etapa) => (
-                          <SelectItem key={etapa} value={etapa}>
+                          <SelectItem 
+                            key={etapa} 
+                            value={etapa}
+                            className="text-white/90 focus:bg-white/10 focus:text-white"
+                          >
                             {etapa}
                           </SelectItem>
                         ))}
