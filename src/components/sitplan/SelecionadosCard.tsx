@@ -77,21 +77,21 @@ function SortableSitPlanLeadItem({
       ref={setNodeRef}
       style={style}
       {...(isSelectionMode ? {} : { ...attributes, ...listeners })}
-      className={`flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-all duration-150 ${
+      className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-150 ${
         isDragging ? "opacity-70 shadow-md scale-[0.98]" : "hover:shadow-sm"
-      } ${isSelected ? "ring-2 ring-blue-500 bg-blue-50" : ""}`}
+      } ${isSelected ? "ring-2 ring-blue-500 bg-blue-100/20" : ""}`}
     >
       <div className="flex items-center gap-3 flex-1">
         {isSelectionMode && (
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onSelectionToggle?.(lead.id)}
-            className="flex-shrink-0"
+            className="flex-shrink-0 border-white/50"
           />
         )}
         <div className="flex-1 min-w-0" {...(isSelectionMode ? {} : { ...attributes, ...listeners })}>
           <div className="mb-2">
-            <h4 className="font-semibold text-base truncate">
+            <h4 className="font-semibold text-base truncate text-white">
               {lead.nome}
             </h4>
           </div>
@@ -102,26 +102,26 @@ function SortableSitPlanLeadItem({
             </Badge>
             
             {lead.telefone && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.telefone}</span>
               </div>
             )}
             
             {lead.recomendante && Array.isArray(lead.recomendante) && lead.recomendante.length > 0 && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.recomendante.join(', ')}</span>
               </div>
             )}
             
             {lead.profissao && (
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <span className="truncate">{lead.profissao}</span>
               </div>
             )}
           </div>
           
           {lead.data_sitplan && (
-            <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="mt-2 flex items-center gap-1 text-sm text-white/70">
               <span>Data SitPlan: {new Date(lead.data_sitplan).toLocaleDateString('pt-BR')}</span>
             </div>
           )}
@@ -136,7 +136,7 @@ function SortableSitPlanLeadItem({
             e.stopPropagation();
             removeFromSelecionados(lead.id);
           }}
-          className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
+          className="text-white/70 hover:text-destructive hover:bg-white/10 h-8 w-8 p-0"
           title="Remover do SitPlan"
         >
           <X className="w-3 h-3" />
@@ -519,7 +519,7 @@ export function SelecionadosCard() {
     <Card className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-white">
             Selecionados para SitPlan
             {leads.length > 0 && (
               <Badge variant="secondary">{leads.length}</Badge>
@@ -532,15 +532,15 @@ export function SelecionadosCard() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className={`h-6 w-6 p-0 rounded-full ${
-                    hasActiveFilters ? 'border-blue-500 bg-blue-50 text-blue-700' : ''
+                  className={`h-6 w-6 p-0 rounded-full border-white/30 bg-white/10 hover:bg-white/20 ${
+                    hasActiveFilters ? 'border-blue-500 bg-blue-100/20 text-blue-400' : 'text-white'
                   }`}
                   aria-label="Filtros"
                 >
                   <Menu className="w-3 h-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
+              <DropdownMenuContent align="end" className="w-64 rounded-2xl border border-white/20 bg-black/80 backdrop-blur-md text-white">
                 <DropdownMenuLabel>Filtrar por Profissão</DropdownMenuLabel>
                 {uniqueProfissoes.length > 0 ? (
                   uniqueProfissoes.map(profissao => (

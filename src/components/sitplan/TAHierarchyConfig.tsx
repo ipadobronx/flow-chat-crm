@@ -120,7 +120,7 @@ export function TAHierarchyConfig({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <OutlineButton aria-label="Configurar hierarquia" className="h-8 w-8 p-0 rounded-full">
-          <Settings className="w-4 h-4" />
+          <Settings className="w-4 h-4 text-white" />
         </OutlineButton>
       </DialogTrigger>
       
