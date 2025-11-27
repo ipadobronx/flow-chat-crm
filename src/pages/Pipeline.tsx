@@ -1304,58 +1304,64 @@ export default function Pipeline() {
                   </OutlineButton>
                 </div>
 
-                {/* Informações básicas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome</Label>
-                    <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>{selectedLead.nome}</p>
+                {/* Dados Principais - Container Liquid Glass */}
+                <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-6 space-y-4">
+                  <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter ${isTablet ? 'text-white' : ''}`}>
+                    Dados Principais
+                  </h3>
+                  
+                  {/* Grid com Nome e Recomendante */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome</Label>
+                      <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>{selectedLead.nome}</p>
+                    </div>
+                    <div>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Recomendante(s)</Label>
+                      <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>
+                        {selectedLead.recomendante && selectedLead.recomendante.length > 0 
+                          ? selectedLead.recomendante.join(', ')
+                          : 'Nenhum recomendante'
+                        }
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Etapa Funil */}
                   <div>
-                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Recomendante(s)</Label>
-                    <p className={`font-semibold ${isTablet ? 'text-white' : ''}`}>
-                      {selectedLead.recomendante && selectedLead.recomendante.length > 0 
-                        ? selectedLead.recomendante.join(', ')
-                        : 'Nenhum recomendante'
-                      }
-                    </p>
+                    <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Etapa Funil *</Label>
+                    <Select 
+                      value={editingLead?.etapa || selectedLead.etapa}
+                      onValueChange={(value) => {
+                        const updatedLead = { ...(editingLead || selectedLead), etapa: value as Database["public"]["Enums"]["etapa_funil"] };
+                        setEditingLead(updatedLead);
+                      }}
+                    >
+                      <SelectTrigger className="rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15">
+                        <SelectValue>
+                          {(editingLead?.etapa || selectedLead.etapa) && (
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.color}`}>
+                              {stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.label}
+                            </span>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl text-white shadow-2xl">
+                        {stages.map((stage) => (
+                          <SelectItem 
+                            key={stage.name} 
+                            value={stage.name}
+                            className="focus:bg-white/10 focus:text-white data-[highlighted]:bg-white/10 text-white"
+                          >
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stage.color}`}>
+                              {stage.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-
-                {/* Etapa Funil */}
-                <div>
-                  <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Etapa Funil *</Label>
-                  <Select 
-                    value={editingLead?.etapa || selectedLead.etapa}
-                    onValueChange={(value) => {
-                      const updatedLead = { ...(editingLead || selectedLead), etapa: value as Database["public"]["Enums"]["etapa_funil"] };
-                      setEditingLead(updatedLead);
-                    }}
-                  >
-                    <SelectTrigger className="rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md px-3 py-2 text-sm font-inter tracking-tighter text-foreground shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/50 transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15">
-                      <SelectValue>
-                        {(editingLead?.etapa || selectedLead.etapa) && (
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.color}`}>
-                            {stages.find(s => s.name === (editingLead?.etapa || selectedLead.etapa))?.label}
-                          </span>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border border-white/20 bg-black/80 backdrop-blur-xl text-white shadow-2xl">
-                      {stages.map((stage) => (
-                        <SelectItem 
-                          key={stage.name} 
-                          value={stage.name}
-                          className="focus:bg-white/10 focus:text-white data-[highlighted]:bg-white/10 text-white"
-                        >
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white ${stage.color}`}>
-                            {stage.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                  {/* Agendamento com Data + Hora */}
                 <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300">
                   <div className="flex items-center justify-between p-6">
