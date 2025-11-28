@@ -2237,7 +2237,7 @@ export default function Pipeline() {
 
         {/* Dialog para agendar "Ligar Depois" - Liquid Glass Style */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
+          <DialogContent className="max-w-sm sm:max-w-md rounded-[20px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl shadow-black/20">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-lg sm:text-xl font-semibold text-white">
                 Agendar Ligação
