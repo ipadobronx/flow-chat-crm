@@ -2237,30 +2237,29 @@ export default function Pipeline() {
 
         {/* Dialog para agendar "Ligar Depois" - Liquid Glass Style */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md rounded-2xl border border-border/30 dark:border-white/20 bg-background/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
+          <DialogContent className="max-w-sm sm:max-w-md rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
             <DialogHeader className="text-center pb-4">
-              <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
+              <DialogTitle className="text-lg sm:text-xl font-semibold text-white">
                 Agendar Ligação
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+              <DialogDescription className="text-xs sm:text-sm text-white/60">
                 Selecione uma data para criar uma task de ligação
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 sm:space-y-6">
               {leadParaLigarDepois && (
                 <div className="text-center">
-                  <p className="text-xs sm:text-sm text-muted-foreground">Lead:</p>
-                  <p className="font-medium text-base sm:text-lg truncate text-foreground">{leadParaLigarDepois.nome}</p>
+                  <p className="text-xs sm:text-sm text-white/60">Lead:</p>
+                  <p className="font-medium text-base sm:text-lg truncate text-white">{leadParaLigarDepois.nome}</p>
                 </div>
               )}
               
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-foreground">
+                <Label className="text-xs sm:text-sm font-medium text-white">
                   Data *
                 </Label>
                 
                 <LiquidGlassInput
-                  variant="light"
                   type="date"
                   value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
                   onChange={(e) => {
@@ -2272,19 +2271,19 @@ export default function Pipeline() {
                     }
                   }}
                   min={format(new Date(), "yyyy-MM-dd")}
-                  className="w-full h-10 sm:h-12 rounded-2xl"
+                  className="w-full h-10 sm:h-12 rounded-2xl bg-white/10 border-white/30 text-white placeholder:text-white/50 [color-scheme:dark]"
                 />
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label className="text-xs sm:text-sm font-medium text-foreground">
+                <Label className="text-xs sm:text-sm font-medium text-white">
                   Horário *
                 </Label>
                 <Select value={horarioAgendamento} onValueChange={setHorarioAgendamento}>
-                  <SelectTrigger className="w-full h-10 sm:h-12 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground">
+                  <SelectTrigger className="w-full h-10 sm:h-12 rounded-2xl border border-white/30 bg-white/10 backdrop-blur-md text-white">
                     <SelectValue placeholder="Selecione um horário" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-background/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
+                  <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
                     {[
                       "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
                       "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
@@ -2294,7 +2293,7 @@ export default function Pipeline() {
                       <SelectItem 
                         key={time} 
                         value={time}
-                        className="text-foreground focus:bg-border/20 dark:focus:bg-white/10 focus:text-foreground"
+                        className="text-white focus:bg-white/10 focus:text-white"
                       >
                         {time}
                       </SelectItem>
@@ -2304,7 +2303,7 @@ export default function Pipeline() {
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-foreground">
+                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-white">
                   Observações
                 </Label>
                 <LiquidGlassTextarea
@@ -2313,7 +2312,7 @@ export default function Pipeline() {
                   value={observacoesAgendamento}
                   onChange={(e) => setObservacoesAgendamento(e.target.value)}
                   rows={3}
-                  className="rounded-2xl text-sm"
+                  className="rounded-2xl text-sm bg-white/10 border-white/30 text-white placeholder:text-white/50"
                 />
               </div>
 
@@ -2327,7 +2326,7 @@ export default function Pipeline() {
                     setHorarioAgendamento("");
                     setObservacoesAgendamento("");
                   }}
-                  className="w-full sm:flex-1 h-10 sm:h-12 px-6 rounded-full border border-border/40 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-border/20 dark:hover:bg-white/20 transition-all duration-300"
+                  className="w-full sm:flex-1 h-10 sm:h-12 px-6 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-all duration-300"
                 >
                   Cancelar
                 </button>
