@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import LiquidGlassInput from "@/components/ui/liquid-input";
 import { Label } from "@/components/ui/label";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
-import { CalendarIcon, Clock, Calendar as CalendarGoogleIcon, ListTodo } from "lucide-react";
-import { format, addDays } from "date-fns";
+import { CalendarIcon, Clock, ListTodo } from "lucide-react";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +23,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface AgendarLigacaoProps {
@@ -104,37 +110,37 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full">
-          <Clock className="h-4 w-4 mr-2" />
+        <button className="w-full h-9 px-4 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-colors flex items-center justify-center gap-2 text-sm">
+          <Clock className="h-4 w-4" />
           Agendar Ligação
-        </Button>
+        </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle>Agendar Ligação</DialogTitle>
+          <DialogTitle className="text-white">Agendar Ligação</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium">Lead</Label>
-            <p className="text-sm text-muted-foreground">{leadNome}</p>
+            <Label className="text-sm font-medium text-white/70">Lead</Label>
+            <p className="text-sm text-white">{leadNome}</p>
           </div>
 
           <div className="space-y-2">
-            <Label>Data</Label>
+            <Label className="text-white/70">Data</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
+                <button
                   className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
+                    "w-full h-10 px-4 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md text-left flex items-center gap-2 transition-colors hover:bg-white/20",
+                    !selectedDate && "text-white/50",
+                    selectedDate && "text-white"
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4 text-white/70" />
                   {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
-                </Button>
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl" align="start">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -148,44 +154,49 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
           </div>
 
           <div className="space-y-2">
-            <Label>Horário</Label>
-            <select
-              value={selectedTime}
-              onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Selecione um horário</option>
-              {timeOptions.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
+            <Label className="text-white/70">Horário</Label>
+            <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <SelectTrigger className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md text-white">
+                <SelectValue placeholder="Selecione um horário" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
+                {timeOptions.map((time) => (
+                  <SelectItem 
+                    key={time} 
+                    value={time}
+                    className="text-white/90 focus:bg-white/10 focus:text-white"
+                  >
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Observações (opcional)</Label>
+            <Label className="text-white/70">Observações (opcional)</Label>
             <LiquidGlassTextarea
               placeholder="Observações sobre a ligação..."
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
-              className="min-h-[80px]"
+              className="min-h-[80px] text-white placeholder:text-white/50"
             />
           </div>
 
           {/* Opção de criar tarefa no Google Tasks */}
           {isConnected && (
-            <div className="flex items-center space-x-2 pt-2 border-t">
+            <div className="flex items-center space-x-2 pt-2 border-t border-white/10">
               <Checkbox 
                 id="create-task" 
                 checked={createTask}
                 onCheckedChange={(checked) => setCreateTask(checked === true)}
+                className="border-white/30 data-[state=checked]:bg-[#d4ff4a] data-[state=checked]:border-[#d4ff4a] data-[state=checked]:text-black"
               />
               <div className="flex items-center gap-2">
-                <ListTodo className="h-4 w-4 text-muted-foreground" />
+                <ListTodo className="h-4 w-4 text-white/70" />
                 <Label 
                   htmlFor="create-task" 
-                  className="text-sm font-normal cursor-pointer"
+                  className="text-sm font-normal cursor-pointer text-white/70"
                 >
                   Criar também no Google Tasks
                 </Label>
@@ -193,20 +204,21 @@ export function AgendarLigacao({ leadId, leadNome, onAgendamentoCriado }: Agenda
             </div>
           )}
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              variant="outline"
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
               onClick={() => setIsOpen(false)}
               disabled={isLoading}
+              className="h-10 px-6 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 transition-colors disabled:opacity-50"
             >
               Cancelar
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={handleAgendar}
               disabled={isLoading || !selectedDate || !selectedTime}
+              className="h-10 px-6 rounded-full bg-[#d4ff4a] text-black font-medium hover:bg-[#c9f035] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Agendando..." : "Agendar"}
-            </Button>
+            </button>
           </div>
         </div>
       </DialogContent>

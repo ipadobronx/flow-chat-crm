@@ -234,8 +234,37 @@ export default function TAPresentation() {
           origem: 'ta'
         });
 
-      // Se for "Ligar Depois" ou "OI" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
-      if ((selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && agendamentoDate && agendamentoTime) {
+      // Se for "Ligar Depois" e tem data de agendamento, criar TASK no Google Tasks
+      if (selectedEtapa === "Ligar Depois" && agendamentoDate && agendamentoTime) {
+        // Combinar data e horário para a task
+        const [hours, minutes] = agendamentoTime.split(':');
+        const dataCompleta = new Date(agendamentoDate);
+        dataCompleta.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+        // Atualizar o lead com data_callback
+        await supabase
+          .from("leads")
+          .update({
+            data_callback: dataCompleta.toISOString()
+          })
+          .eq("id", currentLead.id);
+
+        // Criar Google Task diretamente (sem criar agendamento)
+        if (googleCalendar.isConnected) {
+          try {
+            await googleCalendar.createTaskAsync({
+              title: `Ligar para ${currentLead.nome}`,
+              notes: observacoes ? `${observacoes}\n\nHorário: ${agendamentoTime}` : `Horário: ${agendamentoTime}`,
+              dueDate: format(dataCompleta, 'yyyy-MM-dd')
+            });
+          } catch (error) {
+            console.error('Erro ao criar task no Google:', error);
+          }
+        }
+      }
+
+      // Se for "OI" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
+      if (selectedEtapa === "OI" && agendamentoDate && agendamentoTime) {
         // Combinar data e horário
         const [hours, minutes] = agendamentoTime.split(':');
         const dataCompleta = new Date(agendamentoDate);
