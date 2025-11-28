@@ -194,7 +194,7 @@ export default function TAPresentation() {
       const etapaMapping: { [key: string]: TAActionType } = {
         "Não atendido": "NAO_ATENDIDO",
         "Ligar Depois": "LIGAR_DEPOIS",
-        "Marcar": "MARCAR",
+        "Marcar no Whatsapp": "MARCAR",
         "OI": "OI",
         "Não Tem Interesse": "NAO_TEM_INTERESSE"
       };
@@ -206,8 +206,12 @@ export default function TAPresentation() {
         await recordTAAction(currentLead.id, taAction);
       }
 
-      // Mapear "Não Tem Interesse" para a etapa "Não" do pipeline
-      const etapaPipeline = selectedEtapa === "Não Tem Interesse" ? "Não" : selectedEtapa;
+      // Mapear labels de exibição para valores do banco de dados
+      const etapaDatabaseMapping: { [key: string]: string } = {
+        "Não Tem Interesse": "Não",
+        "Marcar no Whatsapp": "Marcar"
+      };
+      const etapaPipeline = etapaDatabaseMapping[selectedEtapa] || selectedEtapa;
 
       // Atualizar etapa do lead
       await supabase
@@ -366,7 +370,7 @@ export default function TAPresentation() {
   };
 
   
-  const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar", "OI", "Não Tem Interesse"];
+  const etapasOptions = ["Não atendido", "Ligar Depois", "Marcar no Whatsapp", "OI", "Não Tem Interesse"];
 
   const getLeadImageUrl = (leadName: string) => {
     // Generate different Unsplash images based on lead name
