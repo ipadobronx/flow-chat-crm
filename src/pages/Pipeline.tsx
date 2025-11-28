@@ -934,24 +934,13 @@ export default function Pipeline() {
 
       if (leadError) throw leadError;
 
-      // 2. Criar o agendamento e sincronizar com Google Calendar automaticamente
-      const { data: agendamentoData, error: agendamentoError } = await supabase
-        .from('agendamentos_ligacoes')
-        .insert({
-          user_id: user.id,
-          lead_id: leadParaLigarDepois.id,
-          data_agendamento: dataCompleta.toISOString(),
-          observacoes: observacoesAgendamento || null,
-          status: 'pendente'
-        })
-        .select()
-        .single();
-
-      if (agendamentoError) throw agendamentoError;
-
-      // 3. Sincronizar com Google Calendar se conectado
-      if (googleCalendar.isConnected && agendamentoData) {
-        googleCalendar.syncAgendamento(agendamentoData.id);
+      // 2. Criar Task no Google Tasks (não agendamento)
+      if (googleCalendar.isConnected) {
+        await googleCalendar.createTaskAsync({
+          title: `Ligar para ${leadParaLigarDepois.nome}`,
+          notes: observacoesAgendamento || undefined,
+          dueDate: dataCompleta.toISOString()
+        });
       }
 
       // 4. Atualizar estado local
@@ -967,8 +956,8 @@ export default function Pipeline() {
       ));
 
       toast({
-        title: "✅ Agendado com sucesso!",
-        description: `Ligação para ${leadParaLigarDepois.nome} agendada para ${format(dataCompleta, "dd/MM/yyyy 'às' HH:mm")}${googleCalendar.isConnected ? ' e sincronizado com Google Calendar!' : ''}`,
+        title: "✅ Task criada com sucesso!",
+        description: `Task de ligação para ${leadParaLigarDepois.nome} criada para ${format(dataCompleta, "dd/MM/yyyy 'às' HH:mm")}${googleCalendar.isConnected ? ' no Google Tasks!' : ''}`,
       });
 
       // 5. Manter as informações no popup (não resetar)
@@ -2246,27 +2235,27 @@ export default function Pipeline() {
           />
         )}
 
-        {/* Dialog para agendar "Ligar Depois" */}
+        {/* Dialog para agendar "Ligar Depois" - Liquid Glass Style */}
         <Dialog open={showLigarDepoisDialog} onOpenChange={setShowLigarDepoisDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md border-0 shadow-xl">
+          <DialogContent className="max-w-sm sm:max-w-md rounded-2xl border border-border/30 dark:border-white/20 bg-background/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-lg sm:text-xl font-semibold text-foreground">
                 Agendar Ligação
               </DialogTitle>
-              <DialogDescription className={`text-xs sm:text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>
-                Selecione uma data para agendar a ligação com este lead
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+                Selecione uma data para criar uma task de ligação
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 sm:space-y-6">
               {leadParaLigarDepois && (
                 <div className="text-center">
-                  <p className={`text-xs sm:text-sm ${isTablet ? 'text-white/70' : 'text-black'}`}>Lead:</p>
-                  <p className="font-medium text-base sm:text-lg truncate">{leadParaLigarDepois.nome}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Lead:</p>
+                  <p className="font-medium text-base sm:text-lg truncate text-foreground">{leadParaLigarDepois.nome}</p>
                 </div>
               )}
               
               <div className="space-y-2 sm:space-y-3">
-                <Label className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
+                <Label className="text-xs sm:text-sm font-medium text-foreground">
                   Data *
                 </Label>
                 
@@ -2274,45 +2263,48 @@ export default function Pipeline() {
                   variant="light"
                   type="date"
                   value={dataAgendamento ? format(dataAgendamento, "yyyy-MM-dd") : ""}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    // Parse a string no formato yyyy-MM-dd e cria uma data local
-                    const [year, month, day] = e.target.value.split('-').map(Number);
-                    setDataAgendamento(new Date(year, month - 1, day));
-                  } else {
-                    setDataAgendamento(undefined);
-                  }
-                }}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const [year, month, day] = e.target.value.split('-').map(Number);
+                      setDataAgendamento(new Date(year, month - 1, day));
+                    } else {
+                      setDataAgendamento(undefined);
+                    }
+                  }}
                   min={format(new Date(), "yyyy-MM-dd")}
-                  className="w-full h-10 sm:h-12 border-2 rounded-lg sm:rounded-xl transition-all duration-200 focus:border-primary/50"
+                  className="w-full h-10 sm:h-12 rounded-2xl"
                 />
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
+                <Label className="text-xs sm:text-sm font-medium text-foreground">
                   Horário *
                 </Label>
-                <select
-                  value={horarioAgendamento}
-                  onChange={(e) => setHorarioAgendamento(e.target.value)}
-                  className="w-full h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 bg-background px-3 transition-all duration-200 focus:border-primary/50"
-                >
-                  <option value="">Selecione um horário</option>
-                  {[
-                    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-                    "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-                    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-                    "17:00", "17:30", "18:00"
-                  ].map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
+                <Select value={horarioAgendamento} onValueChange={setHorarioAgendamento}>
+                  <SelectTrigger className="w-full h-10 sm:h-12 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground">
+                    <SelectValue placeholder="Selecione um horário" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-background/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
+                    {[
+                      "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                      "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                      "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                      "17:00", "17:30", "18:00"
+                    ].map((time) => (
+                      <SelectItem 
+                        key={time} 
+                        value={time}
+                        className="text-foreground focus:bg-border/20 dark:focus:bg-white/10 focus:text-foreground"
+                      >
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2 sm:space-y-3">
-                <Label htmlFor="observacoes-agendamento" className={`text-xs sm:text-sm font-medium ${isTablet ? 'text-white' : 'text-black'}`}>
+                <Label htmlFor="observacoes-agendamento" className="text-xs sm:text-sm font-medium text-foreground">
                   Observações
                 </Label>
                 <LiquidGlassTextarea
@@ -2321,13 +2313,13 @@ export default function Pipeline() {
                   value={observacoesAgendamento}
                   onChange={(e) => setObservacoesAgendamento(e.target.value)}
                   rows={3}
-                  className="border-2 rounded-lg sm:rounded-xl focus:border-primary/50 transition-colors text-sm"
+                  className="rounded-2xl text-sm"
                 />
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => {
                     setShowLigarDepoisDialog(false);
                     setLeadParaLigarDepois(null);
@@ -2335,17 +2327,18 @@ export default function Pipeline() {
                     setHorarioAgendamento("");
                     setObservacoesAgendamento("");
                   }}
-                  className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl border-2 hover:bg-muted/50 transition-all duration-200"
+                  className="w-full sm:flex-1 h-10 sm:h-12 px-6 rounded-full border border-border/40 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-border/20 dark:hover:bg-white/20 transition-all duration-300"
                 >
                   Cancelar
-                </Button>
-                <Button
+                </button>
+                <button
+                  type="button"
                   onClick={handleConfirmarLigarDepois}
                   disabled={!dataAgendamento || !horarioAgendamento}
-                  className="w-full sm:flex-1 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:flex-1 h-10 sm:h-12 px-6 rounded-full bg-[#d4ff4a] text-black font-medium hover:bg-[#c9f035] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Agendar
-                </Button>
+                </button>
               </div>
             </div>
           </DialogContent>
