@@ -2,11 +2,17 @@ import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import LiquidGlassTextarea from "@/components/ui/liquid-textarea";
 import { CalendarIcon, ListTodo, Loader2 } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
@@ -161,15 +167,15 @@ export function AgendamentoPopup({
               key={dayNum + weekLabel}
               type="button"
               className={cn(
-                "text-center p-2 sm:p-3 rounded-2xl transition-all duration-200",
+                "text-center p-2 sm:p-3 rounded-2xl transition-all duration-200 border backdrop-blur-md",
                 isSelected
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
+                  ? "bg-[#d4ff4a] text-black border-[#d4ff4a]"
+                  : "bg-border/10 dark:bg-white/10 border-border/40 dark:border-white/20 text-foreground hover:bg-border/20 dark:hover:bg-white/20"
               )}
               onClick={() => setSelectedDate(date)}
             >
               <div className="font-medium text-sm">{dayNum}</div>
-              <div className="text-xs capitalize">{weekLabel}</div>
+              <div className="text-xs capitalize opacity-70">{weekLabel}</div>
             </button>
           ))}
         </div>
@@ -204,21 +210,25 @@ export function AgendamentoPopup({
         </div>
       </div>
 
-      {/* Time selection */}
+      {/* Time selection - Liquid Glass Select */}
       <div>
         <Label className="text-sm mb-2 block">Horário</Label>
-        <select
-          value={selectedTime}
-          onChange={(e) => setSelectedTime(e.target.value)}
-          className="w-full h-10 rounded-xl border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
-        >
-          <option value="">Selecione um horário</option>
-          {timeOptions.map((time) => (
-            <option key={time} value={time}>
-              {time}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedTime} onValueChange={setSelectedTime}>
+          <SelectTrigger className="w-full h-10 rounded-2xl border border-border/40 dark:border-white/30 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground shadow-md transition-all duration-300 hover:bg-border/15 dark:hover:bg-white/15 focus:ring-2 focus:ring-primary/50">
+            <SelectValue placeholder="Selecione um horário" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl border border-border/30 dark:border-white/20 bg-background/95 dark:bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
+            {timeOptions.map((time) => (
+              <SelectItem 
+                key={time} 
+                value={time}
+                className="text-foreground focus:bg-border/20 dark:focus:bg-white/10 focus:text-foreground rounded-xl"
+              >
+                {time}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Observations */}
@@ -252,30 +262,31 @@ export function AgendamentoPopup({
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Action buttons - Liquid Glass style */}
       <div className="flex gap-3 pt-2">
-        <Button
-          variant="outline"
+        <button
+          type="button"
           onClick={() => onOpenChange(false)}
           disabled={isLoading}
-          className="flex-1"
+          className="flex-1 h-10 px-6 rounded-full border border-border/40 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-foreground hover:bg-border/20 dark:hover:bg-white/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancelar
-        </Button>
-        <Button
+        </button>
+        <button
+          type="button"
           onClick={handleAgendar}
           disabled={isLoading || !selectedDate || !selectedTime}
-          className="flex-1 bg-[#d4ff4a] text-black hover:bg-[#c9f035]"
+          className="flex-1 h-10 px-6 rounded-full bg-[#d4ff4a] text-black font-medium hover:bg-[#c9f035] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="h-4 w-4 animate-spin" />
               Agendando...
             </>
           ) : (
             "Agendar"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );
