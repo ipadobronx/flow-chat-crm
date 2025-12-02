@@ -72,7 +72,7 @@ export function EtapaAnalysisChart({ startDate, endDate, profissaoFilter }: Prop
   const etapaOptions: FilterOption[] = useMemo(() => {
     if (!etapaData) return [];
     return etapaData
-      .filter(e => e.total > 0)
+      .filter(e => e.total > 0 && e.etapa && e.etapa.trim() !== '')
       .map(e => ({
         value: e.etapa,
         label: ETAPA_DISPLAY_NAMES[e.etapa] || e.etapa,

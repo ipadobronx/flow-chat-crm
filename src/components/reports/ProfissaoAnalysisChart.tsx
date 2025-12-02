@@ -64,7 +64,7 @@ export function ProfissaoAnalysisChart({ startDate, endDate, etapaFilter }: Prop
   const profissaoOptions: FilterOption[] = useMemo(() => {
     if (!profissaoData) return [];
     return profissaoData
-      .filter(p => p.total > 0)
+      .filter(p => p.total > 0 && p.profissao && p.profissao.trim() !== '')
       .slice(0, 15)
       .map((p, idx) => ({
         value: p.profissao,
