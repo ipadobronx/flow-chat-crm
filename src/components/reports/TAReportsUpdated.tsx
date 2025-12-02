@@ -12,11 +12,14 @@ import { TAMetricCardGlass } from "./TAMetricCardGlass";
 import { DonutChart, DonutChartSegment } from "@/components/ui/donut-chart";
 import { TAComparisonChart } from "./TAComparisonChart";
 import TADynamicChart from "./TADynamicChart";
+import { ProfissaoAnalysisChart } from "./ProfissaoAnalysisChart";
+import { EtapaAnalysisChart } from "./EtapaAnalysisChart";
 import { format, subDays } from "date-fns";
 import { RefreshCw, Target } from "lucide-react";
 import { toast } from "sonner";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
+import { TA_METRIC_COLORS } from "@/lib/stageColors";
 
 interface TAMetrics {
   total_contactados: number;
@@ -44,24 +47,6 @@ interface ChartDataPoint {
   oi: number;
   naoTemInteresse: number;
 }
-
-// Cores das etapas do funil (Pipeline)
-const STAGE_COLORS = {
-  contactados: "bg-blue-500",
-  naoAtendido: "bg-zinc-500",
-  ligarDepois: "bg-red-600",
-  marcar: "bg-orange-500",
-  naoTemInteresse: "bg-purple-500",
-  oi: "bg-indigo-500",
-};
-
-const DONUT_COLORS = {
-  naoAtendido: "#71717a", // zinc-500
-  ligarDepois: "#dc2626", // red-600
-  marcar: "#f97316", // orange-500
-  naoTemInteresse: "#a855f7", // purple-500
-  oi: "#6366f1", // indigo-500
-};
 
 export function TAReportsUpdated() {
   const { user } = useAuth();
@@ -243,11 +228,11 @@ export function TAReportsUpdated() {
 
   // Donut chart data
   const donutData: DonutChartSegment[] = [
-    { value: dashboardData?.nao_atendeu || 0, color: DONUT_COLORS.naoAtendido, label: "Não Atendido" },
-    { value: dashboardData?.ligar_depois || 0, color: DONUT_COLORS.ligarDepois, label: "Ligar Depois" },
-    { value: dashboardData?.marcar_whatsapp || 0, color: DONUT_COLORS.marcar, label: "Marcar WhatsApp" },
-    { value: dashboardData?.nao_tem_interesse || 0, color: DONUT_COLORS.naoTemInteresse, label: "Não Tem Interesse" },
-    { value: dashboardData?.agendados || 0, color: DONUT_COLORS.oi, label: "OI Agendado" },
+    { value: dashboardData?.nao_atendeu || 0, color: TA_METRIC_COLORS.naoAtendido.hex, label: "Não Atendido" },
+    { value: dashboardData?.ligar_depois || 0, color: TA_METRIC_COLORS.ligarDepois.hex, label: "Ligar Depois" },
+    { value: dashboardData?.marcar_whatsapp || 0, color: TA_METRIC_COLORS.marcar.hex, label: "Marcar WhatsApp" },
+    { value: dashboardData?.nao_tem_interesse || 0, color: TA_METRIC_COLORS.naoTemInteresse.hex, label: "Não Tem Interesse" },
+    { value: dashboardData?.agendados || 0, color: TA_METRIC_COLORS.oi.hex, label: "OI Agendado" },
   ];
 
   // Tablet liquid glass classes
@@ -313,7 +298,7 @@ export function TAReportsUpdated() {
           title="Leads Contactados"
           value={dashboardData?.total_contactados || 0}
           previousValue={previousDashboardData?.total_contactados}
-          stageColor={STAGE_COLORS.contactados}
+          stageColor={TA_METRIC_COLORS.contactados.badge}
           isActive={activeCard === 'leadsContactados'}
           onClick={() => setActiveCard('leadsContactados')}
         />
@@ -321,7 +306,7 @@ export function TAReportsUpdated() {
           title="Não Atendido"
           value={dashboardData?.nao_atendeu || 0}
           previousValue={previousDashboardData?.nao_atendeu}
-          stageColor={STAGE_COLORS.naoAtendido}
+          stageColor={TA_METRIC_COLORS.naoAtendido.badge}
           isActive={activeCard === 'naoAtendido'}
           onClick={() => setActiveCard('naoAtendido')}
         />
@@ -329,7 +314,7 @@ export function TAReportsUpdated() {
           title="Ligar Depois"
           value={dashboardData?.ligar_depois || 0}
           previousValue={previousDashboardData?.ligar_depois}
-          stageColor={STAGE_COLORS.ligarDepois}
+          stageColor={TA_METRIC_COLORS.ligarDepois.badge}
           isActive={activeCard === 'ligarDepois'}
           onClick={() => setActiveCard('ligarDepois')}
         />
@@ -337,7 +322,7 @@ export function TAReportsUpdated() {
           title="Marcar no WhatsApp"
           value={dashboardData?.marcar_whatsapp || 0}
           previousValue={previousDashboardData?.marcar_whatsapp}
-          stageColor={STAGE_COLORS.marcar}
+          stageColor={TA_METRIC_COLORS.marcar.badge}
           isActive={activeCard === 'marcarWhatsapp'}
           onClick={() => setActiveCard('marcarWhatsapp')}
         />
@@ -345,7 +330,7 @@ export function TAReportsUpdated() {
           title="Não Tem Interesse"
           value={dashboardData?.nao_tem_interesse || 0}
           previousValue={previousDashboardData?.nao_tem_interesse}
-          stageColor={STAGE_COLORS.naoTemInteresse}
+          stageColor={TA_METRIC_COLORS.naoTemInteresse.badge}
           isActive={activeCard === 'naoTemInteresse'}
           onClick={() => setActiveCard('naoTemInteresse')}
         />
@@ -353,7 +338,7 @@ export function TAReportsUpdated() {
           title="OI Agendado"
           value={dashboardData?.agendados || 0}
           previousValue={previousDashboardData?.agendados}
-          stageColor={STAGE_COLORS.oi}
+          stageColor={TA_METRIC_COLORS.oi.badge}
           isActive={activeCard === 'resultadoGeral'}
           onClick={() => setActiveCard('resultadoGeral')}
         />
@@ -429,6 +414,18 @@ export function TAReportsUpdated() {
         previousPeriod={previousPeriod}
         periodFilter={periodFilter}
         isLoading={isLoading}
+      />
+
+      {/* Análise por Profissão */}
+      <ProfissaoAnalysisChart
+        startDate={startDate}
+        endDate={endDate}
+      />
+
+      {/* Análise por Etapa do Funil */}
+      <EtapaAnalysisChart
+        startDate={startDate}
+        endDate={endDate}
       />
 
       {/* Efficiency Metrics */}
