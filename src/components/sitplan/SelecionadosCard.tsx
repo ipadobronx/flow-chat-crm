@@ -458,10 +458,9 @@ export function SelecionadosCard() {
       case "Pendência de UW": return "bg-yellow-700";
       case "Apólice Emitida": return "bg-green-500";
       case "Apólice Entregue": return "bg-emerald-500";
-      case "Delay C2": return "bg-cyan-500";
       case "Não": return "bg-gray-500";
       case "Proposta Cancelada": return "bg-red-600";
-      case "Apólice Cancelada": return "bg-red-700";
+      case "Persistência": return "bg-amber-600";
       default: return "bg-gray-500";
     }
   };

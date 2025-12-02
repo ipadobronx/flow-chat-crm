@@ -344,7 +344,9 @@ export type Database = {
           cidade: string | null
           created_at: string | null
           data_callback: string | null
+          data_emissao_apolice: string | null
           data_nascimento: string | null
+          data_nascimento_filhos: string | null
           data_sitplan: string | null
           dias_na_etapa_atual: number | null
           email: string | null
@@ -358,8 +360,11 @@ export type Database = {
           incluir_sitplan: boolean | null
           incluir_ta: boolean | null
           nome: string
+          nome_esposa: string | null
+          nome_filhos: string | null
           observacoes: string | null
           pa_estimado: string | null
+          pa_valor: string | null
           profissao: string | null
           quantidade_filhos: number | null
           recomendante: string[] | null
@@ -382,7 +387,9 @@ export type Database = {
           cidade?: string | null
           created_at?: string | null
           data_callback?: string | null
+          data_emissao_apolice?: string | null
           data_nascimento?: string | null
+          data_nascimento_filhos?: string | null
           data_sitplan?: string | null
           dias_na_etapa_atual?: number | null
           email?: string | null
@@ -396,8 +403,11 @@ export type Database = {
           incluir_sitplan?: boolean | null
           incluir_ta?: boolean | null
           nome: string
+          nome_esposa?: string | null
+          nome_filhos?: string | null
           observacoes?: string | null
           pa_estimado?: string | null
+          pa_valor?: string | null
           profissao?: string | null
           quantidade_filhos?: number | null
           recomendante?: string[] | null
@@ -420,7 +430,9 @@ export type Database = {
           cidade?: string | null
           created_at?: string | null
           data_callback?: string | null
+          data_emissao_apolice?: string | null
           data_nascimento?: string | null
+          data_nascimento_filhos?: string | null
           data_sitplan?: string | null
           dias_na_etapa_atual?: number | null
           email?: string | null
@@ -434,8 +446,11 @@ export type Database = {
           incluir_sitplan?: boolean | null
           incluir_ta?: boolean | null
           nome?: string
+          nome_esposa?: string | null
+          nome_filhos?: string | null
           observacoes?: string | null
           pa_estimado?: string | null
+          pa_valor?: string | null
           profissao?: string | null
           quantidade_filhos?: number | null
           recomendante?: string[] | null
@@ -1219,6 +1234,7 @@ export type Database = {
         | "Pendência de UW"
         | "Placed"
         | "Proposta Não Apresentada"
+        | "Persistência"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1370,6 +1386,7 @@ export const Constants = {
         "Pendência de UW",
         "Placed",
         "Proposta Não Apresentada",
+        "Persistência",
       ],
     },
   },

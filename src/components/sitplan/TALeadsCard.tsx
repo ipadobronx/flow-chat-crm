@@ -49,10 +49,9 @@ const getEtapaColor = (etapa: string) => {
     case "Pendência de UW": return "bg-yellow-700";
     case "Apólice Emitida": return "bg-green-500";
     case "Apólice Entregue": return "bg-emerald-500";
-    case "Delay C2": return "bg-cyan-500";
     case "Não": return "bg-gray-500";
     case "Proposta Cancelada": return "bg-red-600";
-    case "Apólice Cancelada": return "bg-red-700";
+    case "Persistência": return "bg-amber-600";
     default: return "bg-gray-500";
   }
 };
@@ -271,13 +270,14 @@ export function TALeadsCard() {
     }
   });
 
-  // Remover lead do TA
+  // Remover lead do TA e mover para SitPlan
   const removeFromTA = async (lead: Lead) => {
     try {
       const { error } = await supabase
         .from("leads")
         .update({ 
           incluir_ta: false,
+          incluir_sitplan: true,
           ta_order: null,
           ta_categoria_ativa: null,
           ta_categoria_valor: null
@@ -290,13 +290,13 @@ export function TALeadsCard() {
       await queryClient.invalidateQueries({ queryKey: ["sitplan-selecionados"] });
 
       toast({
-        title: "Lead removido do TA",
-        description: `${lead.nome} foi removido do TA.`,
+        title: "Lead movido para SitPlan",
+        description: `${lead.nome} foi movido para Selecionados para SitPlan.`,
       });
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível remover o lead do TA.",
+        description: "Não foi possível mover o lead para SitPlan.",
         variant: "destructive"
       });
     }

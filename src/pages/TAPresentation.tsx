@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { ParticleTextEffect } from "@/components/ui/particle-text-effect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +18,31 @@ import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { Play, Save, ArrowLeft, CalendarIcon, Pause, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+
+const getEtapaColor = (etapa: string) => {
+  switch (etapa) {
+    case "Todos": return "bg-blue-500";
+    case "Novo": return "bg-sky-500";
+    case "TA": return "bg-purple-600";
+    case "Não atendido": return "bg-red-600";
+    case "Ligar Depois": return "bg-yellow-600";
+    case "Marcar": return "bg-green-600";
+    case "OI": return "bg-indigo-500";
+    case "Delay OI": return "bg-yellow-500";
+    case "PC": return "bg-orange-500";
+    case "Delay PC": return "bg-red-500";
+    case "Analisando Proposta": return "bg-orange-600";
+    case "N": return "bg-purple-500";
+    case "Proposta Não Apresentada": return "bg-gray-600";
+    case "Pendência de UW": return "bg-yellow-700";
+    case "Apólice Emitida": return "bg-green-500";
+    case "Apólice Entregue": return "bg-emerald-500";
+    case "Não": return "bg-gray-500";
+    case "Proposta Cancelada": return "bg-red-600";
+    case "Persistência": return "bg-amber-600";
+    default: return "bg-gray-500";
+  }
+};
 
 type Lead = Tables<"leads">;
 
@@ -536,8 +562,10 @@ export default function TAPresentation() {
                   </div>
                   
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Etapa</span>
-                    <p className="text-white/90">{currentLead.etapa}</p>
+                    <span className="text-white/70 font-medium text-xs">Etapa Anterior</span>
+                    <Badge className={`text-white text-xs ${getEtapaColor(currentLead.etapa_antes_ta || currentLead.etapa)}`}>
+                      {currentLead.etapa_antes_ta || currentLead.etapa}
+                    </Badge>
                   </div>
 
                   <div>

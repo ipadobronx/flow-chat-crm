@@ -76,15 +76,14 @@ const stages = [
   { name: "Analisando Proposta", label: "Analisando Proposta", color: "bg-orange-600" },
   { name: "Pendência de UW", label: "Pendência de UW", color: "bg-yellow-700" },
   { name: "C2", label: "C2", color: "bg-pink-500" },
-  { name: "Delay C2", label: "Delay C2", color: "bg-rose-500" },
   { name: "N", label: "N", color: "bg-purple-500" },
-  { name: "Não", label: "Não", color: "bg-gray-500" },
   { name: "Proposta Não Apresentada", label: "Proposta Não Apresentada", color: "bg-gray-600" },
   { name: "Proposta Cancelada", label: "Proposta Cancelada", color: "bg-red-700" },
   { name: "Apólice Emitida", label: "Apólice Emitida", color: "bg-green-500" },
   { name: "Apólice Entregue", label: "Apólice Entregue", color: "bg-emerald-600" },
-  { name: "Apólice Cancelada", label: "Apólice Cancelada", color: "bg-red-800" },
-  { name: "Placed", label: "Placed", color: "bg-teal-500" }
+  { name: "Placed", label: "Placed", color: "bg-teal-500" },
+  { name: "Persistência", label: "Persistência", color: "bg-amber-600" },
+  { name: "Não", label: "Não", color: "bg-gray-500" }
 ] as const;
 
 type Lead = {
@@ -687,6 +686,12 @@ export default function Pipeline() {
           profissao: editingLead.profissao,
           renda_estimada: editingLead.renda_estimada,
           cidade: editingLead.cidade,
+          // Campos de follow-up para Apólice Emitida
+          nome_esposa: (editingLead as any).nome_esposa,
+          nome_filhos: (editingLead as any).nome_filhos,
+          data_nascimento_filhos: (editingLead as any).data_nascimento_filhos,
+          data_emissao_apolice: (editingLead as any).data_emissao_apolice,
+          pa_valor: (editingLead as any).pa_valor,
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingLead.id);
@@ -2021,6 +2026,89 @@ export default function Pipeline() {
                     />
                   </div>
                 </div>
+
+                {/* Campos de Follow-up para Apólice Emitida */}
+                {(editingLead?.etapa === 'Apólice Emitida' || selectedLead.etapa === 'Apólice Emitida') && (
+                  <div className="rounded-2xl border border-border/30 dark:border-white/20 bg-border/10 dark:bg-white/10 backdrop-blur-md text-card-foreground shadow-xl transition-all duration-300 p-6 space-y-4">
+                    <h3 className={`text-2xl font-inter font-normal leading-none tracking-tighter ${isTablet ? 'text-white' : ''}`}>
+                      Dados para Follow-up
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome da Esposa</Label>
+                        <LiquidGlassInput 
+                          variant="light"
+                          value={(editingLead as any)?.nome_esposa || (selectedLead as any).nome_esposa || ""} 
+                          onChange={(e) => {
+                            const updatedLead = { ...(editingLead || selectedLead), nome_esposa: e.target.value } as any;
+                            setEditingLead(updatedLead);
+                            setHasUnsavedChanges(true);
+                          }}
+                          placeholder="Nome da esposa"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Data Emissão da Apólice</Label>
+                        <LiquidGlassInput 
+                          variant="light"
+                          type="date"
+                          value={(editingLead as any)?.data_emissao_apolice || (selectedLead as any).data_emissao_apolice || ""}
+                          onChange={(e) => {
+                            const updatedLead = { ...(editingLead || selectedLead), data_emissao_apolice: e.target.value } as any;
+                            setEditingLead(updatedLead);
+                            setHasUnsavedChanges(true);
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Nome dos Filhos</Label>
+                        <LiquidGlassInput 
+                          variant="light"
+                          value={(editingLead as any)?.nome_filhos || (selectedLead as any).nome_filhos || ""} 
+                          onChange={(e) => {
+                            const updatedLead = { ...(editingLead || selectedLead), nome_filhos: e.target.value } as any;
+                            setEditingLead(updatedLead);
+                            setHasUnsavedChanges(true);
+                          }}
+                          placeholder="Ex: João, Maria"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>Data Nascimento Filhos</Label>
+                        <LiquidGlassInput 
+                          variant="light"
+                          value={(editingLead as any)?.data_nascimento_filhos || (selectedLead as any).data_nascimento_filhos || ""} 
+                          onChange={(e) => {
+                            const updatedLead = { ...(editingLead || selectedLead), data_nascimento_filhos: e.target.value } as any;
+                            setEditingLead(updatedLead);
+                            setHasUnsavedChanges(true);
+                          }}
+                          placeholder="Ex: 10/03/2010, 25/12/2015"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className={`text-sm ${isTablet ? 'text-white' : 'text-black'}`}>PA - Valor Mensal ou Anual</Label>
+                      <LiquidGlassInput 
+                        variant="light"
+                        value={(editingLead as any)?.pa_valor || (selectedLead as any).pa_valor || ""} 
+                        onChange={(e) => {
+                          const updatedLead = { ...(editingLead || selectedLead), pa_valor: e.target.value } as any;
+                          setEditingLead(updatedLead);
+                          setHasUnsavedChanges(true);
+                        }}
+                        placeholder="Ex: R$ 500,00/mês"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Histórico de Ligações */}
                 <div className="space-y-3">
