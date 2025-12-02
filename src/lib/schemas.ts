@@ -26,8 +26,8 @@ export const updateLeadSchema = z.object({
   etapa: z.enum([
     'Todos', 'Novo', 'TA', 'Não atendido', 'OI', 'Delay OI',
     'PC', 'Delay PC', 'N', 'Apólice Emitida', 'Apólice Entregue',
-    'C2', 'Delay C2', 'Ligar Depois', 'Marcar', 'Não',
-    'Proposta Cancelada', 'Apólice Cancelada', 'Analisando Proposta',
+    'C2', 'Ligar Depois', 'Marcar', 'Não',
+    'Proposta Cancelada', 'Persistência', 'Analisando Proposta',
     'Pendência de UW', 'Placed', 'Proposta Não Apresentada'
   ]).optional(),
 });
@@ -49,8 +49,8 @@ export const updateLeadPartialSchema = z.object({
   etapa: z.enum([
     'Todos', 'Novo', 'TA', 'Não atendido', 'OI', 'Delay OI',
     'PC', 'Delay PC', 'N', 'Apólice Emitida', 'Apólice Entregue',
-    'C2', 'Delay C2', 'Ligar Depois', 'Marcar', 'Não',
-    'Proposta Cancelada', 'Apólice Cancelada', 'Analisando Proposta',
+    'C2', 'Ligar Depois', 'Marcar', 'Não',
+    'Proposta Cancelada', 'Persistência', 'Analisando Proposta',
     'Pendência de UW', 'Placed', 'Proposta Não Apresentada'
   ]).optional(),
   created_at: z.string().datetime().optional(),
