@@ -88,13 +88,15 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all ${
         isDragging ? "opacity-50 shadow-lg scale-95" : "hover:shadow-sm"
       }`}
     >
-      <div className="flex items-center gap-3 flex-1">
+      <div 
+        className="flex items-center gap-3 flex-1 cursor-grab"
+        {...attributes}
+        {...listeners}
+      >
         <div className="flex-1 min-w-0">
           <div className="mb-2">
             <h4 className="font-medium text-sm truncate text-white">{lead.nome}</h4>
@@ -130,11 +132,17 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-1">
+      <div 
+        className="flex items-center gap-1"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onRemove(lead)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(lead);
+          }}
           className="text-white/70 hover:text-destructive hover:bg-white/10"
           title="Remover do TA"
         >
