@@ -75,10 +75,10 @@ const navItems = [
     description: "Leads selecionados"
   },
   {
-    title: "Relatório do TA",
+    title: "Dashboard",
     url: "/dashboard/reports",
     icon: BarChart,
-    description: "Histórico de mudanças"
+    description: "Métricas e análises"
   },
   {
     title: "Configurações",
