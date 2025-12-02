@@ -289,14 +289,14 @@ export default function TAPresentation() {
         }
       }
 
-      // Se for "OI" e tem data de agendamento, criar agendamento e sincronizar com Google Calendar
+      // Se for "OI" e tem data de agendamento, criar TASK no Google Tasks (não evento de calendário)
       if (selectedEtapa === "OI" && agendamentoDate && agendamentoTime) {
         // Combinar data e horário
         const [hours, minutes] = agendamentoTime.split(':');
         const dataCompleta = new Date(agendamentoDate);
         dataCompleta.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-        // Atualizar o lead com data_callback para sincronizar com o popup
+        // Atualizar o lead com data_callback
         await supabase
           .from("leads")
           .update({
@@ -304,22 +304,17 @@ export default function TAPresentation() {
           })
           .eq("id", currentLead.id);
 
-        // Criar agendamento
-        const { data: agendamentoData } = await supabase
-          .from("agendamentos_ligacoes")
-          .insert({
-            lead_id: currentLead.id,
-            data_agendamento: dataCompleta.toISOString(),
-            observacoes: observacoes,
-            user_id: currentLead.user_id,
-            status: 'pendente'
-          })
-          .select()
-          .single();
-
-        // Sincronizar com Google Calendar se conectado
-        if (googleCalendar.isConnected && agendamentoData) {
-          googleCalendar.syncAgendamento(agendamentoData.id);
+        // Criar Google Task (não calendário) no TA
+        if (googleCalendar.isConnected) {
+          try {
+            await googleCalendar.createTaskAsync({
+              title: `OI - ${currentLead.nome}`,
+              notes: observacoes ? `${observacoes}\n\nHorário: ${agendamentoTime}` : `Horário: ${agendamentoTime}`,
+              dueDate: format(dataCompleta, 'yyyy-MM-dd')
+            });
+          } catch (error) {
+            console.error('Erro ao criar task no Google:', error);
+          }
         }
       }
 
