@@ -273,9 +273,15 @@ export function TALeadsCard() {
   // Remover lead do TA e mover para SitPlan
   const removeFromTA = async (lead: Lead) => {
     try {
+      // Restaurar etapa original se existir
+      const etapaOriginal = lead.etapa_antes_ta || lead.etapa;
+      
       const { error } = await supabase
         .from("leads")
         .update({ 
+          etapa: etapaOriginal === 'TA' ? 'Novo' : etapaOriginal,
+          etapa_antes_ta: null,
+          etapa_changed_at: new Date().toISOString(),
           incluir_ta: false,
           incluir_sitplan: true,
           ta_order: null,
