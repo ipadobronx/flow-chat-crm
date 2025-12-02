@@ -55,23 +55,25 @@ export function FilterSelect({
           >
             Todos
           </SelectItem>
-          {options.map((option) => (
-            <SelectItem 
-              key={option.value} 
-              value={option.value}
-              className="text-white hover:bg-white/10 focus:bg-white/10 rounded-lg"
-            >
-              <div className="flex items-center gap-2">
-                {option.color && (
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full shrink-0" 
-                    style={{ backgroundColor: option.color }}
-                  />
-                )}
-                <span>{option.label}</span>
-              </div>
-            </SelectItem>
-          ))}
+          {options
+            .filter(option => option.value && option.value.trim() !== '')
+            .map((option) => (
+              <SelectItem 
+                key={option.value} 
+                value={option.value}
+                className="text-white hover:bg-white/10 focus:bg-white/10 rounded-lg"
+              >
+                <div className="flex items-center gap-2">
+                  {option.color && (
+                    <div 
+                      className="w-2.5 h-2.5 rounded-full shrink-0" 
+                      style={{ backgroundColor: option.color }}
+                    />
+                  )}
+                  <span>{option.label}</span>
+                </div>
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>
