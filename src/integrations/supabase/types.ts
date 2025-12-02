@@ -1064,66 +1064,27 @@ export type Database = {
           virou_pc: number
         }[]
       }
-      get_metrics_by_etapa:
-        | {
-            Args: {
-              p_end_date: string
-              p_start_date: string
-              p_user_id: string
-            }
-            Returns: {
-              etapa: string
-              percentual: number
-              total: number
-            }[]
-          }
-        | {
-            Args: {
-              p_end_date: string
-              p_start_date: string
-              p_user_id: string
-            }
-            Returns: {
-              etapa: string
-              percentual: number
-              total: number
-            }[]
-          }
-      get_metrics_by_profissao:
-        | {
-            Args: {
-              p_end_date: string
-              p_start_date: string
-              p_user_id: string
-            }
-            Returns: {
-              apolice_emitida: number
-              ligar_depois: number
-              marcar_whatsapp: number
-              nao_atendido: number
-              oi: number
-              pc: number
-              profissao: string
-              total: number
-            }[]
-          }
-        | {
-            Args: {
-              p_end_date: string
-              p_start_date: string
-              p_user_id: string
-            }
-            Returns: {
-              apolice_emitida: number
-              ligar_depois: number
-              marcar_whatsapp: number
-              nao_atendido: number
-              oi: number
-              pc: number
-              profissao: string
-              total: number
-            }[]
-          }
+      get_metrics_by_etapa: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          etapa: string
+          percentual: number
+          total: number
+        }[]
+      }
+      get_metrics_by_profissao: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: {
+          apolice_emitida: number
+          ligar_depois: number
+          marcar_whatsapp: number
+          nao_atendido: number
+          oi: number
+          pc: number
+          profissao: string
+          total: number
+        }[]
+      }
       get_scheduled_calls: {
         Args: { p_data?: string; p_user_id: string }
         Returns: {
