@@ -2,7 +2,17 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SitPlanLeadsTable } from "@/components/sitplan/SitPlanLeadsTable";
 import { TALeadsCard } from "@/components/sitplan/TALeadsCard";
 import { SelecionadosCard } from "@/components/sitplan/SelecionadosCard";
-import { DndContext, closestCenter, DragEndEvent, DragStartEvent, DragOverEvent } from "@dnd-kit/core";
+import { 
+  DndContext, 
+  closestCenter, 
+  DragEndEvent, 
+  DragStartEvent, 
+  DragOverEvent,
+  TouchSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { useState } from "react";
 import { useIsTablet } from "@/hooks/use-tablet";
 import { cn } from "@/lib/utils";
@@ -11,6 +21,22 @@ export default function SitPlan() {
   const { isTablet } = useIsTablet();
   const [dragEndEvent, setDragEndEvent] = useState<any>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Sensores otimizados para touch (iPad) e mouse
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 150, // Pequeno delay para distinguir scroll de drag
+      tolerance: 8, // Tolerância de movimento durante o delay
+    },
+  });
+
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: {
+      distance: 8, // Para mouse/desktop
+    },
+  });
+
+  const sensors = useSensors(touchSensor, pointerSensor);
 
   const handleDragStart = (event: DragStartEvent) => {
     console.log('🎯 SitPlan: Drag iniciado:', event);
@@ -43,6 +69,7 @@ export default function SitPlan() {
   return (
     <DashboardLayout>
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}

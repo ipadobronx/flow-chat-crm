@@ -79,21 +79,28 @@ function TAItem({ lead, onRemove, isHierarchyMode = false }: {
     },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: isDragging 
+      ? 'none' // Sem delay durante o arraste
+      : 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)', // Animação suave ao soltar
+    touchAction: 'manipulation', // Previne zoom/scroll durante drag
+    willChange: isDragging ? 'transform' : 'auto',
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all ${
-        isDragging ? "opacity-50 shadow-lg scale-95" : "hover:shadow-sm"
+      className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md transition-all select-none ${
+        isDragging 
+          ? "opacity-90 shadow-2xl scale-[1.02] ring-2 ring-purple-500/50 z-50" 
+          : "hover:bg-white/15 hover:shadow-sm"
       }`}
     >
       <div 
-        className="flex items-center gap-3 flex-1 cursor-grab"
+        className="flex items-center gap-3 flex-1 cursor-grab active:cursor-grabbing"
+        style={{ touchAction: 'manipulation' }}
         {...attributes}
         {...listeners}
       >
