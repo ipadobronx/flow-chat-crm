@@ -504,7 +504,114 @@ export function convertImportedData(data: any[][], mappings: FieldMapping[]): an
     });
     
     return convertedRow;
-  }).filter(row => row.nome); // Filtrar apenas registros com nome
+  });
+}
+
+// Nova função que retorna dados com diagnóstico de rejeição
+export interface ImportDiagnostics {
+  totalOriginal: number;
+  totalWithName: number;
+  totalEmpty: number;
+  rejectedByReason: {
+    noNameMapped: number;
+    emptyName: number;
+    shortName: number;
+  };
+  rejectedRows: Array<{
+    rowIndex: number;
+    reason: string;
+    originalData: Record<string, any>;
+  }>;
+}
+
+export function convertImportedDataWithDiagnostics(
+  data: any[][],
+  mappings: FieldMapping[]
+): { convertedData: any[]; diagnostics: ImportDiagnostics } {
+  const diagnostics: ImportDiagnostics = {
+    totalOriginal: data.length,
+    totalWithName: 0,
+    totalEmpty: 0,
+    rejectedByReason: {
+      noNameMapped: 0,
+      emptyName: 0,
+      shortName: 0
+    },
+    rejectedRows: []
+  };
+
+  // Verificar se há mapeamento para 'nome'
+  const nomeMapping = mappings.find(m => m.targetField === 'nome');
+  const nomeColumnIndex = nomeMapping ? mappings.indexOf(nomeMapping) : -1;
+
+  const convertedData = data.map((row, rowIndex) => {
+    const convertedRow: any = { _originalRowIndex: rowIndex + 2 }; // +2 para contar header e 0-index
+    
+    mappings.forEach((mapping, index) => {
+      if (mapping.targetField && row[index] !== undefined && row[index] !== null && row[index] !== '') {
+        const value = String(row[index]).trim();
+        const fieldConfig = FIELD_MAPPINGS[mapping.targetField as keyof typeof FIELD_MAPPINGS];
+        
+        if (fieldConfig) {
+          convertedRow[mapping.targetField] = convertValue(value, fieldConfig.dataType);
+        }
+      }
+    });
+    
+    return convertedRow;
+  });
+
+  // Analisar cada linha para diagnóstico
+  const validData: any[] = [];
+  
+  convertedData.forEach((row, index) => {
+    const originalRow: Record<string, any> = {};
+    mappings.forEach((mapping, mapIndex) => {
+      if (mapping.sourceColumn) {
+        originalRow[mapping.sourceColumn] = data[index][mapIndex];
+      }
+    });
+
+    // Caso 1: Sem mapeamento de nome
+    if (nomeColumnIndex === -1) {
+      diagnostics.rejectedByReason.noNameMapped++;
+      diagnostics.rejectedRows.push({
+        rowIndex: row._originalRowIndex,
+        reason: 'Campo "nome" não mapeado',
+        originalData: originalRow
+      });
+      return;
+    }
+
+    // Caso 2: Nome vazio ou undefined
+    if (!row.nome || String(row.nome).trim() === '') {
+      diagnostics.rejectedByReason.emptyName++;
+      diagnostics.rejectedRows.push({
+        rowIndex: row._originalRowIndex,
+        reason: 'Nome vazio ou não preenchido',
+        originalData: originalRow
+      });
+      diagnostics.totalEmpty++;
+      return;
+    }
+
+    // Caso 3: Nome muito curto
+    if (String(row.nome).trim().length < 2) {
+      diagnostics.rejectedByReason.shortName++;
+      diagnostics.rejectedRows.push({
+        rowIndex: row._originalRowIndex,
+        reason: 'Nome muito curto (menos de 2 caracteres)',
+        originalData: originalRow
+      });
+      return;
+    }
+
+    // Registro válido
+    diagnostics.totalWithName++;
+    validData.push(row);
+  });
+
+  return { convertedData: validData, diagnostics };
 }
 
 function convertValue(value: string, dataType: string): any {
