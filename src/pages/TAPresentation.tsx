@@ -530,7 +530,7 @@ export default function TAPresentation() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-700/40 via-gray-600/30 to-gray-500/20" />
 
-        <div className="relative z-10 h-screen flex items-center justify-center p-3">
+        <div className="relative z-10 h-screen flex items-center justify-center p-3 pb-20">
           <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Card 1 - Informações do Lead */}
             <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
@@ -720,22 +720,23 @@ export default function TAPresentation() {
             </div>
           </div>
 
-          {/* Botão Pausar - canto inferior esquerdo */}
-          <div className="absolute bottom-4 left-4">
-            <button
-              onClick={() => navigate('/dashboard/ta')}
-              className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
-            >
-              <Pause className="h-4 w-4" />
-              Pausar
-            </button>
-          </div>
+        </div>
 
-          {/* Progress indicator - centro inferior */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-            <div className="text-[#A9A9A9] text-sm">
-              Lead {currentLeadIndex + 1} de {leads.length}
-            </div>
+        {/* Botão Pausar - fixo no canto inferior esquerdo */}
+        <div className="fixed bottom-4 left-4 z-50">
+          <button
+            onClick={() => navigate('/dashboard/ta')}
+            className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+          >
+            <Pause className="h-4 w-4" />
+            Pausar
+          </button>
+        </div>
+
+        {/* Progress indicator - fixo no centro inferior */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="text-[#A9A9A9] text-sm">
+            Lead {currentLeadIndex + 1} de {leads.length}
           </div>
         </div>
       </div>
