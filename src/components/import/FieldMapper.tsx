@@ -4,9 +4,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, HelpCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, HelpCircle, Check } from "lucide-react";
 import { ImportedData, FieldMapping } from "@/pages/ImportLeads";
-import { FIELD_MAPPINGS, validateImportedData } from "@/lib/importUtils";
+import { FIELD_MAPPINGS, FIELD_CATEGORIES, validateImportedData, shouldIgnoreColumn } from "@/lib/importUtils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FieldMapperProps {
   data: ImportedData;
@@ -36,9 +37,9 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 0.8) return "bg-green-100 text-green-800";
-    if (confidence >= 0.6) return "bg-yellow-100 text-yellow-800";
-    return "bg-red-100 text-red-800";
+    if (confidence >= 0.8) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+    if (confidence >= 0.6) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
   };
 
   const getConfidenceText = (confidence: number) => {
@@ -48,10 +49,24 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
     return "Nenhuma";
   };
 
-  const getAvailableFields = () => {
+  // Retorna todos os campos agrupados por categoria
+  const getFieldsByCategory = () => {
     const usedFields = mappings.filter(m => m.targetField).map(m => m.targetField);
-    return Object.keys(FIELD_MAPPINGS).filter(field => !usedFields.includes(field));
+    const result: Record<string, { field: string; isUsed: boolean; description: string; required: boolean }[]> = {};
+    
+    Object.entries(FIELD_CATEGORIES).forEach(([category, fields]) => {
+      result[category] = fields.map(field => ({
+        field,
+        isUsed: usedFields.includes(field),
+        description: FIELD_MAPPINGS[field]?.description || field,
+        required: FIELD_MAPPINGS[field]?.required || false
+      }));
+    });
+    
+    return result;
   };
+
+  const isColumnIgnored = (sourceColumn: string) => shouldIgnoreColumn(sourceColumn);
 
   const canProceed = validation.errors.length === 0;
 
@@ -92,14 +107,14 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
         </Alert>
       )}
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Coluna da Planilha</TableHead>
-              <TableHead>Exemplos</TableHead>
-              <TableHead>Campo de Destino</TableHead>
-              <TableHead>Confiança</TableHead>
+              <TableHead className="w-[200px]">Coluna da Planilha</TableHead>
+              <TableHead className="w-[200px]">Exemplos</TableHead>
+              <TableHead className="w-[250px]">Campo de Destino</TableHead>
+              <TableHead className="w-[100px]">Confiança</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,14 +125,32 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
                 .filter(value => value !== null && value !== undefined && value !== '')
                 .slice(0, 2);
 
-              const availableFields = [...getAvailableFields(), mapping.targetField].filter(Boolean);
+              const fieldsByCategory = getFieldsByCategory();
+              const isIgnored = isColumnIgnored(mapping.sourceColumn);
 
               return (
-                <TableRow key={index}>
+                <TableRow 
+                  key={index} 
+                  className={isIgnored && !mapping.targetField ? "opacity-50 bg-muted/30" : ""}
+                >
                   <TableCell className="font-medium">
-                    {mapping.sourceColumn}
+                    <div className="flex items-center gap-2">
+                      {mapping.sourceColumn}
+                      {isIgnored && !mapping.targetField && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="secondary" className="text-xs">Auto-ignorado</Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Campo identificado como metadata do sistema</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                     {examples.length > 0 ? examples.join(', ') : 'Sem dados'}
                   </TableCell>
                   <TableCell>
@@ -125,22 +158,40 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
                       value={mapping.targetField || "__none__"}
                       onValueChange={(value) => handleMappingChange(index, value)}
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-background">
                         <SelectValue placeholder="Selecionar campo..." />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Não mapear</SelectItem>
-                        {availableFields.map((field) => {
-                          const fieldConfig = FIELD_MAPPINGS[field as keyof typeof FIELD_MAPPINGS];
-                          return (
-                            <SelectItem key={field} value={field}>
-                              {field}
-                              {fieldConfig?.required && (
-                                <span className="text-red-500 ml-1">*</span>
-                              )}
-                            </SelectItem>
-                          );
-                        })}
+                      <SelectContent className="max-h-[300px] bg-background z-50">
+                        <SelectItem value="__none__">
+                          <span className="text-muted-foreground">Não mapear</span>
+                        </SelectItem>
+                        
+                        {Object.entries(fieldsByCategory).map(([category, fields]) => (
+                          <div key={category}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                              {category}
+                            </div>
+                            {fields.map(({ field, isUsed, description, required }) => (
+                              <SelectItem 
+                                key={field} 
+                                value={field}
+                                className="flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isUsed && mapping.targetField !== field && (
+                                    <Check className="w-3 h-3 text-muted-foreground" />
+                                  )}
+                                  <span className={isUsed && mapping.targetField !== field ? "text-muted-foreground" : ""}>
+                                    {field}
+                                  </span>
+                                  {required && (
+                                    <span className="text-destructive">*</span>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </div>
+                        ))}
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -158,8 +209,9 @@ export function FieldMapper({ data, initialMappings, onMappingConfirmed, onBack 
         </Table>
       </div>
 
-      <div className="text-sm text-muted-foreground">
-        <p><span className="text-red-500">*</span> Campos obrigatórios</p>
+      <div className="text-sm text-muted-foreground space-y-1">
+        <p><span className="text-destructive">*</span> Campos obrigatórios</p>
+        <p><Check className="w-3 h-3 inline text-muted-foreground" /> Campo já mapeado em outra coluna (pode reutilizar se necessário)</p>
         <p>Total de registros a serem importados: <strong>{data.rows.length}</strong></p>
       </div>
 

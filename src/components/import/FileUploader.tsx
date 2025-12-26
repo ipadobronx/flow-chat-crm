@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Download } from "lucide-react";
 import { ImportedData, FieldMapping } from "@/pages/ImportLeads";
-import { generateFieldMappings } from "@/lib/importUtils";
+import { generateFieldMappings, generateTemplateData, FIELD_MAPPINGS } from "@/lib/importUtils";
 
 interface FileUploaderProps {
   onFileUploaded: (data: ImportedData, mappings: FieldMapping[]) => void;
@@ -18,6 +18,53 @@ export function FileUploader({ onFileUploaded }: FileUploaderProps) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const downloadTemplate = useCallback(() => {
+    const { headers, examples } = generateTemplateData();
+    
+    // Criar workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Dados principais
+    const wsData = [headers, ...examples];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    // Ajustar largura das colunas
+    const colWidths = headers.map((h, i) => {
+      const maxLen = Math.max(
+        h.length,
+        ...examples.map(row => String(row[i] || '').length)
+      );
+      return { wch: Math.min(maxLen + 2, 30) };
+    });
+    ws['!cols'] = colWidths;
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Leads");
+    
+    // Criar planilha de instruções
+    const instructionsData = [
+      ['Campo', 'Descrição', 'Obrigatório', 'Tipo de Dado', 'Exemplo'],
+      ...Object.entries(FIELD_MAPPINGS).map(([field, config]) => [
+        field,
+        config.description,
+        config.required ? 'Sim' : 'Não',
+        config.dataType,
+        config.synonyms[0]
+      ])
+    ];
+    const wsInstructions = XLSX.utils.aoa_to_sheet(instructionsData);
+    wsInstructions['!cols'] = [
+      { wch: 20 },
+      { wch: 35 },
+      { wch: 12 },
+      { wch: 12 },
+      { wch: 20 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsInstructions, "Instruções");
+    
+    // Download
+    XLSX.writeFile(wb, "modelo_importacao_leads.xlsx");
+  }, []);
 
   const processFile = useCallback(async (file: File) => {
     setIsProcessing(true);
@@ -58,8 +105,8 @@ export function FileUploader({ onFileUploaded }: FileUploaderProps) {
       
       const importedData: ImportedData = { headers, rows: filteredRows };
       
-      // Gerar mapeamentos automaticamente
-      const mappings = generateFieldMappings(headers);
+      // Gerar mapeamentos automaticamente com sample data
+      const mappings = generateFieldMappings(headers, filteredRows.slice(0, 10));
       
       setProgress(100);
       setSuccess(`Arquivo processado com sucesso! ${filteredRows.length} registros encontrados.`);
@@ -93,6 +140,18 @@ export function FileUploader({ onFileUploaded }: FileUploaderProps) {
 
   return (
     <div className="space-y-4">
+      {/* Botão de download do modelo */}
+      <div className="flex justify-end">
+        <Button 
+          variant="outline" 
+          onClick={downloadTemplate}
+          className="gap-2"
+        >
+          <Download className="w-4 h-4" />
+          Baixar Planilha Modelo
+        </Button>
+      </div>
+
       <Card 
         {...getRootProps()} 
         className={`p-8 border-2 border-dashed cursor-pointer transition-colors
@@ -169,10 +228,12 @@ export function FileUploader({ onFileUploaded }: FileUploaderProps) {
       <div className="text-sm text-muted-foreground space-y-2">
         <p><strong>Dicas para melhor importação:</strong></p>
         <ul className="list-disc pl-5 space-y-1">
+          <li>Use a <strong>planilha modelo</strong> para garantir compatibilidade</li>
           <li>Use nomes de colunas claros (ex: "Nome", "Telefone", "Email")</li>
           <li>Mantenha dados consistentes em cada coluna</li>
           <li>Evite células mescladas e formatação complexa</li>
           <li>A primeira linha deve conter os cabeçalhos das colunas</li>
+          <li>Campos como "Criado Por", "_RowNumber" serão ignorados automaticamente</li>
         </ul>
       </div>
     </div>
