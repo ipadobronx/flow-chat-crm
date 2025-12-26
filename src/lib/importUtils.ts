@@ -590,7 +590,9 @@ export function mapEtapaToEnum(etapa: string): string {
     'pendência de uw': 'Pendência de UW',
     'placed': 'Placed',
     'proposta nao apresentada': 'Proposta Não Apresentada',
-    'proposta não apresentada': 'Proposta Não Apresentada'
+    'proposta não apresentada': 'Proposta Não Apresentada',
+    'persistencia': 'Persistência',
+    'persistência': 'Persistência'
   };
   
   return etapaMap[etapaNormalizada] || 'Novo';

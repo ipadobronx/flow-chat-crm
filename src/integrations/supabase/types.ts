@@ -1236,7 +1236,7 @@ export type Database = {
         | "Todos"
         | "Novo"
         | "TA"
-        | "Não atendido"
+        | "Não Atendido"
         | "OI"
         | "Delay OI"
         | "PC"
@@ -1388,7 +1388,7 @@ export const Constants = {
         "Todos",
         "Novo",
         "TA",
-        "Não atendido",
+        "Não Atendido",
         "OI",
         "Delay OI",
         "PC",
