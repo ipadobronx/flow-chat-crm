@@ -66,10 +66,14 @@ function SortableSitPlanLeadItem({
     },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || "transform 150ms ease",
+    transition: isDragging 
+      ? 'none' // Sem delay durante o arraste para resposta imediata
+      : 'transform 200ms cubic-bezier(0.25, 1, 0.5, 1)', // Animação suave ao soltar
     cursor: isDragging ? "grabbing" : "grab",
+    touchAction: 'manipulation', // Previne comportamentos indesejados do navegador
+    willChange: isDragging ? 'transform' : 'auto',
   };
 
   return (
@@ -77,9 +81,13 @@ function SortableSitPlanLeadItem({
       ref={setNodeRef}
       style={style}
       {...(isSelectionMode ? {} : { ...attributes, ...listeners })}
-      className={`flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md hover:bg-white/15 transition-all duration-150 ${
-        isDragging ? "opacity-70 shadow-md scale-[0.98]" : "hover:shadow-sm"
-      } ${isSelected ? "ring-2 ring-blue-500 bg-blue-100/20" : ""}`}
+      className={cn(
+        "flex items-center justify-between p-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md transition-all select-none",
+        isDragging 
+          ? "opacity-90 shadow-2xl scale-[1.02] ring-2 ring-primary/50 z-50" 
+          : "hover:bg-white/15 hover:shadow-sm",
+        isSelected && "ring-2 ring-blue-500 bg-blue-100/20"
+      )}
     >
       <div className="flex items-center gap-3 flex-1">
         {isSelectionMode && (
