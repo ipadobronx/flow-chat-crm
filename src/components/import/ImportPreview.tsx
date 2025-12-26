@@ -3,13 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Upload, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Upload, CheckCircle, AlertCircle, Eye, EyeOff, FileWarning } from "lucide-react";
 import { ImportedData, FieldMapping } from "@/pages/ImportLeads";
-import { convertImportedData, determineEtapaFinal } from "@/lib/importUtils";
+import { convertImportedDataWithDiagnostics, determineEtapaFinal, ImportDiagnostics } from "@/lib/importUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { sanitizeText, validateLeadName, validatePhoneNumber, validateEmail } from "@/lib/validation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Função para normalizar profissões - espelha a lógica do banco
 const normalizarProfissao = (profissao: string): string => {
@@ -65,10 +68,13 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
     success: number;
     errors: string[];
   } | null>(null);
+  const [showRejected, setShowRejected] = useState(false);
   const { user } = useAuth();
 
-  const previewData = useMemo(() => {
-    return convertImportedData(data.rows, mappings);
+  // Usar a nova função com diagnósticos
+  const { previewData, diagnostics } = useMemo(() => {
+    const result = convertImportedDataWithDiagnostics(data.rows, mappings);
+    return { previewData: result.convertedData, diagnostics: result.diagnostics };
   }, [data.rows, mappings]);
 
   const validatedData = useMemo(() => {
@@ -125,7 +131,7 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
 
       return {
         ...row,
-        _rowIndex: index + 1,
+        _rowIndex: row._originalRowIndex || index + 1,
         _errors: errors,
         _warnings: warnings,
         _isValid: errors.length === 0
@@ -272,6 +278,10 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
     );
   }
 
+  // Calcular total de registros rejeitados
+  const totalRejected = diagnostics.rejectedRows.length;
+  const hasRejectedRows = totalRejected > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -283,20 +293,120 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{validRecords.length}</div>
-          <div className="text-sm text-green-700">Registros válidos</div>
+      {/* Cards de estatísticas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{diagnostics.totalOriginal}</div>
+          <div className="text-sm text-blue-700 dark:text-blue-300">Total na planilha</div>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">{invalidRecords.length}</div>
-          <div className="text-sm text-red-700">Registros com erro</div>
+        <div className="bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">{validRecords.length}</div>
+          <div className="text-sm text-green-700 dark:text-green-300">Prontos para importar</div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{data.rows.length}</div>
-          <div className="text-sm text-blue-700">Total de registros</div>
+        <div className="bg-amber-50 dark:bg-amber-950/30 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{invalidRecords.length}</div>
+          <div className="text-sm text-amber-700 dark:text-amber-300">Com erros de validação</div>
+        </div>
+        <div className="bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-800">
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalRejected}</div>
+          <div className="text-sm text-red-700 dark:text-red-300">Rejeitados (sem nome)</div>
         </div>
       </div>
+
+      {/* Alerta de diagnóstico detalhado */}
+      {hasRejectedRows && (
+        <Alert variant="destructive" className="bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800">
+          <FileWarning className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">
+                {totalRejected} registros foram rejeitados antes da validação:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                {diagnostics.rejectedByReason.noNameMapped > 0 && (
+                  <li>
+                    <strong>{diagnostics.rejectedByReason.noNameMapped}</strong> - Campo "nome" não foi mapeado
+                  </li>
+                )}
+                {diagnostics.rejectedByReason.emptyName > 0 && (
+                  <li>
+                    <strong>{diagnostics.rejectedByReason.emptyName}</strong> - Nome vazio ou não preenchido
+                  </li>
+                )}
+                {diagnostics.rejectedByReason.shortName > 0 && (
+                  <li>
+                    <strong>{diagnostics.rejectedByReason.shortName}</strong> - Nome muito curto (menos de 2 caracteres)
+                  </li>
+                )}
+              </ul>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRejected(!showRejected)}
+                className="mt-2"
+              >
+                {showRejected ? (
+                  <>
+                    <EyeOff className="w-4 h-4 mr-2" />
+                    Ocultar rejeitados
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver registros rejeitados
+                  </>
+                )}
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Tabela de registros rejeitados */}
+      {showRejected && hasRejectedRows && (
+        <div className="border rounded-lg border-red-200 dark:border-red-800">
+          <div className="bg-red-50 dark:bg-red-950/50 p-3 border-b border-red-200 dark:border-red-800">
+            <h4 className="font-medium text-red-800 dark:text-red-300">
+              Registros Rejeitados ({totalRejected})
+            </h4>
+          </div>
+          <ScrollArea className="max-h-60">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-20">Linha</TableHead>
+                  <TableHead>Motivo</TableHead>
+                  <TableHead>Dados Originais</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {diagnostics.rejectedRows.slice(0, 50).map((rejected, index) => (
+                  <TableRow key={index} className="bg-red-50/50 dark:bg-red-950/20">
+                    <TableCell className="font-mono text-sm">{rejected.rowIndex}</TableCell>
+                    <TableCell>
+                      <Badge variant="destructive" className="text-xs">
+                        {rejected.reason}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-md truncate">
+                      {Object.entries(rejected.originalData)
+                        .filter(([_, v]) => v)
+                        .slice(0, 4)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(' | ')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+          {totalRejected > 50 && (
+            <div className="p-2 text-center text-sm text-muted-foreground border-t border-red-200 dark:border-red-800">
+              Mostrando 50 de {totalRejected} registros rejeitados
+            </div>
+          )}
+        </div>
+      )}
 
       {isImporting && (
         <div className="space-y-2">
@@ -307,44 +417,82 @@ export function ImportPreview({ data, mappings, onImportComplete, onBack }: Impo
         </div>
       )}
 
-      <div className="border rounded-lg max-h-96 overflow-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Linha</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Recomendante</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {validatedData.slice(0, 100).map((row, index) => (
-              <TableRow key={index} className={!row._isValid ? "bg-red-50" : ""}>
-                <TableCell>{row._rowIndex}</TableCell>
-                <TableCell>{row.nome || "-"}</TableCell>
-                <TableCell>{row.telefone || "-"}</TableCell>
-                <TableCell>{row.email || "-"}</TableCell>
-                <TableCell>{row.recomendante || "-"}</TableCell>
-                <TableCell>
-                  {row._isValid ? (
-                    <span className="text-green-600 text-sm">✓ Válido</span>
-                  ) : (
-                    <span className="text-red-600 text-sm">
-                      ✗ {row._errors?.[0] || "Erro"}
-                    </span>
-                  )}
-                </TableCell>
+      {/* Tabs para válidos e inválidos */}
+      <Tabs defaultValue="valid" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="valid" className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Válidos ({validRecords.length})
+          </TabsTrigger>
+          <TabsTrigger value="invalid" className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Com Erros ({invalidRecords.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="valid" className="border rounded-lg max-h-96 overflow-auto mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Linha</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Recomendante</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {validRecords.slice(0, 100).map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell>{row._rowIndex}</TableCell>
+                  <TableCell>{row.nome || "-"}</TableCell>
+                  <TableCell>{row.telefone || "-"}</TableCell>
+                  <TableCell>{row.email || "-"}</TableCell>
+                  <TableCell>{row.recomendante || "-"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TabsContent>
+
+        <TabsContent value="invalid" className="border rounded-lg max-h-96 overflow-auto mt-4">
+          {invalidRecords.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
+              <p>Nenhum registro com erro de validação!</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Linha</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Erro</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {invalidRecords.slice(0, 100).map((row, index) => (
+                  <TableRow key={index} className="bg-red-50 dark:bg-red-950/20">
+                    <TableCell>{row._rowIndex}</TableCell>
+                    <TableCell>{row.nome || "-"}</TableCell>
+                    <TableCell>{row.telefone || "-"}</TableCell>
+                    <TableCell>
+                      <span className="text-red-600 dark:text-red-400 text-sm">
+                        {row._errors?.join(', ') || "Erro"}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {validatedData.length > 100 && (
         <p className="text-sm text-muted-foreground text-center">
-          Mostrando apenas os primeiros 100 registros. Todos os registros válidos serão importados.
+          Mostrando apenas os primeiros 100 registros de cada categoria.
         </p>
       )}
 
