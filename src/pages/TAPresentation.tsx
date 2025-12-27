@@ -556,9 +556,9 @@ export default function TAPresentation() {
                     <p className="text-white/90">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
-                  <div>
-                    <span className="text-white/70 font-medium text-xs">Etapa Anterior</span>
-                    <Badge className={`text-white text-xs ${getEtapaColor(currentLead.etapa_antes_ta || currentLead.etapa)}`}>
+                  <div className="overflow-hidden">
+                    <span className="text-white/70 font-medium text-xs block">Etapa Anterior</span>
+                    <Badge className={`text-white text-xs truncate max-w-full block ${getEtapaColor(currentLead.etapa_antes_ta || currentLead.etapa)}`}>
                       {currentLead.etapa_antes_ta || currentLead.etapa}
                     </Badge>
                   </div>
@@ -670,7 +670,7 @@ export default function TAPresentation() {
                           <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9 text-xs">
                             <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
-                          <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px]">
+                          <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px] z-[100]">
                             {[
                               "05:00", "05:30", "06:00", "06:30", "07:00", "07:30",
                               "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
