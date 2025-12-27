@@ -224,14 +224,9 @@ export default function TACategories() {
       return acc;
     }, {} as Record<string, Lead[]>);
 
-  // Agrupar leads por profissão (inclui leads sem exclusividade e exclusivos de profissão)
+  // Agrupar leads por profissão (mostra todos os leads com profissão definida)
   const leadsByProfissao = leads
-    .filter(lead => {
-      // Deve ter profissão definida
-      if (!lead.profissao || lead.profissao.trim() === '') return false;
-      // Incluir se não tem exclusividade OU se a exclusividade é para profissão
-      return !lead.ta_exclusividade || lead.ta_categoria_ativa === 'profissao';
-    })
+    .filter(lead => lead.profissao && lead.profissao.trim() !== '')
     .reduce((acc, lead) => {
       const profissao = lead.profissao!;
       if (!acc[profissao]) {
