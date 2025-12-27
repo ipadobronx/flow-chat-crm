@@ -15,10 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useTAActions, TAActionType } from "@/hooks/useTAActions";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
+import { useIsTablet } from "@/hooks/use-tablet";
 import { Play, Save, ArrowLeft, CalendarIcon, Pause, MessageCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
 const getEtapaColor = (etapa: string) => {
   switch (etapa) {
     case "Todos": return "bg-blue-500";
@@ -51,6 +51,7 @@ type PresentationStage = 'initial' | 'transition' | 'countdown' | 'presenting' |
 export default function TAPresentation() {
   const navigate = useNavigate();
   const googleCalendar = useGoogleCalendar();
+  const { isTablet, isTouchDevice } = useIsTablet();
   const [searchParams] = useSearchParams();
   const filterEtapa = searchParams.get('etapa');
   const filterProfissao = searchParams.get('profissao');
@@ -450,22 +451,22 @@ export default function TAPresentation() {
         {/* Particle background */}
         <ParticleTextEffect words={['SEJA BEM-VINDO', 'O SEU TA', 'COMEÇA AGORA']} />
         
-        <div className="min-h-screen flex flex-col items-center justify-center relative z-10">
+        <div className="min-h-screen flex flex-col items-center justify-center relative z-10 px-4 md:px-6">
           {leads.length > 0 ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={isPreviewMode ? undefined : () => navigate('/dashboard/ta')}
-                className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                className="h-12 px-5 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2 text-base"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
                 Voltar
               </button>
               <button
                 onClick={isPreviewMode ? undefined : startPresentation}
-                className="bg-[#d4ff4a] text-black rounded-full p-3 hover:bg-[#c9f035] transition-colors shadow-2xl"
+                className="bg-[#d4ff4a] text-black rounded-full p-4 hover:bg-[#c9f035] transition-colors shadow-2xl"
                 title="Iniciar Apresentação"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                   <path d="M8 5V19L19 12L8 5Z" fill="currentColor"/>
                 </svg>
               </button>
@@ -476,9 +477,9 @@ export default function TAPresentation() {
               <p className="text-sm text-[#A9A9A9]">Use o botão "Editar" no SitPlan para selecionar leads.</p>
               <button
                 onClick={() => navigate('/dashboard/ta')}
-                className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+                className="h-12 px-5 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2 text-base"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
                 Voltar
               </button>
             </div>
@@ -530,98 +531,98 @@ export default function TAPresentation() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-700/40 via-gray-600/30 to-gray-500/20" />
 
-        <div className="relative z-10 h-screen flex items-center justify-center p-3 pb-20">
-          <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="relative z-10 h-screen flex items-center justify-center p-4 md:p-6 pb-24 md:pb-28">
+          <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-h-[calc(100vh-120px)] md:max-h-[calc(100vh-140px)] overflow-y-auto">
             {/* Card 1 - Informações do Lead */}
-            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
-              <div className="p-4 h-full">
+            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl overflow-visible">
+              <div className="p-4 md:p-5 h-full">
                 {/* Header com nome e botão WhatsApp */}
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-2xl font-bold text-white">{currentLead.nome}</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl md:text-2xl font-bold text-white">{currentLead.nome}</h2>
                   
-                  {/* Botão WhatsApp */}
+                  {/* Botão WhatsApp - Maior para touch */}
                   <button
                     onClick={() => handleWhatsApp(currentLead.telefone)}
                     disabled={!currentLead.telefone}
-                    className="bg-[#d4ff4a] text-black rounded-full p-2.5 hover:bg-[#c9f035] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    className="bg-[#d4ff4a] text-black rounded-full p-3 hover:bg-[#c9f035] transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                     title="Abrir WhatsApp"
                   >
-                    <MessageCircle className="w-5 h-5" strokeWidth={2} />
+                    <MessageCircle className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2} />
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-x-3 gap-y-2 text-sm">
+                <div className="grid grid-cols-3 gap-x-3 md:gap-x-4 gap-y-3 text-sm md:text-base">
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Cidade</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Cidade</span>
                     <p className="text-white/90">{currentLead.cidade || 'N/A'}</p>
                   </div>
                   
                   <div className="overflow-hidden">
-                    <span className="text-white/70 font-medium text-xs block">Etapa Anterior</span>
-                    <Badge className={`text-white text-xs truncate max-w-full block ${getEtapaColor(currentLead.etapa_antes_ta || currentLead.etapa)}`}>
+                    <span className="text-white/70 font-medium text-xs md:text-sm block">Etapa Anterior</span>
+                    <Badge className={`text-white text-xs md:text-sm truncate max-w-full block ${getEtapaColor(currentLead.etapa_antes_ta || currentLead.etapa)}`}>
                       {currentLead.etapa_antes_ta || currentLead.etapa}
                     </Badge>
                   </div>
 
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Telefone</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Telefone</span>
                     <p className="text-white/90">{currentLead.telefone || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Profissão</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Profissão</span>
                     <p className="text-white/90">{currentLead.profissao || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Casado</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Casado</span>
                     <p className="text-white/90">{currentLead.casado ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Filhos</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Filhos</span>
                     <p className="text-white/90">{currentLead.tem_filhos ? 'Sim' : 'Não'}</p>
                   </div>
 
                   <div className="col-span-2">
-                    <span className="text-white/70 font-medium text-xs">Recomendante</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Recomendante</span>
                     <p className="text-white/90 truncate">{currentLead.recomendante || 'N/A'}</p>
                   </div>
 
                   <div>
-                    <span className="text-white/70 font-medium text-xs">Email</span>
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Email</span>
                     <p className="text-white/90 truncate">{currentLead.email || 'N/A'}</p>
                   </div>
                 </div>
 
                 {currentLead.observacoes && (
-                  <div className="mt-3 pt-2 border-t border-white/10">
-                    <span className="text-white/70 font-medium text-xs">Observações</span>
-                    <p className="text-white/90 text-xs mt-1 line-clamp-2">{currentLead.observacoes}</p>
+                  <div className="mt-4 pt-3 border-t border-white/10">
+                    <span className="text-white/70 font-medium text-xs md:text-sm">Observações</span>
+                    <p className="text-white/90 text-xs md:text-sm mt-1 line-clamp-3">{currentLead.observacoes}</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Card 2 - Ações */}
-            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl">
-              <div className="p-4 h-full flex flex-col">
-                <h3 className="text-lg font-bold text-white mb-3">Ações do TA</h3>
+            <div className="rounded-2xl border border-border/30 bg-border/10 backdrop-blur-md shadow-xl overflow-visible">
+              <div className="p-4 md:p-5 h-full flex flex-col">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-4">Ações do TA</h3>
                 
-                <div className="space-y-3 flex-1">
+                <div className="space-y-4 flex-1">
                   {/* Seletor de Etapa */}
                   <div>
-                    <Label className="text-white/70 font-medium text-xs">Nova Etapa</Label>
+                    <Label className="text-white/70 font-medium text-xs md:text-sm">Nova Etapa</Label>
                     <Select value={selectedEtapa} onValueChange={setSelectedEtapa}>
-                      <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9">
+                      <SelectTrigger className="mt-1.5 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-11 md:h-12 text-sm md:text-base">
                         <SelectValue placeholder="Selecione a etapa" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl">
+                      <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl z-[150]">
                         {etapasOptions.map((etapa) => (
                           <SelectItem 
                             key={etapa} 
                             value={etapa}
-                            className="text-white/90 focus:bg-white/10 focus:text-white"
+                            className="text-white/90 focus:bg-white/10 focus:text-white py-3 text-sm md:text-base"
                           >
                             {etapa}
                           </SelectItem>
@@ -632,20 +633,20 @@ export default function TAPresentation() {
 
                   {/* Campo de Observações */}
                   <div>
-                    <Label className="text-white/70 font-medium text-xs">Observações</Label>
+                    <Label className="text-white/70 font-medium text-xs md:text-sm">Observações</Label>
                     <LiquidGlassTextarea
                       value={observacoes}
                       onChange={(e) => setObservacoes(e.target.value)}
                       placeholder="Notas sobre este contato..."
-                      className="mt-1 text-white placeholder-white/50 min-h-[60px] text-sm"
+                      className="mt-1.5 text-white placeholder-white/50 min-h-[70px] md:min-h-[80px] text-sm md:text-base"
                     />
                   </div>
 
                   {/* Agendamento para Ligar Depois e OI */}
                   {(selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
                       <div>
-                        <Label className="text-white/70 font-medium text-xs">
+                        <Label className="text-white/70 font-medium text-xs md:text-sm">
                           {selectedEtapa === "OI" ? "Data *" : "Data *"}
                         </Label>
                         <LiquidGlassInput
@@ -660,17 +661,17 @@ export default function TAPresentation() {
                             }
                           }}
                           min={format(new Date(), "yyyy-MM-dd")}
-                          className="w-full mt-1 h-9 text-white placeholder:text-white/70"
+                          className="w-full mt-1.5 h-11 md:h-12 text-white placeholder:text-white/70 text-sm md:text-base"
                         />
                       </div>
                       
                       <div>
-                        <Label className="text-white/70 font-medium text-xs">Horário *</Label>
+                        <Label className="text-white/70 font-medium text-xs md:text-sm">Horário *</Label>
                         <Select value={agendamentoTime} onValueChange={setAgendamentoTime}>
-                          <SelectTrigger className="mt-1 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-9 text-xs">
+                          <SelectTrigger className="mt-1.5 rounded-2xl border border-border/40 bg-border/10 backdrop-blur-md text-white h-11 md:h-12 text-sm md:text-base">
                             <SelectValue placeholder="Selecione" />
                           </SelectTrigger>
-                          <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[200px] z-[100]">
+                          <SelectContent className="rounded-2xl border border-white/20 bg-[#1a1a1a]/95 backdrop-blur-xl shadow-2xl max-h-[250px] z-[150]">
                             {[
                               "05:00", "05:30", "06:00", "06:30", "07:00", "07:30",
                               "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
@@ -687,7 +688,7 @@ export default function TAPresentation() {
                                   value={time}
                                   disabled={isOcupado}
                                   className={cn(
-                                    "text-white/90 focus:bg-white/10 focus:text-white",
+                                    "text-white/90 focus:bg-white/10 focus:text-white py-3 text-sm md:text-base",
                                     isOcupado && "text-white/40 cursor-not-allowed"
                                   )}
                                 >
@@ -702,7 +703,7 @@ export default function TAPresentation() {
                   )}
                 </div>
 
-                {/* Botão de Salvar */}
+                {/* Botão de Salvar - Maior para touch */}
                 <button
                   onClick={saveAndNext}
                   disabled={
@@ -710,9 +711,9 @@ export default function TAPresentation() {
                     ((selectedEtapa === "Ligar Depois" || selectedEtapa === "OI") && (!agendamentoDate || !agendamentoTime))
                   }
                   aria-label="Salvar e próximo"
-                  className="h-10 w-10 mt-4 rounded-full bg-[#d4ff4a] text-black hover:bg-[#c9f035] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xl mx-auto flex items-center justify-center"
+                  className="h-12 w-12 md:h-14 md:w-14 mt-5 rounded-full bg-[#d4ff4a] text-black hover:bg-[#c9f035] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-xl mx-auto flex items-center justify-center"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none">
                     <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2"/>
                   </svg>
                 </button>
@@ -722,20 +723,20 @@ export default function TAPresentation() {
 
         </div>
 
-        {/* Botão Pausar - fixo no canto inferior esquerdo */}
-        <div className="fixed bottom-4 left-4 z-50">
+        {/* Botão Pausar - fixo no canto inferior esquerdo com safe area para iPad */}
+        <div className="fixed bottom-6 left-6 md:bottom-8 md:left-8 z-50">
           <button
             onClick={() => navigate('/dashboard/ta')}
-            className="h-10 px-4 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2"
+            className="h-12 px-5 rounded-full border border-white/40 text-white bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2 text-base shadow-lg"
           >
-            <Pause className="h-4 w-4" />
+            <Pause className="h-5 w-5" />
             Pausar
           </button>
         </div>
 
         {/* Progress indicator - fixo no centro inferior */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="text-[#A9A9A9] text-sm">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 md:bottom-8">
+          <div className="text-[#A9A9A9] text-sm md:text-base bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
             Lead {currentLeadIndex + 1} de {leads.length}
           </div>
         </div>
