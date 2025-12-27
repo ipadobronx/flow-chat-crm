@@ -224,11 +224,11 @@ export default function TACategories() {
       return acc;
     }, {} as Record<string, Lead[]>);
 
-  // Agrupar leads por profissão (inclui leads sem exclusividade e exclusivos de profissão)
+  // Agrupar leads por profissão (mostra todos os leads com profissão definida)
   const leadsByProfissao = leads
-    .filter(lead => !lead.ta_exclusividade || lead.ta_categoria_ativa === 'profissao')
+    .filter(lead => lead.profissao && lead.profissao.trim() !== '')
     .reduce((acc, lead) => {
-      const profissao = lead.profissao || "Sem Profissão";
+      const profissao = lead.profissao!;
       if (!acc[profissao]) {
         acc[profissao] = [];
       }
