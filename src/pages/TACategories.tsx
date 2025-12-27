@@ -561,7 +561,9 @@ export default function TACategories() {
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       {confirmDialog.conflitos.slice(0, 5).map((lead) => (
                         <li key={lead.id} className="text-sm">
-                          {lead.nome} - será removido de "{confirmDialog.tipo === 'profissao' ? lead.etapa : lead.profissao}"
+                          {lead.nome} - será removido de "{confirmDialog.tipo === 'profissao' 
+                            ? ((lead.etapa === 'TA' && lead.etapa_antes_ta) ? lead.etapa_antes_ta : lead.etapa) 
+                            : lead.profissao}"
                         </li>
                       ))}
                       {confirmDialog.conflitos.length > 5 && (
